@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.adempiere.base.IColumnCallout">
+      <callout
+            class="org.idempiere.component.PluginCallout"
+            columnName="DateOrdered"
+            tableName="C_Order">
+      </callout>
+   </extension>
+<extension id="org.my.process.GenerateLocators"
+  point="org.adempiere.base.Process">
+	<process
+		class="org.my.process.GenerateLocators">
+	</process>
+</extension>
+<extension id="org.my.process.GenerateEmptyStorage"
+  point="org.adempiere.base.Process">
+	<process
+		class="org.my.process.GenerateEmptyStorage">
+	</process>
+</extension>
+<extension id="org.my.process.PutawayToLocators"
+  point="org.adempiere.base.Process">
+	<process
+		class="org.my.process.PutawayToLocators">
+	</process>
+</extension>
+<extension id="org.my.process.CreateDeliverySchedule"
+  point="org.adempiere.base.Process">
+	<process
+		class="org.my.process.CreateDeliverySchedule">
+	</process>
+</extension>
+<extension id="org.my.process.SetTypes"
+  point="org.adempiere.base.Process">
+	<process
+		class="org.my.process.SetTypes">
+	</process>
+</extension>
+</plugin>

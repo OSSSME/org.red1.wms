@@ -39,4 +39,10 @@
 		class="org.my.process.SetTypes">
 	</process>
 </extension>
+<extension id="org.my.process.SetLocatorPreferred"
+  point="org.adempiere.base.Process">
+	<process
+		class="org.my.process.SetLocatorPreferred">
+	</process>
+</extension>
 </plugin>

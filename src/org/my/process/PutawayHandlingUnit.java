@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import org.compiere.util.DB;
 import org.adempiere.exceptions.AdempiereException;
-import org.compiere.model.MSequence;
+import org.compiere.model.MSequence;import org.my.model.MWM_HandlingUnit;import org.my.model.MWM_HandlingUnitHistory;
 import org.my.model.MWM_InOutLine;
 import org.compiere.process.SvrProcess;
 
@@ -27,20 +27,17 @@ import org.compiere.process.SvrProcess;
 			}
 		}
 	}
-	protected String doIt() {
+	protected String doIt() {		if (WM_HandlingUnit_ID<1)			throw new AdempiereException("Must Select Starting Handling Unit");			
 		String whereClause = "EXISTS (SELECT T_Selection_ID FROM T_Selection WHERE T_Selection.AD_PInstance_ID=? AND T_Selection.T_Selection_ID=WM_InOutLine.WM_InOutLine_ID)";
 
 		List<MWM_InOutLine> lines = new Query(Env.getCtx(),MWM_InOutLine.Table_Name,whereClause,get_TrxName())
 		.setParameters(getAD_PInstance_ID()).list();
-
+		int handunit = WM_HandlingUnit_ID;		//check handling unit not assigned.		MWM_HandlingUnit hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "+		MWM_HandlingUnit.COLUMNNAME_M_Locator_ID+"<1",get_TrxName())				.setParameters(WM_HandlingUnit_ID)				.first();		if (hu==null)			throw new AdempiereException("Handling Unit Already Assigned");				//check if same handling unit or running number		List<MWM_HandlingUnit> handunits = null;		if (!IsSameDistribution){//running				handunits = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "					+MWM_HandlingUnit.COLUMNNAME_M_Locator_ID+"<1",get_TrxName())					.setParameters(WM_HandlingUnit_ID)					.setOrderBy(MWM_HandlingUnit.COLUMNNAME_Name)					.list();				if (handunits!=null)					handunit=0;		}		int unitserial = 0;
 		for (MWM_InOutLine line:lines){
-			int a = line.get_ID();
-
-			log.info("Selected line ID = "+a);
-
+			unitserial++; 			if (line.getM_Locator_ID()<1)				continue;						if (IsSameDistribution && handunit>0){				line.setWM_HandlingUnit_ID(handunit);				line.saveEx(get_TrxName());			}			else {				handunit = handunits.get(unitserial).getWM_HandlingUnit_ID();				line.setWM_HandlingUnit_ID(handunit);				line.saveEx(get_TrxName());			} 
 	}
 
-	return "RESULT: "+lines.toString();
+	return "RESULT: "+unitserial;
 
 	}
 }

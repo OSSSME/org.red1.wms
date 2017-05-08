@@ -1,1 +1,1 @@
-Service-Component: OSGI-INF/WM_HandlingUnitHistoryDocEvent.xml,OSGI-INF/WM_HandlingUnitHistoryModelFactory.xml
+Service-Component: OSGI-INF/WM_StorageTypeDocEvent.xml,OSGI-INF/WM_StorageTypeModelFactory.xml

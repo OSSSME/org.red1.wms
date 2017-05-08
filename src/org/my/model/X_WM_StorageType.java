@@ -30,7 +30,7 @@ public class X_WM_StorageType extends PO implements I_WM_StorageType, I_Persiste
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170422L;
+	private static final long serialVersionUID = 20170508L;
 
     /** Standard Constructor */
     public X_WM_StorageType (Properties ctx, int WM_StorageType_ID, String trxName)
@@ -172,6 +172,45 @@ public class X_WM_StorageType extends PO implements I_WM_StorageType, I_Persiste
 	public int getWM_StorageType_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_WM_StorageType_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** Set WM_StorageType_UU.
+		@param WM_StorageType_UU WM_StorageType_UU	  */
+	public void setWM_StorageType_UU (String WM_StorageType_UU)
+	{
+		set_Value (COLUMNNAME_WM_StorageType_UU, WM_StorageType_UU);
+	}
+
+	/** Get WM_StorageType_UU.
+		@return WM_StorageType_UU	  */
+	public String getWM_StorageType_UU () 
+	{
+		return (String)get_Value(COLUMNNAME_WM_StorageType_UU);
+	}
+
+	public I_WM_Type getWM_Type() throws RuntimeException
+    {
+		return (I_WM_Type)MTable.get(getCtx(), I_WM_Type.Table_Name)
+			.getPO(getWM_Type_ID(), get_TrxName());	}
+
+	/** Set Type.
+		@param WM_Type_ID Type	  */
+	public void setWM_Type_ID (int WM_Type_ID)
+	{
+		if (WM_Type_ID < 1) 
+			set_Value (COLUMNNAME_WM_Type_ID, null);
+		else 
+			set_Value (COLUMNNAME_WM_Type_ID, Integer.valueOf(WM_Type_ID));
+	}
+
+	/** Get Type.
+		@return Type	  */
+	public int getWM_Type_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_WM_Type_ID);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();

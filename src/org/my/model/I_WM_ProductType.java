@@ -32,7 +32,7 @@ public interface I_WM_ProductType
     /** TableName=WM_ProductType */
     public static final String Table_Name = "WM_ProductType";
 
-    /** AD_Table_ID=1000018 */
+    /** AD_Table_ID=1000007 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -46,37 +46,51 @@ public interface I_WM_ProductType
     /** Column name AD_Client_ID */
     public static final String COLUMNNAME_AD_Client_ID = "AD_Client_ID";
 
-	/** Get Client	  */
+	/** Get Client.
+	  * Client/Tenant for this installation.
+	  */
 	public int getAD_Client_ID();
 
     /** Column name AD_Org_ID */
     public static final String COLUMNNAME_AD_Org_ID = "AD_Org_ID";
 
-	/** Set Organization	  */
+	/** Set Organization.
+	  * Organizational entity within client
+	  */
 	public void setAD_Org_ID (int AD_Org_ID);
 
-	/** Get Organization	  */
+	/** Get Organization.
+	  * Organizational entity within client
+	  */
 	public int getAD_Org_ID();
 
     /** Column name Created */
     public static final String COLUMNNAME_Created = "Created";
 
-	/** Get Created	  */
+	/** Get Created.
+	  * Date this record was created
+	  */
 	public Timestamp getCreated();
 
     /** Column name CreatedBy */
     public static final String COLUMNNAME_CreatedBy = "CreatedBy";
 
-	/** Get Created By	  */
+	/** Get Created By.
+	  * User who created this records
+	  */
 	public int getCreatedBy();
 
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
 
-	/** Set Active	  */
+	/** Set Active.
+	  * The record is active in the system
+	  */
 	public void setIsActive (boolean IsActive);
 
-	/** Get Active	  */
+	/** Get Active.
+	  * The record is active in the system
+	  */
 	public boolean isActive();
 
     /** Column name M_Product_ID */
@@ -119,13 +133,17 @@ public interface I_WM_ProductType
     /** Column name Updated */
     public static final String COLUMNNAME_Updated = "Updated";
 
-	/** Get Updated	  */
+	/** Get Updated.
+	  * Date this record was updated
+	  */
 	public Timestamp getUpdated();
 
     /** Column name UpdatedBy */
     public static final String COLUMNNAME_UpdatedBy = "UpdatedBy";
 
-	/** Get Updated By	  */
+	/** Get Updated By.
+	  * User who updated this records
+	  */
 	public int getUpdatedBy();
 
     /** Column name WM_ProductType_ID */
@@ -136,4 +154,24 @@ public interface I_WM_ProductType
 
 	/** Get ProductType	  */
 	public int getWM_ProductType_ID();
+
+    /** Column name WM_ProductType_UU */
+    public static final String COLUMNNAME_WM_ProductType_UU = "WM_ProductType_UU";
+
+	/** Set WM_ProductType_UU	  */
+	public void setWM_ProductType_UU (String WM_ProductType_UU);
+
+	/** Get WM_ProductType_UU	  */
+	public String getWM_ProductType_UU();
+
+    /** Column name WM_Type_ID */
+    public static final String COLUMNNAME_WM_Type_ID = "WM_Type_ID";
+
+	/** Set Type	  */
+	public void setWM_Type_ID (int WM_Type_ID);
+
+	/** Get Type	  */
+	public int getWM_Type_ID();
+
+	public I_WM_Type getWM_Type() throws RuntimeException;
 }

@@ -30,7 +30,7 @@ public class X_WM_ProductType extends PO implements I_WM_ProductType, I_Persiste
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170422L;
+	private static final long serialVersionUID = 20170509L;
 
     /** Standard Constructor */
     public X_WM_ProductType (Properties ctx, int WM_ProductType_ID, String trxName)
@@ -144,6 +144,45 @@ public class X_WM_ProductType extends PO implements I_WM_ProductType, I_Persiste
 	public int getWM_ProductType_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_WM_ProductType_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** Set WM_ProductType_UU.
+		@param WM_ProductType_UU WM_ProductType_UU	  */
+	public void setWM_ProductType_UU (String WM_ProductType_UU)
+	{
+		set_Value (COLUMNNAME_WM_ProductType_UU, WM_ProductType_UU);
+	}
+
+	/** Get WM_ProductType_UU.
+		@return WM_ProductType_UU	  */
+	public String getWM_ProductType_UU () 
+	{
+		return (String)get_Value(COLUMNNAME_WM_ProductType_UU);
+	}
+
+	public I_WM_Type getWM_Type() throws RuntimeException
+    {
+		return (I_WM_Type)MTable.get(getCtx(), I_WM_Type.Table_Name)
+			.getPO(getWM_Type_ID(), get_TrxName());	}
+
+	/** Set Type.
+		@param WM_Type_ID Type	  */
+	public void setWM_Type_ID (int WM_Type_ID)
+	{
+		if (WM_Type_ID < 1) 
+			set_Value (COLUMNNAME_WM_Type_ID, null);
+		else 
+			set_Value (COLUMNNAME_WM_Type_ID, Integer.valueOf(WM_Type_ID));
+	}
+
+	/** Get Type.
+		@return Type	  */
+	public int getWM_Type_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_WM_Type_ID);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();

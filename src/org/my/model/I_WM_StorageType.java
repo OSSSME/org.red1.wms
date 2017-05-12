@@ -32,7 +32,7 @@ public interface I_WM_StorageType
     /** TableName=WM_StorageType */
     public static final String Table_Name = "WM_StorageType";
 
-    /** AD_Table_ID=1000012 */
+    /** AD_Table_ID=1000003 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -135,6 +135,19 @@ public interface I_WM_StorageType
 	  * Alphanumeric identifier of the entity
 	  */
 	public String getName();
+
+    /** Column name Priority */
+    public static final String COLUMNNAME_Priority = "Priority";
+
+	/** Set Priority.
+	  * Indicates if this request is of a high, medium or low priority.
+	  */
+	public void setPriority (int Priority);
+
+	/** Get Priority.
+	  * Indicates if this request is of a high, medium or low priority.
+	  */
+	public int getPriority();
 
     /** Column name TypeString */
     public static final String COLUMNNAME_TypeString = "TypeString";

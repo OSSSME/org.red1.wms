@@ -121,6 +121,19 @@ public interface I_WM_ProductType
 	  */
 	public String getName();
 
+    /** Column name Priority */
+    public static final String COLUMNNAME_Priority = "Priority";
+
+	/** Set Priority.
+	  * Indicates if this request is of a high, medium or low priority.
+	  */
+	public void setPriority (int Priority);
+
+	/** Get Priority.
+	  * Indicates if this request is of a high, medium or low priority.
+	  */
+	public int getPriority();
+
     /** Column name TypeString */
     public static final String COLUMNNAME_TypeString = "TypeString";
 

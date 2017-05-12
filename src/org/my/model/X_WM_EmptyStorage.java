@@ -32,7 +32,7 @@ public class X_WM_EmptyStorage extends PO implements I_WM_EmptyStorage, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170422L;
+	private static final long serialVersionUID = 20170511L;
 
     /** Standard Constructor */
     public X_WM_EmptyStorage (Properties ctx, int WM_EmptyStorage_ID, String trxName)
@@ -71,6 +71,23 @@ public class X_WM_EmptyStorage extends PO implements I_WM_EmptyStorage, I_Persis
         .append(get_ID()).append("]");
       return sb.toString();
     }
+
+	/** Set AvailableCapacity.
+		@param AvailableCapacity AvailableCapacity	  */
+	public void setAvailableCapacity (BigDecimal AvailableCapacity)
+	{
+		set_Value (COLUMNNAME_AvailableCapacity, AvailableCapacity);
+	}
+
+	/** Get AvailableCapacity.
+		@return AvailableCapacity	  */
+	public BigDecimal getAvailableCapacity () 
+	{
+		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_AvailableCapacity);
+		if (bd == null)
+			 return Env.ZERO;
+		return bd;
+	}
 
 	/** Set IsFull.
 		@param IsFull IsFull	  */
@@ -156,5 +173,19 @@ public class X_WM_EmptyStorage extends PO implements I_WM_EmptyStorage, I_Persis
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	/** Set WM_EmptyStorage_UU.
+		@param WM_EmptyStorage_UU WM_EmptyStorage_UU	  */
+	public void setWM_EmptyStorage_UU (String WM_EmptyStorage_UU)
+	{
+		set_Value (COLUMNNAME_WM_EmptyStorage_UU, WM_EmptyStorage_UU);
+	}
+
+	/** Get WM_EmptyStorage_UU.
+		@return WM_EmptyStorage_UU	  */
+	public String getWM_EmptyStorage_UU () 
+	{
+		return (String)get_Value(COLUMNNAME_WM_EmptyStorage_UU);
 	}
 }

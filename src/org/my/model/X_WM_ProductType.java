@@ -30,7 +30,7 @@ public class X_WM_ProductType extends PO implements I_WM_ProductType, I_Persiste
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170509L;
+	private static final long serialVersionUID = 20170510L;
 
     /** Standard Constructor */
     public X_WM_ProductType (Properties ctx, int WM_ProductType_ID, String trxName)
@@ -113,6 +113,26 @@ public class X_WM_ProductType extends PO implements I_WM_ProductType, I_Persiste
 	public String getName () 
 	{
 		return (String)get_Value(COLUMNNAME_Name);
+	}
+
+	/** Set Priority.
+		@param Priority 
+		Indicates if this request is of a high, medium or low priority.
+	  */
+	public void setPriority (int Priority)
+	{
+		set_Value (COLUMNNAME_Priority, Integer.valueOf(Priority));
+	}
+
+	/** Get Priority.
+		@return Indicates if this request is of a high, medium or low priority.
+	  */
+	public int getPriority () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_Priority);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
 	}
 
 	/** Set TypeString.

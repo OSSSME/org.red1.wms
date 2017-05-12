@@ -3,20 +3,20 @@
 import java.util.List;
 import org.compiere.model.Query;
 import org.compiere.util.Env;
-import java.sql.SQLException;
+import java.sql.SQLException;import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import org.compiere.util.DB;
-import org.adempiere.exceptions.AdempiereException;
+import org.adempiere.exceptions.AdempiereException;import org.compiere.model.MProduct;
 import org.compiere.model.MSequence;
-import org.my.model.MWM_DeliveryScheduleLine;
+import org.my.model.MWM_DeliveryScheduleLine;import org.my.model.MWM_EmptyStorage;import org.my.model.MWM_EmptyStorageLine;import org.my.model.MWM_InOut;import org.my.model.MWM_InOutLine;import org.my.model.MWM_PreferredProduct;import org.my.model.MWM_ProductType;import org.my.model.MWM_StorageType;
 import org.compiere.process.SvrProcess;
 
-	public class CreatePutawayList extends SvrProcess {
+	public class CreatePutawayList extends SvrProcess {	private int M_Warehouse_ID = 0;
 	private int WM_HandlingUnit_ID = 0;
 	private boolean IsSameDistribution = false;
-	private String X = "";
-	private String Y = "";
-	private String Z = "";
+	private String X = "0";
+	private String Y = "0";
+	private String Z = "0";
 	protected void prepare() {
 		ProcessInfoParameter[] para = getParameter();
 			for (ProcessInfoParameter p:para) {
@@ -24,7 +24,7 @@ import org.compiere.process.SvrProcess;
 				if (p.getParameter() == null)					;
 				else if(name.equals("WM_HandlingUnit_ID")){
 					WM_HandlingUnit_ID = p.getParameterAsInt();
-			}
+			}								else if(name.equals("M_Warehouse_ID")){				M_Warehouse_ID = p.getParameterAsInt();			}
 				else if(name.equals("IsSameDistribution")){
 					IsSameDistribution = "Y".equals(p.getParameter());
 			}
@@ -44,15 +44,12 @@ import org.compiere.process.SvrProcess;
 
 		List<MWM_DeliveryScheduleLine> lines = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,whereClause,get_TrxName())
 		.setParameters(getAD_PInstance_ID()).list();
-
+		MWM_InOut inout = new MWM_InOut(Env.getCtx(),0,get_TrxName());		inout.setWM_DeliverySchedule_ID(lines.get(0).getWM_DeliverySchedule_ID());		inout.setName(lines.get(0).getWM_DeliverySchedule().getName());		inout.saveEx(get_TrxName());		
 		for (MWM_DeliveryScheduleLine line:lines){
 			int a = line.get_ID();
-
-			log.info("Selected line ID = "+a);
-
-	}
+			MWM_InOutLine inoutline = new MWM_InOutLine(Env.getCtx(),0,get_TrxName());			inoutline.setWM_InOut_ID(inout.get_ID());			inoutline.setC_UOM_ID(line.getC_UOM_ID());			inoutline.setC_OrderLine_ID(line.getC_OrderLine_ID());			inoutline.setM_Product_ID(line.getM_Product_ID());			inoutline.saveEx(get_TrxName());			//if Handling Unit is set, then assign while creating WM_InOuts. EmptyLocators also assigned. Can be cleared and reassigned in next Info-Window			if (WM_HandlingUnit_ID<1)				continue;						//get Product from InOut Bound line			MProduct product = (MProduct) line.getM_Product();						//check if defined in PreferredProduct...			List<MWM_PreferredProduct> preferreds = new Query(Env.getCtx(),MWM_PreferredProduct.Table_Name,MWM_PreferredProduct.COLUMNNAME_M_Product_ID+"=?" ,get_TrxName())					.setParameters(product.get_ID())					.setOrderBy(MWM_PreferredProduct.COLUMNNAME_M_Locator_ID)					.list();			if (preferreds!=null){				for (MWM_PreferredProduct preferred:preferreds){					if (M_Warehouse_ID>0){						if (preferred.getM_Locator().getM_Warehouse_ID()!=M_Warehouse_ID)							continue;						if (preferred.getM_Locator().getX().compareTo(X)>0 || preferred.getM_Locator().getY().compareTo(Y)>0 ||preferred.getM_Locator().getZ().compareTo(Z)>0)							continue;					} 					//get first EmptyStorage					int locator_id = preferred.getM_Locator_ID();					int putaway = getSuitableEmptyStorage(inoutline,locator_id,product);						if (putaway>0){						setPutawayLocator(inoutline,putaway);						break;					} 				}			} 						//get ProductType = StorageType			MWM_ProductType prodtype = new Query(Env.getCtx(),MWM_ProductType.Table_Name,MWM_ProductType.COLUMNNAME_M_Product_ID+"=?",get_TrxName())					.setParameters(product.get_ID())					.first();			 	if (prodtype!=null){			 		String prodtypestring = prodtype.getTypeString();					if (prodtypestring==null || prodtypestring.isEmpty())						throw new AdempiereException("RUN Set Type String for faster processing");										List<MWM_StorageType> stortypes= new Query(Env.getCtx(),MWM_StorageType.Table_Name,MWM_StorageType.COLUMNNAME_TypeString+"=? AND "+(M_Warehouse_ID>0?MWM_StorageType.COLUMNNAME_M_Warehouse_ID+"=?":""),get_TrxName())							.setParameters(prodtypestring,M_Warehouse_ID>0?M_Warehouse_ID:"")							.setOrderBy("Created")							.list();									for (MWM_StorageType stortype:stortypes){						if (stortype!=null){							int located = getSuitableEmptyStorage(inoutline, stortype.getM_Locator_ID(), product);							if (located>0){								setPutawayLocator(inoutline,located);								break;							}						}						}			 	}				 	 			//get non reserved empty storage			List<MWM_EmptyStorage> empties = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_IsFull+"=?",get_TrxName())				.setParameters(false)				.list();							if (empties==null)				throw new AdempiereException("NO MORE EMPTY STORAGE");						for (MWM_EmptyStorage empty:empties){				if (empty.getM_Locator().getX().compareTo(X)>0 || empty.getM_Locator().getY().compareTo(Y)>0  || empty.getM_Locator().getZ().compareTo(Z)>0 )						continue;				int located = getSuitableEmptyStorage(inoutline, empty.getM_Locator_ID(), product);				if (located>0){					setPutawayLocator(inoutline,located);					break;				}			}		}
 
 	return "RESULT: "+lines.toString();
 
-	}
+	}		private void setPutawayLocator(MWM_InOutLine line, int putaway) { 		line.setM_Locator_ID(putaway);		line.saveEx(get_TrxName());	}	private int getSuitableEmptyStorage(MWM_InOutLine line,int locator_id, MProduct product){		MWM_EmptyStorage empty = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_IsFull+"=? AND "				+MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",get_TrxName())				.setParameters('N',locator_id).first();		if (empty==null)			return 0;		//found an empty. Now measure dimensions to fit Quant, or next  		BigDecimal vacantcapacity = empty.getVacantCapacity(); 		if (vacantcapacity==null) 			throw new AdempiereException("Bin Vacant Capacity not set"); 		vacantcapacity = vacantcapacity.subtract(new BigDecimal(line.getQtyPicked())); 		if (vacantcapacity.compareTo(Env.ZERO)>0) 			addEmptyStorageLine(line, empty); 		else return 0;		 		empty.setVacantCapacity(vacantcapacity); 		 		if (vacantcapacity.compareTo(Env.ZERO)==0){ 			//EmptyStorage is full 			empty.setIsFull(true); 			empty.saveEx(get_TrxName()); 		} 				return locator_id;				}		private void addEmptyStorageLine(MWM_InOutLine line, MWM_EmptyStorage empty) {		MWM_EmptyStorageLine newemptyline = new MWM_EmptyStorageLine(Env.getCtx(),0,get_TrxName());		newemptyline.setWM_EmptyStorage_ID(empty.get_ID());		newemptyline.setQtyMovement(line.getQtyPicked());		newemptyline.setWM_InOutLine_ID(line.get_ID());		newemptyline.setM_Product_ID(line.getM_Product_ID());		newemptyline.saveEx(get_TrxName());	}
 }

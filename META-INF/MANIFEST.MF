@@ -21,8 +21,7 @@ Bundle-Version: 4.1.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: org.adempiere.base;bundle-version="2.1.0",
  org.adempiere.plugin.utils;bundle-version="2.1.0"
-Service-Component: OSGI-INF/*.xml,
- OSGI-INF/ProductInfo.xml
+Service-Component: OSGI-INF/*.xml
 Import-Package: org.adempiere.webui.factory,
  org.adempiere.webui.info,
  org.adempiere.webui.panel,

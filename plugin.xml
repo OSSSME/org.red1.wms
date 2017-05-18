@@ -55,4 +55,10 @@
 		class="org.my.process.SetProductPackFactor">
 	</process>
 </extension>
+<extension id="org.my.process.ReportPutawayPickingList"
+  point="org.adempiere.base.Process">
+	<process
+		class="org.my.process.ReportPutawayPickingList">
+	</process>
+</extension>
 </plugin>

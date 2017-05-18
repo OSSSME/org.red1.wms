@@ -17,9 +17,11 @@
 /** Generated Model - DO NOT CHANGE */
 package org.my.model;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.util.Properties;
 import org.compiere.model.*;
+import org.compiere.util.Env;
 
 /** Generated Model for WM_InOut
  *  @author iDempiere (generated) 
@@ -30,7 +32,7 @@ public class X_WM_InOut extends PO implements I_WM_InOut, I_Persistent
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170422L;
+	private static final long serialVersionUID = 20170517L;
 
     /** Standard Constructor */
     public X_WM_InOut (Properties ctx, int WM_InOut_ID, String trxName)
@@ -324,6 +326,23 @@ public class X_WM_InOut extends PO implements I_WM_InOut, I_Persistent
 		return false;
 	}
 
+	/** Set Sequence.
+		@param Sequence Sequence	  */
+	public void setSequence (BigDecimal Sequence)
+	{
+		set_Value (COLUMNNAME_Sequence, Sequence);
+	}
+
+	/** Get Sequence.
+		@return Sequence	  */
+	public BigDecimal getSequence () 
+	{
+		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_Sequence);
+		if (bd == null)
+			 return Env.ZERO;
+		return bd;
+	}
+
 	public I_WM_DeliverySchedule getWM_DeliverySchedule() throws RuntimeException
     {
 		return (I_WM_DeliverySchedule)MTable.get(getCtx(), I_WM_DeliverySchedule.Table_Name)
@@ -392,6 +411,20 @@ public class X_WM_InOut extends PO implements I_WM_InOut, I_Persistent
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	/** Set WM_InOut_UU.
+		@param WM_InOut_UU WM_InOut_UU	  */
+	public void setWM_InOut_UU (String WM_InOut_UU)
+	{
+		set_Value (COLUMNNAME_WM_InOut_UU, WM_InOut_UU);
+	}
+
+	/** Get WM_InOut_UU.
+		@return WM_InOut_UU	  */
+	public String getWM_InOut_UU () 
+	{
+		return (String)get_Value(COLUMNNAME_WM_InOut_UU);
 	}
 
 	public I_WM_RouteLocation getWM_RouteLocation() throws RuntimeException

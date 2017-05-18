@@ -32,7 +32,7 @@ public interface I_WM_EmptyStorageLine
     /** TableName=WM_EmptyStorageLine */
     public static final String Table_Name = "WM_EmptyStorageLine";
 
-    /** AD_Table_ID=1000017 */
+    /** AD_Table_ID=1000006 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -46,16 +46,22 @@ public interface I_WM_EmptyStorageLine
     /** Column name AD_Client_ID */
     public static final String COLUMNNAME_AD_Client_ID = "AD_Client_ID";
 
-	/** Get Client	  */
+	/** Get Client.
+	  * Client/Tenant for this installation.
+	  */
 	public int getAD_Client_ID();
 
     /** Column name AD_Org_ID */
     public static final String COLUMNNAME_AD_Org_ID = "AD_Org_ID";
 
-	/** Set Organization	  */
+	/** Set Organization.
+	  * Organizational entity within client
+	  */
 	public void setAD_Org_ID (int AD_Org_ID);
 
-	/** Get Organization	  */
+	/** Get Organization.
+	  * Organizational entity within client
+	  */
 	public int getAD_Org_ID();
 
     /** Column name C_UOM_ID */
@@ -76,22 +82,30 @@ public interface I_WM_EmptyStorageLine
     /** Column name Created */
     public static final String COLUMNNAME_Created = "Created";
 
-	/** Get Created	  */
+	/** Get Created.
+	  * Date this record was created
+	  */
 	public Timestamp getCreated();
 
     /** Column name CreatedBy */
     public static final String COLUMNNAME_CreatedBy = "CreatedBy";
 
-	/** Get Created By	  */
+	/** Get Created By.
+	  * User who created this records
+	  */
 	public int getCreatedBy();
 
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
 
-	/** Set Active	  */
+	/** Set Active.
+	  * The record is active in the system
+	  */
 	public void setIsActive (boolean IsActive);
 
-	/** Get Active	  */
+	/** Get Active.
+	  * The record is active in the system
+	  */
 	public boolean isActive();
 
     /** Column name M_Product_ID */
@@ -113,21 +127,25 @@ public interface I_WM_EmptyStorageLine
     public static final String COLUMNNAME_QtyMovement = "QtyMovement";
 
 	/** Set QtyMovement	  */
-	public void setQtyMovement (String QtyMovement);
+	public void setQtyMovement (BigDecimal QtyMovement);
 
 	/** Get QtyMovement	  */
-	public String getQtyMovement();
+	public BigDecimal getQtyMovement();
 
     /** Column name Updated */
     public static final String COLUMNNAME_Updated = "Updated";
 
-	/** Get Updated	  */
+	/** Get Updated.
+	  * Date this record was updated
+	  */
 	public Timestamp getUpdated();
 
     /** Column name UpdatedBy */
     public static final String COLUMNNAME_UpdatedBy = "UpdatedBy";
 
-	/** Get Updated By	  */
+	/** Get Updated By.
+	  * User who updated this records
+	  */
 	public int getUpdatedBy();
 
     /** Column name WM_EmptyStorageLine_ID */
@@ -138,6 +156,15 @@ public interface I_WM_EmptyStorageLine
 
 	/** Get EmptyStorageLine	  */
 	public int getWM_EmptyStorageLine_ID();
+
+    /** Column name WM_EmptyStorageLine_UU */
+    public static final String COLUMNNAME_WM_EmptyStorageLine_UU = "WM_EmptyStorageLine_UU";
+
+	/** Set WM_EmptyStorageLine_UU	  */
+	public void setWM_EmptyStorageLine_UU (String WM_EmptyStorageLine_UU);
+
+	/** Get WM_EmptyStorageLine_UU	  */
+	public String getWM_EmptyStorageLine_UU();
 
     /** Column name WM_EmptyStorage_ID */
     public static final String COLUMNNAME_WM_EmptyStorage_ID = "WM_EmptyStorage_ID";

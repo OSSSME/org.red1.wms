@@ -32,7 +32,7 @@ public interface I_WM_InOutLine
     /** TableName=WM_InOutLine */
     public static final String Table_Name = "WM_InOutLine";
 
-    /** AD_Table_ID=1000022 */
+    /** AD_Table_ID=1000015 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -46,16 +46,22 @@ public interface I_WM_InOutLine
     /** Column name AD_Client_ID */
     public static final String COLUMNNAME_AD_Client_ID = "AD_Client_ID";
 
-	/** Get Client	  */
+	/** Get Client.
+	  * Client/Tenant for this installation.
+	  */
 	public int getAD_Client_ID();
 
     /** Column name AD_Org_ID */
     public static final String COLUMNNAME_AD_Org_ID = "AD_Org_ID";
 
-	/** Set Organization	  */
+	/** Set Organization.
+	  * Organizational entity within client
+	  */
 	public void setAD_Org_ID (int AD_Org_ID);
 
-	/** Get Organization	  */
+	/** Get Organization.
+	  * Organizational entity within client
+	  */
 	public int getAD_Org_ID();
 
     /** Column name C_OrderLine_ID */
@@ -91,22 +97,30 @@ public interface I_WM_InOutLine
     /** Column name Created */
     public static final String COLUMNNAME_Created = "Created";
 
-	/** Get Created	  */
+	/** Get Created.
+	  * Date this record was created
+	  */
 	public Timestamp getCreated();
 
     /** Column name CreatedBy */
     public static final String COLUMNNAME_CreatedBy = "CreatedBy";
 
-	/** Get Created By	  */
+	/** Get Created By.
+	  * User who created this records
+	  */
 	public int getCreatedBy();
 
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
 
-	/** Set Active	  */
+	/** Set Active.
+	  * The record is active in the system
+	  */
 	public void setIsActive (boolean IsActive);
 
-	/** Get Active	  */
+	/** Get Active.
+	  * The record is active in the system
+	  */
 	public boolean isActive();
 
     /** Column name IsPacked */
@@ -167,22 +181,46 @@ public interface I_WM_InOutLine
     public static final String COLUMNNAME_QtyPicked = "QtyPicked";
 
 	/** Set QtyPicked	  */
-	public void setQtyPicked (String QtyPicked);
+	public void setQtyPicked (BigDecimal QtyPicked);
 
 	/** Get QtyPicked	  */
-	public String getQtyPicked();
+	public BigDecimal getQtyPicked();
+
+    /** Column name Sequence */
+    public static final String COLUMNNAME_Sequence = "Sequence";
+
+	/** Set Sequence	  */
+	public void setSequence (BigDecimal Sequence);
+
+	/** Get Sequence	  */
+	public BigDecimal getSequence();
 
     /** Column name Updated */
     public static final String COLUMNNAME_Updated = "Updated";
 
-	/** Get Updated	  */
+	/** Get Updated.
+	  * Date this record was updated
+	  */
 	public Timestamp getUpdated();
 
     /** Column name UpdatedBy */
     public static final String COLUMNNAME_UpdatedBy = "UpdatedBy";
 
-	/** Get Updated By	  */
+	/** Get Updated By.
+	  * User who updated this records
+	  */
 	public int getUpdatedBy();
+
+    /** Column name WM_DeliveryScheduleLine_ID */
+    public static final String COLUMNNAME_WM_DeliveryScheduleLine_ID = "WM_DeliveryScheduleLine_ID";
+
+	/** Set DeliveryScheduleLine	  */
+	public void setWM_DeliveryScheduleLine_ID (int WM_DeliveryScheduleLine_ID);
+
+	/** Get DeliveryScheduleLine	  */
+	public int getWM_DeliveryScheduleLine_ID();
+
+	public I_WM_DeliveryScheduleLine getWM_DeliveryScheduleLine() throws RuntimeException;
 
     /** Column name WM_HandlingUnit_ID */
     public static final String COLUMNNAME_WM_HandlingUnit_ID = "WM_HandlingUnit_ID";
@@ -203,6 +241,15 @@ public interface I_WM_InOutLine
 
 	/** Get WM_InOutLine_ID	  */
 	public int getWM_InOutLine_ID();
+
+    /** Column name WM_InOutLine_UU */
+    public static final String COLUMNNAME_WM_InOutLine_UU = "WM_InOutLine_UU";
+
+	/** Set WM_InOutLine_UU	  */
+	public void setWM_InOutLine_UU (String WM_InOutLine_UU);
+
+	/** Get WM_InOutLine_UU	  */
+	public String getWM_InOutLine_UU();
 
     /** Column name WM_InOut_ID */
     public static final String COLUMNNAME_WM_InOut_ID = "WM_InOut_ID";

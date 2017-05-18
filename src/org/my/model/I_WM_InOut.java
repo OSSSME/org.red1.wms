@@ -32,7 +32,7 @@ public interface I_WM_InOut
     /** TableName=WM_InOut */
     public static final String Table_Name = "WM_InOut";
 
-    /** AD_Table_ID=1000021 */
+    /** AD_Table_ID=1000014 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -46,16 +46,22 @@ public interface I_WM_InOut
     /** Column name AD_Client_ID */
     public static final String COLUMNNAME_AD_Client_ID = "AD_Client_ID";
 
-	/** Get Client	  */
+	/** Get Client.
+	  * Client/Tenant for this installation.
+	  */
 	public int getAD_Client_ID();
 
     /** Column name AD_Org_ID */
     public static final String COLUMNNAME_AD_Org_ID = "AD_Org_ID";
 
-	/** Set Organization	  */
+	/** Set Organization.
+	  * Organizational entity within client
+	  */
 	public void setAD_Org_ID (int AD_Org_ID);
 
-	/** Get Organization	  */
+	/** Get Organization.
+	  * Organizational entity within client
+	  */
 	public int getAD_Org_ID();
 
     /** Column name AD_User_ID */
@@ -91,13 +97,17 @@ public interface I_WM_InOut
     /** Column name Created */
     public static final String COLUMNNAME_Created = "Created";
 
-	/** Get Created	  */
+	/** Get Created.
+	  * Date this record was created
+	  */
 	public Timestamp getCreated();
 
     /** Column name CreatedBy */
     public static final String COLUMNNAME_CreatedBy = "CreatedBy";
 
-	/** Get Created By	  */
+	/** Get Created By.
+	  * User who created this records
+	  */
 	public int getCreatedBy();
 
     /** Column name DocAction */
@@ -142,10 +152,14 @@ public interface I_WM_InOut
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
 
-	/** Set Active	  */
+	/** Set Active.
+	  * The record is active in the system
+	  */
 	public void setIsActive (boolean IsActive);
 
-	/** Get Active	  */
+	/** Get Active.
+	  * The record is active in the system
+	  */
 	public boolean isActive();
 
     /** Column name IsApproved */
@@ -200,16 +214,29 @@ public interface I_WM_InOut
 	  */
 	public boolean isProcessed();
 
+    /** Column name Sequence */
+    public static final String COLUMNNAME_Sequence = "Sequence";
+
+	/** Set Sequence	  */
+	public void setSequence (BigDecimal Sequence);
+
+	/** Get Sequence	  */
+	public BigDecimal getSequence();
+
     /** Column name Updated */
     public static final String COLUMNNAME_Updated = "Updated";
 
-	/** Get Updated	  */
+	/** Get Updated.
+	  * Date this record was updated
+	  */
 	public Timestamp getUpdated();
 
     /** Column name UpdatedBy */
     public static final String COLUMNNAME_UpdatedBy = "UpdatedBy";
 
-	/** Get Updated By	  */
+	/** Get Updated By.
+	  * User who updated this records
+	  */
 	public int getUpdatedBy();
 
     /** Column name WM_DeliverySchedule_ID */
@@ -242,6 +269,15 @@ public interface I_WM_InOut
 
 	/** Get InOut	  */
 	public int getWM_InOut_ID();
+
+    /** Column name WM_InOut_UU */
+    public static final String COLUMNNAME_WM_InOut_UU = "WM_InOut_UU";
+
+	/** Set WM_InOut_UU	  */
+	public void setWM_InOut_UU (String WM_InOut_UU);
+
+	/** Get WM_InOut_UU	  */
+	public String getWM_InOut_UU();
 
     /** Column name WM_RouteLocation_ID */
     public static final String COLUMNNAME_WM_RouteLocation_ID = "WM_RouteLocation_ID";

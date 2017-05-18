@@ -17,9 +17,11 @@
 /** Generated Model - DO NOT CHANGE */
 package org.my.model;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.util.Properties;
 import org.compiere.model.*;
+import org.compiere.util.Env;
 
 /** Generated Model for WM_EmptyStorageLine
  *  @author iDempiere (generated) 
@@ -30,7 +32,7 @@ public class X_WM_EmptyStorageLine extends PO implements I_WM_EmptyStorageLine, 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170422L;
+	private static final long serialVersionUID = 20170512L;
 
     /** Standard Constructor */
     public X_WM_EmptyStorageLine (Properties ctx, int WM_EmptyStorageLine_ID, String trxName)
@@ -128,16 +130,19 @@ public class X_WM_EmptyStorageLine extends PO implements I_WM_EmptyStorageLine, 
 
 	/** Set QtyMovement.
 		@param QtyMovement QtyMovement	  */
-	public void setQtyMovement (String QtyMovement)
+	public void setQtyMovement (BigDecimal QtyMovement)
 	{
 		set_Value (COLUMNNAME_QtyMovement, QtyMovement);
 	}
 
 	/** Get QtyMovement.
 		@return QtyMovement	  */
-	public String getQtyMovement () 
+	public BigDecimal getQtyMovement () 
 	{
-		return (String)get_Value(COLUMNNAME_QtyMovement);
+		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_QtyMovement);
+		if (bd == null)
+			 return Env.ZERO;
+		return bd;
 	}
 
 	/** Set EmptyStorageLine.
@@ -158,6 +163,20 @@ public class X_WM_EmptyStorageLine extends PO implements I_WM_EmptyStorageLine, 
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	/** Set WM_EmptyStorageLine_UU.
+		@param WM_EmptyStorageLine_UU WM_EmptyStorageLine_UU	  */
+	public void setWM_EmptyStorageLine_UU (String WM_EmptyStorageLine_UU)
+	{
+		set_Value (COLUMNNAME_WM_EmptyStorageLine_UU, WM_EmptyStorageLine_UU);
+	}
+
+	/** Get WM_EmptyStorageLine_UU.
+		@return WM_EmptyStorageLine_UU	  */
+	public String getWM_EmptyStorageLine_UU () 
+	{
+		return (String)get_Value(COLUMNNAME_WM_EmptyStorageLine_UU);
 	}
 
 	public I_WM_EmptyStorage getWM_EmptyStorage() throws RuntimeException

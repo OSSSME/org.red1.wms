@@ -12,7 +12,7 @@ import java.io.File;
 import java.math.BigDecimal;
 
 import java.sql.ResultSet;
-
+import java.util.List;
 import java.util.Properties;
 
 import java.util.logging.Level;
@@ -22,13 +22,13 @@ import org.my.model.X_WM_DeliverySchedule;
 import org.compiere.model.ModelValidationEngine;
 
 import org.compiere.model.ModelValidator;
-
+import org.compiere.model.Query;
 import org.compiere.print.ReportEngine;
 
 import org.compiere.process.DocumentEngine;
 
 import org.compiere.process.DocAction;
-
+import org.compiere.util.Env;
 import org.compiere.util.Msg;
 
 
@@ -175,6 +175,14 @@ public class MWM_DeliverySchedule extends X_WM_DeliverySchedule implements DocAc
 		if (!isApproved())
 			approveIt();
  
+		//Process all lines as Received.
+		List<MWM_DeliveryScheduleLine> lines = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_WM_DeliverySchedule_ID+"=?",get_TrxName())
+				.setParameters(this.get_ID()).list();
+		for (MWM_DeliveryScheduleLine line:lines){
+			line.setReceived(true);
+			line.saveEx(get_TrxName());
+		}
+		
 		if (log.isLoggable(Level.INFO)) log.info(toString());
 
 		StringBuilder info = new StringBuilder();

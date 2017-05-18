@@ -17,9 +17,11 @@
 /** Generated Model - DO NOT CHANGE */
 package org.my.model;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.util.Properties;
 import org.compiere.model.*;
+import org.compiere.util.Env;
 
 /** Generated Model for WM_InOutLine
  *  @author iDempiere (generated) 
@@ -30,7 +32,7 @@ public class X_WM_InOutLine extends PO implements I_WM_InOutLine, I_Persistent
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170422L;
+	private static final long serialVersionUID = 20170518L;
 
     /** Standard Constructor */
     public X_WM_InOutLine (Properties ctx, int WM_InOutLine_ID, String trxName)
@@ -233,16 +235,61 @@ public class X_WM_InOutLine extends PO implements I_WM_InOutLine, I_Persistent
 
 	/** Set QtyPicked.
 		@param QtyPicked QtyPicked	  */
-	public void setQtyPicked (String QtyPicked)
+	public void setQtyPicked (BigDecimal QtyPicked)
 	{
 		set_Value (COLUMNNAME_QtyPicked, QtyPicked);
 	}
 
 	/** Get QtyPicked.
 		@return QtyPicked	  */
-	public String getQtyPicked () 
+	public BigDecimal getQtyPicked () 
 	{
-		return (String)get_Value(COLUMNNAME_QtyPicked);
+		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_QtyPicked);
+		if (bd == null)
+			 return Env.ZERO;
+		return bd;
+	}
+
+	/** Set Sequence.
+		@param Sequence Sequence	  */
+	public void setSequence (BigDecimal Sequence)
+	{
+		set_Value (COLUMNNAME_Sequence, Sequence);
+	}
+
+	/** Get Sequence.
+		@return Sequence	  */
+	public BigDecimal getSequence () 
+	{
+		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_Sequence);
+		if (bd == null)
+			 return Env.ZERO;
+		return bd;
+	}
+
+	public I_WM_DeliveryScheduleLine getWM_DeliveryScheduleLine() throws RuntimeException
+    {
+		return (I_WM_DeliveryScheduleLine)MTable.get(getCtx(), I_WM_DeliveryScheduleLine.Table_Name)
+			.getPO(getWM_DeliveryScheduleLine_ID(), get_TrxName());	}
+
+	/** Set DeliveryScheduleLine.
+		@param WM_DeliveryScheduleLine_ID DeliveryScheduleLine	  */
+	public void setWM_DeliveryScheduleLine_ID (int WM_DeliveryScheduleLine_ID)
+	{
+		if (WM_DeliveryScheduleLine_ID < 1) 
+			set_Value (COLUMNNAME_WM_DeliveryScheduleLine_ID, null);
+		else 
+			set_Value (COLUMNNAME_WM_DeliveryScheduleLine_ID, Integer.valueOf(WM_DeliveryScheduleLine_ID));
+	}
+
+	/** Get DeliveryScheduleLine.
+		@return DeliveryScheduleLine	  */
+	public int getWM_DeliveryScheduleLine_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_WM_DeliveryScheduleLine_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
 	}
 
 	public I_WM_HandlingUnit getWM_HandlingUnit() throws RuntimeException
@@ -288,6 +335,20 @@ public class X_WM_InOutLine extends PO implements I_WM_InOutLine, I_Persistent
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	/** Set WM_InOutLine_UU.
+		@param WM_InOutLine_UU WM_InOutLine_UU	  */
+	public void setWM_InOutLine_UU (String WM_InOutLine_UU)
+	{
+		set_Value (COLUMNNAME_WM_InOutLine_UU, WM_InOutLine_UU);
+	}
+
+	/** Get WM_InOutLine_UU.
+		@return WM_InOutLine_UU	  */
+	public String getWM_InOutLine_UU () 
+	{
+		return (String)get_Value(COLUMNNAME_WM_InOutLine_UU);
 	}
 
 	public I_WM_InOut getWM_InOut() throws RuntimeException

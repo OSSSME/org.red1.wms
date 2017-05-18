@@ -32,7 +32,7 @@ public class X_WM_EmptyStorage extends PO implements I_WM_EmptyStorage, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170511L;
+	private static final long serialVersionUID = 20170516L;
 
     /** Standard Constructor */
     public X_WM_EmptyStorage (Properties ctx, int WM_EmptyStorage_ID, String trxName)
@@ -136,6 +136,26 @@ public class X_WM_EmptyStorage extends PO implements I_WM_EmptyStorage, I_Persis
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	/** Set Percentage.
+		@param Percentage 
+		Percent of the entire amount
+	  */
+	public void setPercentage (BigDecimal Percentage)
+	{
+		set_Value (COLUMNNAME_Percentage, Percentage);
+	}
+
+	/** Get Percentage.
+		@return Percent of the entire amount
+	  */
+	public BigDecimal getPercentage () 
+	{
+		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_Percentage);
+		if (bd == null)
+			 return Env.ZERO;
+		return bd;
 	}
 
 	/** Set VacantCapacity.

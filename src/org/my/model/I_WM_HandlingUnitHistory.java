@@ -32,7 +32,7 @@ public interface I_WM_HandlingUnitHistory
     /** TableName=WM_HandlingUnitHistory */
     public static final String Table_Name = "WM_HandlingUnitHistory";
 
-    /** AD_Table_ID=1000024 */
+    /** AD_Table_ID=1000009 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -46,28 +46,34 @@ public interface I_WM_HandlingUnitHistory
     /** Column name AD_Client_ID */
     public static final String COLUMNNAME_AD_Client_ID = "AD_Client_ID";
 
-	/** Get Client	  */
+	/** Get Client.
+	  * Client/Tenant for this installation.
+	  */
 	public int getAD_Client_ID();
 
     /** Column name AD_Org_ID */
     public static final String COLUMNNAME_AD_Org_ID = "AD_Org_ID";
 
-	/** Set Organization	  */
+	/** Set Organization.
+	  * Organizational entity within client
+	  */
 	public void setAD_Org_ID (int AD_Org_ID);
 
-	/** Get Organization	  */
+	/** Get Organization.
+	  * Organizational entity within client
+	  */
 	public int getAD_Org_ID();
 
     /** Column name C_BPartner_ID */
     public static final String COLUMNNAME_C_BPartner_ID = "C_BPartner_ID";
 
 	/** Set Business Partner .
-	  * **Owner
+	  * Identifies a Business Partner
 	  */
 	public void setC_BPartner_ID (int C_BPartner_ID);
 
 	/** Get Business Partner .
-	  * **Owner
+	  * Identifies a Business Partner
 	  */
 	public int getC_BPartner_ID();
 
@@ -106,13 +112,17 @@ public interface I_WM_HandlingUnitHistory
     /** Column name Created */
     public static final String COLUMNNAME_Created = "Created";
 
-	/** Get Created	  */
+	/** Get Created.
+	  * Date this record was created
+	  */
 	public Timestamp getCreated();
 
     /** Column name CreatedBy */
     public static final String COLUMNNAME_CreatedBy = "CreatedBy";
 
-	/** Get Created By	  */
+	/** Get Created By.
+	  * User who created this records
+	  */
 	public int getCreatedBy();
 
     /** Column name DateEnd */
@@ -140,10 +150,14 @@ public interface I_WM_HandlingUnitHistory
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
 
-	/** Set Active	  */
+	/** Set Active.
+	  * The record is active in the system
+	  */
 	public void setIsActive (boolean IsActive);
 
-	/** Get Active	  */
+	/** Get Active.
+	  * The record is active in the system
+	  */
 	public boolean isActive();
 
     /** Column name M_Product_ID */
@@ -178,21 +192,25 @@ public interface I_WM_HandlingUnitHistory
     public static final String COLUMNNAME_QtyMovement = "QtyMovement";
 
 	/** Set QtyMovement	  */
-	public void setQtyMovement (String QtyMovement);
+	public void setQtyMovement (BigDecimal QtyMovement);
 
 	/** Get QtyMovement	  */
-	public String getQtyMovement();
+	public BigDecimal getQtyMovement();
 
     /** Column name Updated */
     public static final String COLUMNNAME_Updated = "Updated";
 
-	/** Get Updated	  */
+	/** Get Updated.
+	  * Date this record was updated
+	  */
 	public Timestamp getUpdated();
 
     /** Column name UpdatedBy */
     public static final String COLUMNNAME_UpdatedBy = "UpdatedBy";
 
-	/** Get Updated By	  */
+	/** Get Updated By.
+	  * User who updated this records
+	  */
 	public int getUpdatedBy();
 
     /** Column name WM_HandlingUnitHistory_ID */
@@ -203,6 +221,15 @@ public interface I_WM_HandlingUnitHistory
 
 	/** Get HandlingUnitHistory	  */
 	public int getWM_HandlingUnitHistory_ID();
+
+    /** Column name WM_HandlingUnitHistory_UU */
+    public static final String COLUMNNAME_WM_HandlingUnitHistory_UU = "WM_HandlingUnitHistory_UU";
+
+	/** Set WM_HandlingUnitHistory_UU	  */
+	public void setWM_HandlingUnitHistory_UU (String WM_HandlingUnitHistory_UU);
+
+	/** Get WM_HandlingUnitHistory_UU	  */
+	public String getWM_HandlingUnitHistory_UU();
 
     /** Column name WM_HandlingUnit_ID */
     public static final String COLUMNNAME_WM_HandlingUnit_ID = "WM_HandlingUnit_ID";

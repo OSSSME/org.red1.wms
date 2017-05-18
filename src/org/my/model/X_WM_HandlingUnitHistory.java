@@ -17,10 +17,12 @@
 /** Generated Model - DO NOT CHANGE */
 package org.my.model;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.Properties;
 import org.compiere.model.*;
+import org.compiere.util.Env;
 
 /** Generated Model for WM_HandlingUnitHistory
  *  @author iDempiere (generated) 
@@ -31,7 +33,7 @@ public class X_WM_HandlingUnitHistory extends PO implements I_WM_HandlingUnitHis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170422L;
+	private static final long serialVersionUID = 20170513L;
 
     /** Standard Constructor */
     public X_WM_HandlingUnitHistory (Properties ctx, int WM_HandlingUnitHistory_ID, String trxName)
@@ -78,7 +80,7 @@ public class X_WM_HandlingUnitHistory extends PO implements I_WM_HandlingUnitHis
 
 	/** Set Business Partner .
 		@param C_BPartner_ID 
-		**Owner
+		Identifies a Business Partner
 	  */
 	public void setC_BPartner_ID (int C_BPartner_ID)
 	{
@@ -89,7 +91,7 @@ public class X_WM_HandlingUnitHistory extends PO implements I_WM_HandlingUnitHis
 	}
 
 	/** Get Business Partner .
-		@return **Owner
+		@return Identifies a Business Partner
 	  */
 	public int getC_BPartner_ID () 
 	{
@@ -240,16 +242,19 @@ public class X_WM_HandlingUnitHistory extends PO implements I_WM_HandlingUnitHis
 
 	/** Set QtyMovement.
 		@param QtyMovement QtyMovement	  */
-	public void setQtyMovement (String QtyMovement)
+	public void setQtyMovement (BigDecimal QtyMovement)
 	{
 		set_Value (COLUMNNAME_QtyMovement, QtyMovement);
 	}
 
 	/** Get QtyMovement.
 		@return QtyMovement	  */
-	public String getQtyMovement () 
+	public BigDecimal getQtyMovement () 
 	{
-		return (String)get_Value(COLUMNNAME_QtyMovement);
+		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_QtyMovement);
+		if (bd == null)
+			 return Env.ZERO;
+		return bd;
 	}
 
 	/** Set HandlingUnitHistory.
@@ -270,6 +275,20 @@ public class X_WM_HandlingUnitHistory extends PO implements I_WM_HandlingUnitHis
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	/** Set WM_HandlingUnitHistory_UU.
+		@param WM_HandlingUnitHistory_UU WM_HandlingUnitHistory_UU	  */
+	public void setWM_HandlingUnitHistory_UU (String WM_HandlingUnitHistory_UU)
+	{
+		set_Value (COLUMNNAME_WM_HandlingUnitHistory_UU, WM_HandlingUnitHistory_UU);
+	}
+
+	/** Get WM_HandlingUnitHistory_UU.
+		@return WM_HandlingUnitHistory_UU	  */
+	public String getWM_HandlingUnitHistory_UU () 
+	{
+		return (String)get_Value(COLUMNNAME_WM_HandlingUnitHistory_UU);
 	}
 
 	public I_WM_HandlingUnit getWM_HandlingUnit() throws RuntimeException

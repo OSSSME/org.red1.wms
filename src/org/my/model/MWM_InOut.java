@@ -12,23 +12,24 @@ import java.io.File;
 import java.math.BigDecimal;
 
 import java.sql.ResultSet;
-
+import java.util.List;
 import java.util.Properties;
 
 import java.util.logging.Level;
 
 import org.my.model.X_WM_InOut;
-
+import org.compiere.model.MInOut;
+import org.compiere.model.MInOutLine;
 import org.compiere.model.ModelValidationEngine;
 
 import org.compiere.model.ModelValidator;
-
+import org.compiere.model.Query;
 import org.compiere.print.ReportEngine;
 
 import org.compiere.process.DocumentEngine;
 
 import org.compiere.process.DocAction;
-
+import org.compiere.util.Env;
 import org.compiere.util.Msg;
 
 
@@ -119,7 +120,37 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 
 		if (m_processMsg != null)
 			return DocAction.STATUS_Invalid;
-
+		
+		//Create Material Receipt process    
+		MInOut inout = null;
+		
+		List<MWM_InOutLine> lines = new Query(Env.getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_WM_InOut_ID,get_TrxName())
+				.setParameters(this.get_ID()).list();
+		//check no previous lines have been assigned MInOutLine_ID
+		int WMLineHolder = 0;
+		for (MWM_InOutLine line:lines){
+			if (line.getM_InOutLine_ID()>0)
+				return DocAction.STATUS_Invalid;//already done before
+				
+			if (line.getWM_InOut_ID()!=WMLineHolder){
+				if (inout!=null)
+					inout.saveEx(get_TrxName()); //save previous one before new one
+				//create new MInOut 
+				inout = new MInOut(Env.getCtx(),0,get_TrxName());
+				inout.setIsSOTrx(this.isSOTrx());
+				WMLineHolder = line.getWM_InOut_ID();
+			}
+			MInOutLine ioline = new MInOutLine(inout);
+			ioline.setC_OrderLine_ID(line.getC_OrderLine_ID());
+			ioline.setM_Product_ID(line.getM_Product_ID());
+			ioline.setC_UOM_ID(line.getC_UOM_ID());
+			ioline.setM_Locator_ID(line.getM_Locator_ID());
+			ioline.setQtyEntered(line.getQtyPicked());
+		}
+		if (inout!=null){
+			inout.saveEx(get_TrxName());
+		}
+	
  		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_PREPARE);
 
 		if (m_processMsg != null)
@@ -173,8 +204,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		
 		//	Implicit Approval
 		if (!isApproved())
-			approveIt();
- 
+			approveIt(); 
+		
 		if (log.isLoggable(Level.INFO)) log.info(toString());
 
 		StringBuilder info = new StringBuilder();

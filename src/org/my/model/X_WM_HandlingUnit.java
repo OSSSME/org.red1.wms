@@ -32,7 +32,7 @@ public class X_WM_HandlingUnit extends PO implements I_WM_HandlingUnit, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170422L;
+	private static final long serialVersionUID = 20170513L;
 
     /** Standard Constructor */
     public X_WM_HandlingUnit (Properties ctx, int WM_HandlingUnit_ID, String trxName)
@@ -349,16 +349,19 @@ public class X_WM_HandlingUnit extends PO implements I_WM_HandlingUnit, I_Persis
 
 	/** Set QtyMovement.
 		@param QtyMovement QtyMovement	  */
-	public void setQtyMovement (String QtyMovement)
+	public void setQtyMovement (BigDecimal QtyMovement)
 	{
 		set_Value (COLUMNNAME_QtyMovement, QtyMovement);
 	}
 
 	/** Get QtyMovement.
 		@return QtyMovement	  */
-	public String getQtyMovement () 
+	public BigDecimal getQtyMovement () 
 	{
-		return (String)get_Value(COLUMNNAME_QtyMovement);
+		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_QtyMovement);
+		if (bd == null)
+			 return Env.ZERO;
+		return bd;
 	}
 
 	/** Set WM_HandlingUnit_ID.
@@ -379,5 +382,19 @@ public class X_WM_HandlingUnit extends PO implements I_WM_HandlingUnit, I_Persis
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	/** Set WM_HandlingUnit_UU.
+		@param WM_HandlingUnit_UU WM_HandlingUnit_UU	  */
+	public void setWM_HandlingUnit_UU (String WM_HandlingUnit_UU)
+	{
+		set_Value (COLUMNNAME_WM_HandlingUnit_UU, WM_HandlingUnit_UU);
+	}
+
+	/** Get WM_HandlingUnit_UU.
+		@return WM_HandlingUnit_UU	  */
+	public String getWM_HandlingUnit_UU () 
+	{
+		return (String)get_Value(COLUMNNAME_WM_HandlingUnit_UU);
 	}
 }

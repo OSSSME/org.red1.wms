@@ -18,8 +18,11 @@ import java.util.Properties;
 import java.util.logging.Level;
 
 import org.my.model.X_WM_InOut;
+import org.adempiere.exceptions.AdempiereException;
+import org.compiere.model.MDocType;
 import org.compiere.model.MInOut;
 import org.compiere.model.MInOutLine;
+import org.compiere.model.MOrder;
 import org.compiere.model.ModelValidationEngine;
 
 import org.compiere.model.ModelValidator;
@@ -124,21 +127,23 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		//Create Material Receipt process    
 		MInOut inout = null;
 		
-		List<MWM_InOutLine> lines = new Query(Env.getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_WM_InOut_ID,get_TrxName())
+		List<MWM_InOutLine> lines = new Query(Env.getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?",get_TrxName())
 				.setParameters(this.get_ID()).list();
-		//check no previous lines have been assigned MInOutLine_ID
-		int WMLineHolder = 0;
+		
+		//holder for separate M_InOut according to different C_Order
+		int c_Order_Holder = 0;
 		for (MWM_InOutLine line:lines){
 			if (line.getM_InOutLine_ID()>0)
-				return DocAction.STATUS_Invalid;//already done before
+				throw new AdempiereException("Already has Shipment/Receipt record!");//already done before
 				
-			if (line.getWM_InOut_ID()!=WMLineHolder){
-				if (inout!=null)
-					inout.saveEx(get_TrxName()); //save previous one before new one
-				//create new MInOut 
+			if (line.getWM_DeliveryScheduleLine().getC_OrderLine().getC_Order_ID()!=c_Order_Holder){
+				if (inout!=null){
+					saveM_InOut(inout,lines);
+				}
+				//create new MInOut  as C_Order_ID has changed
 				inout = new MInOut(Env.getCtx(),0,get_TrxName());
-				inout.setIsSOTrx(this.isSOTrx());
-				WMLineHolder = line.getWM_InOut_ID();
+				saveM_InOut(inout,lines);
+				c_Order_Holder = line.getWM_DeliveryScheduleLine().getC_OrderLine().getC_Order_ID();
 			}
 			MInOutLine ioline = new MInOutLine(inout);
 			ioline.setC_OrderLine_ID(line.getC_OrderLine_ID());
@@ -146,9 +151,15 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			ioline.setC_UOM_ID(line.getC_UOM_ID());
 			ioline.setM_Locator_ID(line.getM_Locator_ID());
 			ioline.setQtyEntered(line.getQtyPicked());
+			ioline.setM_Warehouse_ID(line.getM_Locator().getM_Warehouse_ID());
+			ioline.saveEx(get_TrxName());		
+			//populate back WM_InOutLine with M_InOutLine_ID
+			line.setM_InOutLine_ID(ioline.get_ID());
+			line.saveEx(get_TrxName());
+			//
 		}
 		if (inout!=null){
-			inout.saveEx(get_TrxName());
+			saveM_InOut(inout,lines);
 		}
 	
  		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_PREPARE);
@@ -163,6 +174,32 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 
 		return DocAction.STATUS_InProgress;
 
+	}
+
+	private void saveM_InOut(MInOut inout,List<MWM_InOutLine> lines) {
+		if (inout.getC_Order_ID()>0)
+			return;
+		MOrder order = (MOrder) lines.get(0).getC_OrderLine().getC_Order();
+		inout.setIsSOTrx(order.isSOTrx());
+		inout.setC_Order_ID(order.getC_Order_ID());
+		inout.setC_BPartner_ID(order.getC_BPartner_ID());
+		inout.setC_BPartner_Location_ID(order.getC_BPartner_Location_ID());
+		inout.setM_Warehouse_ID(order.getM_Warehouse_ID());
+		inout.setMovementDate(lines.get(0).getUpdated());
+		if (inout.isSOTrx())
+			inout.setMovementType(MInOut.MOVEMENTTYPE_CustomerShipment);
+		else
+			inout.setMovementType(MInOut.MOVEMENTTYPE_VendorReceipts);
+		inout.setAD_Org_ID(Env.getAD_Org_ID(Env.getCtx()));
+		inout.setDocAction(DOCACTION_Prepare);
+		if (inout.isSOTrx())
+			inout.setC_DocType_ID(MDocType.DOCBASETYPE_MaterialDelivery);
+		else
+			inout.setC_DocType_ID(MDocType.DOCBASETYPE_MaterialReceipt);
+		inout.setDateOrdered(order.getDateOrdered());
+		inout.setDateReceived(lines.get(0).getWM_DeliveryScheduleLine().getWM_DeliverySchedule().getDateDelivered());
+		inout.setPOReference(order.getPOReference());
+		inout.saveEx(get_TrxName()); //save previous one before new one
 	}
 
  	public boolean approveIt() {

@@ -33,7 +33,7 @@ public class X_WM_HandlingUnitHistory extends PO implements I_WM_HandlingUnitHis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170513L;
+	private static final long serialVersionUID = 20170523L;
 
     /** Standard Constructor */
     public X_WM_HandlingUnitHistory (Properties ctx, int WM_HandlingUnitHistory_ID, String trxName)
@@ -159,16 +159,16 @@ public class X_WM_HandlingUnitHistory extends PO implements I_WM_HandlingUnitHis
 
 	/** Set DateEnd.
 		@param DateEnd DateEnd	  */
-	public void setDateEnd (String DateEnd)
+	public void setDateEnd (Timestamp DateEnd)
 	{
 		set_Value (COLUMNNAME_DateEnd, DateEnd);
 	}
 
 	/** Get DateEnd.
 		@return DateEnd	  */
-	public String getDateEnd () 
+	public Timestamp getDateEnd () 
 	{
-		return (String)get_Value(COLUMNNAME_DateEnd);
+		return (Timestamp)get_Value(COLUMNNAME_DateEnd);
 	}
 
 	/** Set Date Start.

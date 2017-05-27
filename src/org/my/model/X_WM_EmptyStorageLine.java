@@ -19,6 +19,7 @@ package org.my.model;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
+import java.sql.Timestamp;
 import java.util.Properties;
 import org.compiere.model.*;
 import org.compiere.util.Env;
@@ -32,7 +33,7 @@ public class X_WM_EmptyStorageLine extends PO implements I_WM_EmptyStorageLine, 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170512L;
+	private static final long serialVersionUID = 20170521L;
 
     /** Standard Constructor */
     public X_WM_EmptyStorageLine (Properties ctx, int WM_EmptyStorageLine_ID, String trxName)
@@ -98,6 +99,37 @@ public class X_WM_EmptyStorageLine extends PO implements I_WM_EmptyStorageLine, 
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	/** Set DateEnd.
+		@param DateEnd DateEnd	  */
+	public void setDateEnd (Timestamp DateEnd)
+	{
+		set_Value (COLUMNNAME_DateEnd, DateEnd);
+	}
+
+	/** Get DateEnd.
+		@return DateEnd	  */
+	public Timestamp getDateEnd () 
+	{
+		return (Timestamp)get_Value(COLUMNNAME_DateEnd);
+	}
+
+	/** Set Date Start.
+		@param DateStart 
+		Date Start for this Order
+	  */
+	public void setDateStart (Timestamp DateStart)
+	{
+		set_Value (COLUMNNAME_DateStart, DateStart);
+	}
+
+	/** Get Date Start.
+		@return Date Start for this Order
+	  */
+	public Timestamp getDateStart () 
+	{
+		return (Timestamp)get_Value(COLUMNNAME_DateStart);
 	}
 
 	public org.compiere.model.I_M_Product getM_Product() throws RuntimeException
@@ -199,6 +231,31 @@ public class X_WM_EmptyStorageLine extends PO implements I_WM_EmptyStorageLine, 
 	public int getWM_EmptyStorage_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_WM_EmptyStorage_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public I_WM_HandlingUnit getWM_HandlingUnit() throws RuntimeException
+    {
+		return (I_WM_HandlingUnit)MTable.get(getCtx(), I_WM_HandlingUnit.Table_Name)
+			.getPO(getWM_HandlingUnit_ID(), get_TrxName());	}
+
+	/** Set WM_HandlingUnit_ID.
+		@param WM_HandlingUnit_ID WM_HandlingUnit_ID	  */
+	public void setWM_HandlingUnit_ID (int WM_HandlingUnit_ID)
+	{
+		if (WM_HandlingUnit_ID < 1) 
+			set_Value (COLUMNNAME_WM_HandlingUnit_ID, null);
+		else 
+			set_Value (COLUMNNAME_WM_HandlingUnit_ID, Integer.valueOf(WM_HandlingUnit_ID));
+	}
+
+	/** Get WM_HandlingUnit_ID.
+		@return WM_HandlingUnit_ID	  */
+	public int getWM_HandlingUnit_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_WM_HandlingUnit_ID);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();

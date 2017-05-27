@@ -95,6 +95,28 @@ public interface I_WM_EmptyStorageLine
 	  */
 	public int getCreatedBy();
 
+    /** Column name DateEnd */
+    public static final String COLUMNNAME_DateEnd = "DateEnd";
+
+	/** Set DateEnd	  */
+	public void setDateEnd (Timestamp DateEnd);
+
+	/** Get DateEnd	  */
+	public Timestamp getDateEnd();
+
+    /** Column name DateStart */
+    public static final String COLUMNNAME_DateStart = "DateStart";
+
+	/** Set Date Start.
+	  * Date Start for this Order
+	  */
+	public void setDateStart (Timestamp DateStart);
+
+	/** Get Date Start.
+	  * Date Start for this Order
+	  */
+	public Timestamp getDateStart();
+
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
 
@@ -176,6 +198,17 @@ public interface I_WM_EmptyStorageLine
 	public int getWM_EmptyStorage_ID();
 
 	public I_WM_EmptyStorage getWM_EmptyStorage() throws RuntimeException;
+
+    /** Column name WM_HandlingUnit_ID */
+    public static final String COLUMNNAME_WM_HandlingUnit_ID = "WM_HandlingUnit_ID";
+
+	/** Set WM_HandlingUnit_ID	  */
+	public void setWM_HandlingUnit_ID (int WM_HandlingUnit_ID);
+
+	/** Get WM_HandlingUnit_ID	  */
+	public int getWM_HandlingUnit_ID();
+
+	public I_WM_HandlingUnit getWM_HandlingUnit() throws RuntimeException;
 
     /** Column name WM_InOutLine_ID */
     public static final String COLUMNNAME_WM_InOutLine_ID = "WM_InOutLine_ID";

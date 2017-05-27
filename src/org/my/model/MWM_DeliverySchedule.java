@@ -175,13 +175,7 @@ public class MWM_DeliverySchedule extends X_WM_DeliverySchedule implements DocAc
 		if (!isApproved())
 			approveIt();
  
-		//Process all lines as Received.
-		List<MWM_DeliveryScheduleLine> lines = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_WM_DeliverySchedule_ID+"=?",get_TrxName())
-				.setParameters(this.get_ID()).list();
-		for (MWM_DeliveryScheduleLine line:lines){
-			line.setReceived(true);
-			line.saveEx(get_TrxName());
-		}
+		setDelivered();
 		
 		if (log.isLoggable(Level.INFO)) log.info(toString());
 
@@ -212,6 +206,20 @@ public class MWM_DeliverySchedule extends X_WM_DeliverySchedule implements DocAc
 
 		return DocAction.STATUS_Completed;
 
+	}
+
+	private void setDelivered() {
+		//Process all lines as Received.
+		List<MWM_DeliveryScheduleLine> lines = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_WM_DeliverySchedule_ID+"=?",get_TrxName())
+				.setParameters(this.get_ID()).list();
+		for (MWM_DeliveryScheduleLine line:lines){
+			line.setReceived(true);
+			line.saveEx(get_TrxName());
+		}
+		this.setProcessed(true);
+		this.saveEx(get_TrxName());
+		this.setDateDelivered(this.getUpdated());
+		this.saveEx(get_TrxName());
 	}
 
 	/**

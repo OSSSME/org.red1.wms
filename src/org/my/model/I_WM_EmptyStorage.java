@@ -32,7 +32,7 @@ public interface I_WM_EmptyStorage
     /** TableName=WM_EmptyStorage */
     public static final String Table_Name = "WM_EmptyStorage";
 
-    /** AD_Table_ID=1000005 */
+    /** AD_Table_ID=1000014 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -101,6 +101,15 @@ public interface I_WM_EmptyStorage
 	  * The record is active in the system
 	  */
 	public boolean isActive();
+
+    /** Column name IsBlocked */
+    public static final String COLUMNNAME_IsBlocked = "IsBlocked";
+
+	/** Set IsBlocked	  */
+	public void setIsBlocked (boolean IsBlocked);
+
+	/** Get IsBlocked	  */
+	public boolean isBlocked();
 
     /** Column name IsFull */
     public static final String COLUMNNAME_IsFull = "IsFull";

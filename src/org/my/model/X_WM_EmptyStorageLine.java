@@ -33,7 +33,7 @@ public class X_WM_EmptyStorageLine extends PO implements I_WM_EmptyStorageLine, 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170521L;
+	private static final long serialVersionUID = 20170527L;
 
     /** Standard Constructor */
     public X_WM_EmptyStorageLine (Properties ctx, int WM_EmptyStorageLine_ID, String trxName)
@@ -130,6 +130,30 @@ public class X_WM_EmptyStorageLine extends PO implements I_WM_EmptyStorageLine, 
 	public Timestamp getDateStart () 
 	{
 		return (Timestamp)get_Value(COLUMNNAME_DateStart);
+	}
+
+	/** Set Sales Transaction.
+		@param IsSOTrx 
+		This is a Sales Transaction
+	  */
+	public void setIsSOTrx (boolean IsSOTrx)
+	{
+		set_Value (COLUMNNAME_IsSOTrx, Boolean.valueOf(IsSOTrx));
+	}
+
+	/** Get Sales Transaction.
+		@return This is a Sales Transaction
+	  */
+	public boolean isSOTrx () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsSOTrx);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
 	}
 
 	public org.compiere.model.I_M_Product getM_Product() throws RuntimeException

@@ -32,7 +32,7 @@ public interface I_WM_HandlingUnit
     /** TableName=WM_HandlingUnit */
     public static final String Table_Name = "WM_HandlingUnit";
 
-    /** AD_Table_ID=1000008 */
+    /** AD_Table_ID=1000018 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -142,6 +142,15 @@ public interface I_WM_HandlingUnit
 	  * Document sequence number of the document
 	  */
 	public String getDocumentNo();
+
+    /** Column name HandlingType */
+    public static final String COLUMNNAME_HandlingType = "HandlingType";
+
+	/** Set HandlingType	  */
+	public void setHandlingType (String HandlingType);
+
+	/** Get HandlingType	  */
+	public String getHandlingType();
 
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";

@@ -1,9 +1,8 @@
 /*** Licensed under the KARMA v.1 Law of Sharing. As others have shared freely to you, so shall you share freely back to us.* If you shall try to cheat and find a loophole in this license, then KARMA will exact your share,* and your worldly gain shall come to naught and those who share shall gain eventually above you.* In compliance with previous GPLv2.0 works of Jorg Janke, Low Heng Sin, Carlos Ruiz and contributors.* This Module Creator is an idea put together and coded by Redhuan D. Oon (red1@red1.org)*/package org.idempiere.component;
-import org.my.model.MWM_DeliveryScheduleLine;
-import org.adempiere.base.event.AbstractEventHandler;
-import org.adempiere.base.event.IEventTopics;
-import org.compiere.model.PO;
-import org.compiere.util.CLogger;
+import org.my.model.MWM_DeliveryScheduleLine;import org.my.model.MWM_EmptyStorage;import org.my.model.MWM_EmptyStorageLine;import org.my.model.MWM_InOutLine;import java.math.BigDecimal;import org.adempiere.base.event.AbstractEventHandler;
+import org.adempiere.base.event.IEventTopics;import org.compiere.model.MProduct;
+import org.compiere.model.PO;import org.compiere.model.Query;
+import org.compiere.util.CLogger;import org.compiere.util.Env;import org.compiere.util.TimeUtil;
 import org.osgi.service.event.Event;
 
 public class WM_DeliveryScheduleLineDocEvent extends AbstractEventHandler {
@@ -25,22 +24,19 @@ public class WM_DeliveryScheduleLineDocEvent extends AbstractEventHandler {
  		else {
 			setPo(getPO(event));
 			setTrxName(po.get_TrxName());
-	log.info(" topic="+event.getTopic()+" po="+po);
-		if (po instanceof MWM_DeliveryScheduleLine){
-			if (IEventTopics.PO_AFTER_CHANGE == type){
-				MWM_DeliveryScheduleLine modelpo = (MWM_DeliveryScheduleLine)po;
-	log.fine("MWM_DeliveryScheduleLine changed: "+modelpo.get_ID());
-	// **DO SOMETHING** ;
-			}
-		}
-	  }
- }
-
+			log.info(" topic="+event.getTopic()+" po="+po);
+					if (po instanceof MWM_DeliveryScheduleLine){
+				if (IEventTopics.PO_AFTER_CHANGE == type){
+					MWM_DeliveryScheduleLine dsline = (MWM_DeliveryScheduleLine)po;					MProduct product = (MProduct)dsline.getM_Product();					if (dsline.isReceived()==(Boolean)dsline.get_ValueOld(MWM_DeliveryScheduleLine.COLUMNNAME_Received))						return;					if (dsline.isReceived()){						MWM_InOutLine ioline = new Query(Env.getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_WM_DeliveryScheduleLine_ID+"=?",trxName)							.setParameters(dsline.get_ID())							.first();						if (ioline==null)							return;						MWM_EmptyStorageLine esline = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_WM_InOutLine_ID+"=?",trxName)							.setParameters(ioline.get_ID())							.first(); 											esline.setDateStart(dsline.getUpdated());					if (product.getGuaranteeDays()>0)						esline.setDateEnd(TimeUtil.addDays(dsline.getUpdated(), product.getGuaranteeDays()));										MWM_EmptyStorage storage = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_WM_EmptyStorage_ID+"=?",trxName)							.setParameters(esline.getWM_EmptyStorage_ID())							.first();					if (esline.isSOTrx())						storage.setAvailableCapacity(storage.getAvailableCapacity().subtract(esline.getQtyMovement())); 					else //purchasing inbound						storage.setAvailableCapacity(storage.getAvailableCapacity().add(esline.getQtyMovement()));									calculatePercentageVacant(storage);					esline.saveEx(trxName);					//TODO IsActive = N when DeliverySchedule.DocStatus='CO' and IsSOTrx 					log.info("Delivery Received - InoutLine:"+ioline.toString()+" StorageLine:"+esline.toString());					}
+					log.fine("MWM_DeliveryScheduleLine changed: "+dsline.get_ID());
+	 		
+	}	}	}	}
+	private void calculatePercentageVacant(MWM_EmptyStorage empty) {//divide(b, 2, RoundingMode.HALF_UP) 		empty.setPercentage((empty.getAvailableCapacity().divide(empty.getVacantCapacity(),2,BigDecimal.ROUND_HALF_UP)).multiply(Env.ONEHUNDRED));		//set is Full if 0% vacant		if (empty.getPercentage().compareTo(Env.ZERO)==0)			empty.setIsFull(true);		else			empty.setIsFull(false);		empty.saveEx(trxName);	}	
 	private void setPo(PO eventPO) {
 		 po = eventPO;
 	}
 
 	private void setTrxName(String get_TrxName) {
- 	trxName = get_TrxName;
+		trxName = get_TrxName;
 		}
 }

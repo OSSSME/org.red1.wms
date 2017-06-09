@@ -32,7 +32,7 @@ public class X_WM_EmptyStorage extends PO implements I_WM_EmptyStorage, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170516L;
+	private static final long serialVersionUID = 20170527L;
 
     /** Standard Constructor */
     public X_WM_EmptyStorage (Properties ctx, int WM_EmptyStorage_ID, String trxName)
@@ -87,6 +87,27 @@ public class X_WM_EmptyStorage extends PO implements I_WM_EmptyStorage, I_Persis
 		if (bd == null)
 			 return Env.ZERO;
 		return bd;
+	}
+
+	/** Set IsBlocked.
+		@param IsBlocked IsBlocked	  */
+	public void setIsBlocked (boolean IsBlocked)
+	{
+		set_Value (COLUMNNAME_IsBlocked, Boolean.valueOf(IsBlocked));
+	}
+
+	/** Get IsBlocked.
+		@return IsBlocked	  */
+	public boolean isBlocked () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsBlocked);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
 	}
 
 	/** Set IsFull.

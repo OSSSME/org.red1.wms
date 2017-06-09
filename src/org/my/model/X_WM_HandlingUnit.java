@@ -32,7 +32,7 @@ public class X_WM_HandlingUnit extends PO implements I_WM_HandlingUnit, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170513L;
+	private static final long serialVersionUID = 20170527L;
 
     /** Standard Constructor */
     public X_WM_HandlingUnit (Properties ctx, int WM_HandlingUnit_ID, String trxName)
@@ -224,6 +224,29 @@ public class X_WM_HandlingUnit extends PO implements I_WM_HandlingUnit, I_Persis
 	public String getDocumentNo () 
 	{
 		return (String)get_Value(COLUMNNAME_DocumentNo);
+	}
+
+	/** Pallet = Pa */
+	public static final String HANDLINGTYPE_Pallet = "Pa";
+	/** Box = Bo */
+	public static final String HANDLINGTYPE_Box = "Bo";
+	/** Drum = Dr */
+	public static final String HANDLINGTYPE_Drum = "Dr";
+	/** Tag = Ta */
+	public static final String HANDLINGTYPE_Tag = "Ta";
+	/** Set HandlingType.
+		@param HandlingType HandlingType	  */
+	public void setHandlingType (String HandlingType)
+	{
+
+		set_Value (COLUMNNAME_HandlingType, HandlingType);
+	}
+
+	/** Get HandlingType.
+		@return HandlingType	  */
+	public String getHandlingType () 
+	{
+		return (String)get_Value(COLUMNNAME_HandlingType);
 	}
 
 	/** Set Approved.

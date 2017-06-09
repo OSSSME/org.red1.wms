@@ -26,7 +26,7 @@ import org.compiere.process.SvrProcess;
 			}
 		}
 	}
-	protected String doIt() {		if (WM_Gate_ID<1 || DatePromised==null)			throw new AdempiereException("Set Gate and Date Promised");
+	protected String doIt() {		if (WM_Gate_ID<1)			throw new AdempiereException("Set Gate Number");		if (DatePromised==null)			DatePromised=new Timestamp (System.currentTimeMillis());
 		String whereClause = "EXISTS (SELECT T_Selection_ID FROM T_Selection WHERE T_Selection.AD_PInstance_ID=? AND T_Selection.T_Selection_ID=C_OrderLine.C_OrderLine_ID)";
 
 		List<MOrderLine> lines = new Query(Env.getCtx(),MOrderLine.Table_Name,whereClause,get_TrxName())

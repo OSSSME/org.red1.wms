@@ -13,12 +13,6 @@
 		class="org.my.process.GenerateEmptyStorage">
 	</process>
 </extension>
-<extension id="org.my.process.PutawayToLocators"
-  point="org.adempiere.base.Process">
-	<process
-		class="org.my.process.PutawayToLocators">
-	</process>
-</extension>
 <extension id="org.my.process.CreateDeliverySchedule"
   point="org.adempiere.base.Process">
 	<process
@@ -59,6 +53,18 @@
   point="org.adempiere.base.Process">
 	<process
 		class="org.my.process.ReportPutawayPickingList">
+	</process>
+</extension>
+<extension id="org.my.process.BlockUnblockLocator"
+  point="org.adempiere.base.Process">
+	<process
+		class="org.my.process.BlockUnblockLocator">
+	</process>
+</extension>
+<extension id="org.my.process.AssignHandlingUnit"
+  point="org.adempiere.base.Process">
+	<process
+		class="org.my.process.AssignHandlingUnit">
 	</process>
 </extension>
 </plugin>

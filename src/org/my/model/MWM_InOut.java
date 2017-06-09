@@ -53,8 +53,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 
 	public MWM_InOut(Properties ctx, ResultSet rs, String trxName) {
 		super(ctx, rs, trxName);
-
-		// TODO Auto-generated constructor stub
+ 
 	}
 
 	private static final long serialVersionUID = 1L;
@@ -133,6 +132,12 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		//holder for separate M_InOut according to different C_Order
 		int c_Order_Holder = 0;
 		for (MWM_InOutLine line:lines){
+			MWM_DeliveryScheduleLine del = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_WM_DeliveryScheduleLine_ID+"=?",get_TrxName())
+					.setParameters(line.get_ID())
+					.first();
+			if (!del.isReceived())
+				continue; //still not processed at DeliverySchedule level, so no Shipment/Receipt possible
+			
 			if (line.getM_InOutLine_ID()>0)
 				throw new AdempiereException("Already has Shipment/Receipt record!");//already done before
 				
@@ -156,7 +161,13 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			//populate back WM_InOutLine with M_InOutLine_ID
 			line.setM_InOutLine_ID(ioline.get_ID());
 			line.saveEx(get_TrxName());
-			//
+			 
+			MWM_HandlingUnit hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=?",get_TrxName())
+					.setParameters(line.getWM_HandlingUnit_ID())
+					.first();
+			hu.setQtyMovement(Env.ZERO);
+			hu.setDocStatus(STATUS_Drafted);
+			hu.saveEx(get_TrxName());
 		}
 		if (inout!=null){
 			saveM_InOut(inout,lines);

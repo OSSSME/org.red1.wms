@@ -1,1 +1,1 @@
-Service-Component: OSGI-INF/WM_StorageTypeDocEvent.xml,OSGI-INF/WM_StorageTypeModelFactory.xml
+Service-Component: OSGI-INF/WM_WarehousePickDocEvent.xml,OSGI-INF/WM_WarehousePickModelFactory.xml

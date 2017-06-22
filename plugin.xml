@@ -67,4 +67,16 @@
 		class="org.my.process.AssignHandlingUnit">
 	</process>
 </extension>
+<extension id="org.my.process.ExpiredStock"
+  point="org.adempiere.base.Process">
+	<process
+		class="org.my.process.ExpiredStock">
+	</process>
+</extension>
+<extension id="org.my.process.StockMovement"
+  point="org.adempiere.base.Process">
+	<process
+		class="org.my.process.StockMovement">
+	</process>
+</extension>
 </plugin>

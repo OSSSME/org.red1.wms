@@ -18,6 +18,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 
 import org.my.model.X_WM_InOut;
+import org.my.process.Utils;
 import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.MDocType;
 import org.compiere.model.MInOut;
@@ -133,7 +134,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		int c_Order_Holder = 0;
 		for (MWM_InOutLine line:lines){
 			MWM_DeliveryScheduleLine del = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_WM_DeliveryScheduleLine_ID+"=?",get_TrxName())
-					.setParameters(line.get_ID())
+					.setParameters(line.getWM_DeliveryScheduleLine_ID())
 					.first();
 			if (!del.isReceived())
 				continue; //still not processed at DeliverySchedule level, so no Shipment/Receipt possible
@@ -161,16 +162,37 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			//populate back WM_InOutLine with M_InOutLine_ID
 			line.setM_InOutLine_ID(ioline.get_ID());
 			line.saveEx(get_TrxName());
-			 
-			MWM_HandlingUnit hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=?",get_TrxName())
-					.setParameters(line.getWM_HandlingUnit_ID())
-					.first();
-			hu.setQtyMovement(Env.ZERO);
-			hu.setDocStatus(STATUS_Drafted);
-			hu.saveEx(get_TrxName());
+			//if Sales' Shipment, then release the Handling Unit 
+			if (inout.isSOTrx()){
+				MWM_HandlingUnit hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=?",get_TrxName())
+						.setParameters(line.getWM_HandlingUnit_ID())
+						.first();
+				hu.setQtyMovement(Env.ZERO);
+				hu.setDocStatus(STATUS_Drafted);
+				hu.saveEx(get_TrxName());
+				//deactivate HandlingUnit history
+				MWM_HandlingUnitHistory huh = new Query(Env.getCtx(),MWM_HandlingUnitHistory.Table_Name,MWM_HandlingUnitHistory.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "
+						+MWM_HandlingUnitHistory.COLUMNNAME_WM_InOutLine_ID+"",get_TrxName())
+						.setParameters(hu.get_ID(),line.get_ID())
+						.first();
+				if (huh==null)
+					log.severe("HandlingUnit has no history: "+line.getWM_HandlingUnit().getName());
+				if (huh.getDateEnd()==null){
+					log.severe("HandlingUnit history has no DateEnd during Receive of DeliverySchedule: "+line.getWM_HandlingUnit().getName());
+					huh.setDateEnd(hu.getUpdated());
+				}
+				huh.setIsActive(false);
+				huh.saveEx(get_TrxName());
+			}
+
 		}
 		if (inout!=null){
 			saveM_InOut(inout,lines);
+			if (inout.isSOTrx()){
+				Utils util = new Utils(get_TrxName());
+				util.closeOutbound(lines);
+			}
+				
 		}
 	
  		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_PREPARE);

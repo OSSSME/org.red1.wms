@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import org.adempiere.exceptions.AdempiereException;
-import org.compiere.model.MInOut;
 import org.compiere.model.MProduct;
 import org.compiere.model.Query;
 import org.compiere.util.CLogger;
@@ -26,6 +25,9 @@ public class Utils {
 	}
 	private String trxName="";
 	private int WM_HandlingUnit_ID = 0;
+	private boolean same = false;
+	
+	MWM_HandlingUnit hu = null;
 	
 	CLogger			log = CLogger.getCLogger (getClass());
 	
@@ -34,28 +36,39 @@ public class Utils {
 	}
 	
 	/**
-	 * 
+	 * SameDistribution = use same HandlingUnit
 	 * @param inoutline
 	 * @param empty
 	 * @param qty
 	 * @return WM_InOutLine
 	 */
-	public MWM_InOutLine assignHandlingUnit(MWM_InOutLine inoutline, MWM_EmptyStorage empty, BigDecimal qty) { 
-		MWM_HandlingUnit hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+">=? AND "+MWM_HandlingUnit.COLUMNNAME_QtyMovement+"=?",trxName)
-				.setParameters(WM_HandlingUnit_ID,Env.ZERO)
-				.setOrderBy(X_WM_HandlingUnit.COLUMNNAME_Name)
-				.first();
-		if (hu==null){
-			log.severe("No Available Handling Unit starting from: "+WM_HandlingUnit_ID);
-			return null;
+	public MWM_InOutLine assignHandlingUnit(boolean sameDistribution, MWM_InOutLine inoutline, MWM_EmptyStorageLine eline, BigDecimal qty) { 
+		 if (sameDistribution && same){			 
+		 }else{
+				hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+">=? AND "
+						+MWM_HandlingUnit.COLUMNNAME_QtyMovement+"=?",trxName)
+						.setParameters(WM_HandlingUnit_ID,Env.ZERO)
+						.setOrderBy(X_WM_HandlingUnit.COLUMNNAME_Name)
+						.first();
+				if (hu==null){
+					log.severe("No Available Handling Unit starting from: "+WM_HandlingUnit_ID);
+					return null;
+				}
+		 }
+		 //SameDistribution = use same HandlingUnit for all selected items
+		if (same){
+			hu.setQtyMovement(hu.getQtyMovement().add(qty));
+		}else {
+			if (inoutline.getWM_InOut().isSOTrx()) //so no other picking can touch this
+				hu.setDocStatus(X_WM_HandlingUnit.DOCSTATUS_InProgress);
+			else 
+				hu.setDocStatus(X_WM_HandlingUnit.DOCSTATUS_Completed);
+			hu.setQtyMovement(qty); 
+			hu.setM_Product_ID(inoutline.getM_Product_ID());
+			WM_HandlingUnit_ID = hu.get_ID();
+			if (sameDistribution)
+				same = true;
 		}
-		if (inoutline.getWM_InOut().isSOTrx()) //so no other picking can touch this
-			hu.setDocStatus(X_WM_HandlingUnit.DOCSTATUS_InProgress);
-		else 
-			hu.setDocStatus(X_WM_HandlingUnit.DOCSTATUS_Completed);
-		hu.setQtyMovement(qty);
-		hu.setM_Product_ID(inoutline.getM_Product_ID());
-		WM_HandlingUnit_ID = hu.get_ID();
 		hu.saveEx(trxName);
 		
 		//create new history
@@ -68,7 +81,12 @@ public class Utils {
 		huh.setM_Product_ID(inoutline.getM_Product_ID());
 		huh.setDateStart(hu.getUpdated());
 		huh.saveEx(trxName);
-		
+		if (eline==null)
+			log.warning("Assign Handling Unit - No EmptyStorageLine yet. InOutLine details: "+inoutline.toString());
+		else {
+			eline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
+			eline.saveEx(trxName);
+		}
 		inoutline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
 		inoutline.saveEx(trxName);
 		return inoutline;
@@ -78,14 +96,13 @@ public class Utils {
 	 * DocStatus = Drafted
 	 * QtyMovement = ZERO
 	 */
-	public void releaseHandlingUnit() { 
+	public void releaseHandlingUnit(MWM_EmptyStorageLine line) { 
 		MWM_HandlingUnit hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=?",trxName)
-				.setParameters(WM_HandlingUnit_ID).first();
+				.setParameters(line.getWM_HandlingUnit_ID()).first();
 		hu.setQtyMovement(Env.ZERO);
 		hu.setDocStatus(X_WM_HandlingUnit.DOCSTATUS_Drafted);
 		hu.saveEx(trxName);
 	}
-	
 	
 	/**
 	 * Handling Unit will be fully released during CompleteIt() of WM_InOut > M_InOut (IsSOTrx='Y')
@@ -134,7 +151,6 @@ public class Utils {
 		
 		storline.setC_UOM_ID(inoutline.getC_UOM_ID());
 		storline.setM_Product_ID(inoutline.getM_Product_ID());
-		storline.setWM_HandlingUnit_ID(inoutline.getWM_HandlingUnit_ID());
 		storline.saveEx(trxName); 
 		return storline;
 	}
@@ -213,7 +229,7 @@ public class Utils {
 	 * @param dsline
 	 * @param empty
 	 */
-	public void calculatePercentageVacant(MWM_DeliveryScheduleLine dsline,MWM_EmptyStorage empty) {//divide(b, 2, RoundingMode.HALF_UP)
+	public void calculatePercentageVacant(MWM_DeliveryScheduleLine dsline,MWM_EmptyStorage empty) {
 		if (!dsline.isReceived())
 			return;//future, do not want to affect statistics of EmptyStorage
 		empty.setPercentage((empty.getAvailableCapacity().divide(empty.getVacantCapacity(),2,BigDecimal.ROUND_HALF_UP)).multiply(Env.ONEHUNDRED));
@@ -278,7 +294,7 @@ public class Utils {
 			MWM_HandlingUnit hu = (MWM_HandlingUnit) line.getWM_HandlingUnit();
 			WM_HandlingUnit_ID = hu.get_ID(); 
 			releaseHandlingUnitHistory(dsline, line, esline);
-			releaseHandlingUnit();
+			releaseHandlingUnit(esline);
 		}
 	}
 }

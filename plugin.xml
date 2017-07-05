@@ -79,4 +79,16 @@
 		class="org.my.process.StockMovement">
 	</process>
 </extension>
+<extension id="org.my.process.ReportInventoryAnalysis"
+  point="org.adempiere.base.Process">
+	<process
+		class="org.my.process.ReportInventoryAnalysis">
+	</process>
+</extension>
+<extension id="org.my.process.ChangeLocator"
+  point="org.adempiere.base.Process">
+	<process
+		class="org.my.process.ChangeLocator">
+	</process>
+</extension>
 </plugin>

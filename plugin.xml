@@ -79,10 +79,10 @@
 		class="org.my.process.StockMovement">
 	</process>
 </extension>
-<extension id="org.my.process.ReportInventoryAnalysis"
+<extension id="org.my.process.ReportStorageMovement"
   point="org.adempiere.base.Process">
 	<process
-		class="org.my.process.ReportInventoryAnalysis">
+		class="org.my.process.ReportStorageMovement">
 	</process>
 </extension>
 <extension id="org.my.process.ChangeLocator"

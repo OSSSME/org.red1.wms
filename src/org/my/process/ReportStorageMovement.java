@@ -11,7 +11,7 @@ import org.compiere.model.MSequence;
 import org.my.model.MWM_EmptyStorageLine;
 import org.compiere.process.SvrProcess;
 
-	public class ReportInventoryAnalysis extends SvrProcess {
+	public class ReportStorageMovement extends SvrProcess {
 	private boolean IsActive = false;
 	protected void prepare() {
 		ProcessInfoParameter[] para = getParameter();
@@ -24,11 +24,11 @@ import org.compiere.process.SvrProcess;
 		}
 	}
 	protected String doIt() {
-		MSequence seq = MSequence.get(getCtx(), "ReportInventoryAnalysis");
+		MSequence seq = MSequence.get(getCtx(), "ReportStorageMovement");
 		if (seq == null)
-			throw new AdempiereException("No sequence for ReportInventoryAnalysis table");
+			throw new AdempiereException("No sequence for ReportStorageMovement table");
  		if (IsActive) { 
-			String delete = "DELETE FROM ReportInventoryAnalysis";
+			String delete = "DELETE FROM ReportStorageMovement";
  			DB.executeUpdate(delete, get_TrxName());
  		}
 
@@ -42,7 +42,7 @@ import org.compiere.process.SvrProcess;
 
 			log.info("Selected line ID = "+a);
 
-		String insert="INSERT INTO ReportInventoryAnalysis (Value,WM_HandlingUnit_ID,M_Product_ID,QtyMovement,C_UOM_ID,GuaranteeDays,WM_InOut_ID,DateStart,DateEnd,X,Y,Z,IsSOTrx,C_Order_ID,M_Warehouse_ID,AD_Client_ID,AD_Org_ID,Created,CreatedBy,IsActive,Updated,UpdatedBy, ReportInventoryAnalysis_ID) SELECT m.Value,c.WM_HandlingUnit_ID,p.M_Product_ID,a.QtyMovement,c.C_UOM_ID,p.GuaranteeDays,o.WM_InOut_ID,a.DateStart,a.DateEnd,m.X,m.Y,m.Z,a.IsSOTrx,e.C_Order_ID,m.M_Warehouse_ID,a.AD_Client_ID,a.AD_Org_ID,a.Created,a.CreatedBy,a.IsActive,a.Updated,a.UpdatedBy, nextIDFunc(?, 'N') FROM WM_EmptyStorageLine a " 
+		String insert="INSERT INTO ReportStorageMovement (Value,WM_HandlingUnit_ID,M_Product_ID,QtyMovement,C_UOM_ID,GuaranteeDays,WM_InOut_ID,DateStart,DateEnd,X,Y,Z,IsSOTrx,C_Order_ID,M_Warehouse_ID,IsActive,AD_Client_ID,AD_Org_ID,Created,CreatedBy,Updated,UpdatedBy, ReportStorageMovement_ID) SELECT m.Value,a.WM_HandlingUnit_ID,p.M_Product_ID,a.QtyMovement,c.C_UOM_ID,p.GuaranteeDays,o.WM_InOut_ID,a.DateStart,a.DateEnd,m.X,m.Y,m.Z,a.IsSOTrx,e.C_Order_ID,m.M_Warehouse_ID,a.IsActive,a.AD_Client_ID,a.AD_Org_ID,a.Created,a.CreatedBy,a.Updated,a.UpdatedBy, nextIDFunc(?, 'N') FROM WM_EmptyStorageLine a " 
 +"INNER JOIN WM_EmptyStorage s ON (s.WM_EmptyStorage_ID=a.WM_EmptyStorage_ID)"
 		+" INNER JOIN M_Locator m ON (m.M_Locator_ID=s.M_Locator_ID) "
 		+" INNER JOIN M_Product p ON (p.M_Product_ID=a.M_Product_ID) "

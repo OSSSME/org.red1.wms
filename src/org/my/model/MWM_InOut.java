@@ -218,6 +218,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		inout.setC_BPartner_ID(order.getC_BPartner_ID());
 		inout.setC_BPartner_Location_ID(order.getC_BPartner_Location_ID());
 		inout.setM_Warehouse_ID(order.getM_Warehouse_ID());
+		inout.setC_Project_ID(order.getC_Project_ID());
 		inout.setMovementDate(lines.get(0).getUpdated());
 		if (inout.isSOTrx())
 			inout.setMovementType(MInOut.MOVEMENTTYPE_CustomerShipment);

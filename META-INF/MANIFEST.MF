@@ -30,4 +30,5 @@ Import-Package: org.adempiere.webui.factory,
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.adempiere.plugin.utils.Incremental2PackActivator
 Bundle-Vendor: red1-SYSNOVA
-Export-Package: org.my.model
+Export-Package: org.wms.model,
+ org.wms.process

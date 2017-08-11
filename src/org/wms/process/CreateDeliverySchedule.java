@@ -11,7 +11,7 @@ import org.compiere.model.MOrderLine;
 import org.compiere.process.SvrProcess;
 
 	public class CreateDeliverySchedule extends SvrProcess {
-	public CreateDeliverySchedule(List<MOrderLine> lines, Timestamp datePromised2, int wM_Gate_ID2){		DatePromised = datePromised2;		WM_Gate_ID = wM_Gate_ID2; 		externalorderlines = lines;		external = true;	}		List<MOrderLine> externalorderlines = null;	boolean external = false;	private int WM_Gate_ID = 0;	private Timestamp DatePromised = null;	protected void prepare() {
+	public CreateDeliverySchedule(){			}			public CreateDeliverySchedule(List<MOrderLine> lines, Timestamp datePromised2, int wM_Gate_ID2){		DatePromised = datePromised2;		WM_Gate_ID = wM_Gate_ID2; 		externalorderlines = lines;		external = true;		setTrxName(lines.get(0).get_TrxName());	}		List<MOrderLine> externalorderlines = null;	boolean external = false;	private int WM_Gate_ID = 0;	private Timestamp DatePromised = null;	protected void prepare() {
 		ProcessInfoParameter[] para = getParameter();
 			for (ProcessInfoParameter p:para) {
 				String name = p.getParameterName();
@@ -22,20 +22,20 @@ import org.compiere.process.SvrProcess;
 				else if(name.equals("DatePromised")){
 					DatePromised = p.getParameterAsTimestamp();
 			}
-		}
+		}		setTrxName(get_TrxName());	
 	}
 	public String executeDoIt(){		return doIt();	}		protected String doIt() {		if (WM_Gate_ID<1)			throw new AdempiereException("Set Gate Number");		if (DatePromised==null)			DatePromised=new Timestamp (System.currentTimeMillis());
 		String whereClause = "EXISTS (SELECT T_Selection_ID FROM T_Selection WHERE T_Selection.AD_PInstance_ID=? AND T_Selection.T_Selection_ID=C_OrderLine.C_OrderLine_ID)";
-		List<MOrderLine> lines = null;				if (external)			lines = externalorderlines;		else {			lines = new Query(Env.getCtx(),MOrderLine.Table_Name,whereClause,get_TrxName())					.setParameters(getAD_PInstance_ID()).list();		}
-				MWM_DeliverySchedule schedule = new Query(Env.getCtx(),MWM_DeliverySchedule.Table_Name,MWM_DeliverySchedule.COLUMNNAME_DatePromised+"=? AND "		+MWM_DeliverySchedule.COLUMNNAME_WM_Gate_ID+"=? AND "+MWM_DeliverySchedule.COLUMNNAME_C_Order_ID+"=?",get_TrxName())				.setParameters(DatePromised,WM_Gate_ID,lines.get(0).getC_Order_ID())				.first();		if (schedule!=null)			throw new AdempiereException("Already done same DateTime and Gate.");				schedule = new MWM_DeliverySchedule(Env.getCtx(), 0, get_TrxName());		schedule.setWM_Gate_ID(WM_Gate_ID);		schedule.setDatePromised(DatePromised);		schedule.setDateDelivered(DatePromised);		//schedule.setC_Order_ID(lines.get(0).getC_Order_ID());//TODO break at each different OrderID		schedule.setIsSOTrx(lines.get(0).getC_Order().isSOTrx());		schedule.setC_BPartner_ID(lines.get(0).getC_Order().getC_BPartner_ID());		schedule.setName(DatePromised.toString()+":"+schedule.getWM_Gate().getName());		schedule.saveEx(get_TrxName());		
+		List<MOrderLine> lines = null;				if (external)			lines = externalorderlines;		else {			lines = new Query(Env.getCtx(),MOrderLine.Table_Name,whereClause,trxName)					.setParameters(getAD_PInstance_ID()).list();		}
+				MWM_DeliverySchedule schedule = new Query(Env.getCtx(),MWM_DeliverySchedule.Table_Name,MWM_DeliverySchedule.COLUMNNAME_DatePromised+"=? AND "		+MWM_DeliverySchedule.COLUMNNAME_WM_Gate_ID+"=? AND "+MWM_DeliverySchedule.COLUMNNAME_C_Order_ID+"=?",trxName)				.setParameters(DatePromised,WM_Gate_ID,lines.get(0).getC_Order_ID())				.first();		if (schedule!=null)			throw new AdempiereException("Already done same DateTime and Gate.");				schedule = new MWM_DeliverySchedule(Env.getCtx(), 0, trxName);		schedule.setWM_Gate_ID(WM_Gate_ID);		schedule.setDatePromised(DatePromised);		schedule.setDateDelivered(DatePromised);		schedule.setC_Order_ID(lines.get(0).getC_Order_ID());//TODO break at each different OrderID		schedule.setIsSOTrx(lines.get(0).getC_Order().isSOTrx());		schedule.setC_BPartner_ID(lines.get(0).getC_Order().getC_BPartner_ID());		schedule.setName(DatePromised.toString()+":"+schedule.getWM_Gate().getName());		schedule.saveEx(trxName);		
 		for (MOrderLine line:lines){
 			int a = line.get_ID();
 
 			log.info("Selected line ID = "+a);
-						MWM_DeliveryScheduleLine dline = new MWM_DeliveryScheduleLine(Env.getCtx(), 0, get_TrxName());			dline.setWM_DeliverySchedule_ID(schedule.get_ID());			dline.setC_OrderLine_ID(line.getC_OrderLine_ID());			dline.setM_Product_ID(line.getM_Product_ID());			dline.setM_AttributeSetInstance_ID(line.getM_AttributeSetInstance_ID());			dline.setC_UOM_ID(line.getC_UOM_ID());			dline.setQtyOrdered(line.getQtyOrdered());			dline.setReceived(false);			dline.setQtyDelivered(line.getQtyOrdered());			dline.saveEx(get_TrxName()); 
+						MWM_DeliveryScheduleLine dline = new MWM_DeliveryScheduleLine(Env.getCtx(), 0, trxName);			dline.setWM_DeliverySchedule_ID(schedule.get_ID());			dline.setC_OrderLine_ID(line.getC_OrderLine_ID());			dline.setM_Product_ID(line.getM_Product_ID());			dline.setM_AttributeSetInstance_ID(line.getM_AttributeSetInstance_ID());			dline.setC_UOM_ID(line.getC_UOM_ID());			dline.setQtyOrdered(line.getQtyOrdered());			dline.setReceived(false);			dline.setQtyDelivered(line.getQtyOrdered());			dline.saveEx(trxName); 
 		}
 
 	return "RESULT: "+schedule.toString();
 
-	}
+	}		private String trxName = "";		private void setTrxName(String t){		trxName = t;	}
 }

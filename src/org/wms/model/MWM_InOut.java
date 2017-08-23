@@ -227,10 +227,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			inout.setMovementType(MInOut.MOVEMENTTYPE_VendorReceipts);
 		inout.setAD_Org_ID(Env.getAD_Org_ID(Env.getCtx()));
 		inout.setDocAction(DOCACTION_Prepare);
-		if (inout.isSOTrx())
-			inout.setC_DocType_ID(MDocType.DOCBASETYPE_MaterialDelivery);
-		else
-			inout.setC_DocType_ID(MDocType.DOCBASETYPE_MaterialReceipt);
+		inout.setC_DocType_ID();
 		inout.setDateOrdered(order.getDateOrdered());
 		inout.setDateReceived(lines.get(0).getWM_DeliveryScheduleLine().getWM_DeliverySchedule().getDateDelivered());
 		inout.setPOReference(order.getPOReference());

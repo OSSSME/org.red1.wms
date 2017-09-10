@@ -25,8 +25,8 @@ import org.compiere.process.SvrProcess;
 		}		setTrxName(get_TrxName());	
 	}
 	public String executeDoIt(){		return doIt();	}		protected String doIt() {		if (WM_Gate_ID<1)			throw new AdempiereException("Set Gate Number");		if (DatePromised==null)			DatePromised=new Timestamp (System.currentTimeMillis());
-		String whereClause = "EXISTS (SELECT T_Selection_ID FROM T_Selection WHERE T_Selection.AD_PInstance_ID=? AND T_Selection.T_Selection_ID=C_OrderLine.C_OrderLine_ID)";
-		List<MOrderLine> lines = null;				if (external)			lines = externalorderlines;		else {			lines = new Query(Env.getCtx(),MOrderLine.Table_Name,whereClause,trxName)					.setParameters(getAD_PInstance_ID()).list();		}
+		String whereClause = "EXISTS (SELECT ViewID FROM T_Selection WHERE T_Selection.AD_PInstance_ID=? AND CAST(T_Selection.ViewID AS INTEGER)=C_OrderLine.C_OrderLine_ID)";
+		List<MOrderLine> lines = null;				if (external)			lines = externalorderlines;		else {			lines = new Query(Env.getCtx(),MOrderLine.Table_Name,whereClause,trxName)					.setParameters(getAD_PInstance_ID())					.list();		}
 				MWM_DeliverySchedule schedule = new Query(Env.getCtx(),MWM_DeliverySchedule.Table_Name,MWM_DeliverySchedule.COLUMNNAME_DatePromised+"=? AND "		+MWM_DeliverySchedule.COLUMNNAME_WM_Gate_ID+"=? AND "+MWM_DeliverySchedule.COLUMNNAME_C_Order_ID+"=?",trxName)				.setParameters(DatePromised,WM_Gate_ID,lines.get(0).getC_Order_ID())				.first();		if (schedule!=null)			throw new AdempiereException("Already done same DateTime and Gate.");				schedule = new MWM_DeliverySchedule(Env.getCtx(), 0, trxName);		schedule.setWM_Gate_ID(WM_Gate_ID);		schedule.setDatePromised(DatePromised);		schedule.setDateDelivered(DatePromised);		schedule.setC_Order_ID(lines.get(0).getC_Order_ID());//TODO break at each different OrderID		schedule.setIsSOTrx(lines.get(0).getC_Order().isSOTrx());		schedule.setC_BPartner_ID(lines.get(0).getC_Order().getC_BPartner_ID());		schedule.setName(DatePromised.toString()+":"+schedule.getWM_Gate().getName());		schedule.saveEx(trxName);		
 		for (MOrderLine line:lines){
 			int a = line.get_ID();

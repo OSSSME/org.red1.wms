@@ -2,7 +2,7 @@
 import org.adempiere.base.event.AbstractEventHandler;
 import org.adempiere.base.event.IEventTopics;
 import org.compiere.model.PO;
-import org.compiere.util.CLogger;
+import org.compiere.util.CLogger;import org.compiere.util.Env;
 import org.osgi.service.event.Event;import org.wms.model.MWM_DeliverySchedule;
 
 public class WM_DeliveryScheduleDocEvent extends AbstractEventHandler {
@@ -12,14 +12,14 @@ public class WM_DeliveryScheduleDocEvent extends AbstractEventHandler {
 
 	@Override 
 	protected void initialize() { 
-		registerTableEvent(IEventTopics.PO_AFTER_CHANGE, MWM_DeliverySchedule.Table_Name);
+		registerEvent(IEventTopics.AFTER_LOGIN);
 		log.info("WM_DeliverySchedule<PLUGIN> .. IS NOW INITIALIZED");
 		}
 
 	@Override 
 	protected void doHandleEvent(Event event){
 		String type = event.getTopic();
-		if (type.equals(IEventTopics.AFTER_LOGIN)) {
+		if (type.equals(IEventTopics.AFTER_LOGIN)) {			Env.setContext(Env.getCtx(), "#WMS", true);
 	}
  		else {
 			setPo(getPO(event));

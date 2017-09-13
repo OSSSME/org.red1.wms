@@ -32,7 +32,7 @@ import org.compiere.process.SvrProcess;
 			int a = line.get_ID();
 
 			log.info("Selected line ID = "+a);
-						MWM_DeliveryScheduleLine dline = new MWM_DeliveryScheduleLine(Env.getCtx(), 0, trxName);			dline.setWM_DeliverySchedule_ID(schedule.get_ID());			dline.setC_OrderLine_ID(line.getC_OrderLine_ID());			dline.setM_Product_ID(line.getM_Product_ID());			dline.setM_AttributeSetInstance_ID(line.getM_AttributeSetInstance_ID());			dline.setC_UOM_ID(line.getC_UOM_ID());			dline.setQtyOrdered(line.getQtyOrdered());			dline.setReceived(false);			dline.setQtyDelivered(line.getQtyOrdered());			dline.saveEx(trxName); 
+						MWM_DeliveryScheduleLine dline = new MWM_DeliveryScheduleLine(Env.getCtx(), 0, trxName);			dline.setWM_DeliverySchedule_ID(schedule.get_ID());			dline.setC_OrderLine_ID(line.getC_OrderLine_ID());			dline.setM_Product_ID(line.getM_Product_ID());			dline.setM_AttributeSetInstance_ID(line.getM_AttributeSetInstance_ID());			dline.setC_UOM_ID(line.getC_UOM_ID());			dline.setQtyOrdered(line.getQtyOrdered());			dline.setReceived(lines.get(0).getC_Order().isSOTrx());			dline.setQtyDelivered(line.getQtyOrdered());			dline.saveEx(trxName); 
 		}
 
 	return "RESULT: "+schedule.toString();

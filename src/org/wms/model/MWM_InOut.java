@@ -173,7 +173,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				hu.saveEx(get_TrxName());
 				//deactivate HandlingUnit history
 				MWM_HandlingUnitHistory huh = new Query(Env.getCtx(),MWM_HandlingUnitHistory.Table_Name,MWM_HandlingUnitHistory.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "
-						+MWM_HandlingUnitHistory.COLUMNNAME_WM_InOutLine_ID+"",get_TrxName())
+						+MWM_HandlingUnitHistory.COLUMNNAME_WM_InOutLine_ID+"=?",get_TrxName())
 						.setParameters(hu.get_ID(),line.get_ID())
 						.first();
 				if (huh==null)

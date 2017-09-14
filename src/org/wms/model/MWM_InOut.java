@@ -176,10 +176,11 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 						+MWM_HandlingUnitHistory.COLUMNNAME_WM_InOutLine_ID+"=?",get_TrxName())
 						.setParameters(hu.get_ID(),line.get_ID())
 						.first();
-				if (huh==null)
+				if (huh==null){
 					log.severe("HandlingUnit has no history: "+line.getWM_HandlingUnit().getName());
+					}
 				if (huh.getDateEnd()==null){
-					log.severe("HandlingUnit history has no DateEnd during Receive of DeliverySchedule: "+line.getWM_HandlingUnit().getName());
+					log.warning("HandlingUnit history has no DateEnd during Receive of DeliverySchedule: "+line.getWM_HandlingUnit().getName());
 					huh.setDateEnd(hu.getUpdated());
 				}
 				huh.setIsActive(false);

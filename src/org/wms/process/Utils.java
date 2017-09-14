@@ -232,7 +232,7 @@ public class Utils {
 	public void calculatePercentageVacant(MWM_DeliveryScheduleLine dsline,MWM_EmptyStorage empty) {
 		if (!dsline.isReceived())
 			return;//future, do not want to affect statistics of EmptyStorage
-		empty.setPercentage((empty.getAvailableCapacity().divide(empty.getVacantCapacity(),2,BigDecimal.ROUND_HALF_UP)).multiply(Env.ONEHUNDRED));
+		empty.setPercentage((empty.getAvailableCapacity().divide(empty.getVacantCapacity(),4,BigDecimal.ROUND_HALF_UP)).multiply(Env.ONEHUNDRED));
 		//set is Full if 0% vacant
 		if (empty.getPercentage().compareTo(Env.ZERO)==0)
 			empty.setIsFull(true);

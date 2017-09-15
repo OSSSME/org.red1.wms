@@ -178,7 +178,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 						.first();
 				if (huh==null){
 					log.severe("HandlingUnit has no history: "+line.getWM_HandlingUnit().getName());
-					}
+					continue;
+				}
 				if (huh.getDateEnd()==null){
 					log.warning("HandlingUnit history has no DateEnd during Receive of DeliverySchedule: "+line.getWM_HandlingUnit().getName());
 					huh.setDateEnd(hu.getUpdated());

@@ -11,8 +11,7 @@ public class WM_HandlingUnitDocEvent extends AbstractEventHandler {
 		private PO po = null;
 
 	@Override 
-	protected void initialize() { 
-		registerTableEvent(IEventTopics.PO_AFTER_CHANGE, MWM_HandlingUnit.Table_Name);
+	protected void initialize() {  
 		log.info("WM_HandlingUnit<PLUGIN> .. IS NOW INITIALIZED");
 		}
 

@@ -11,8 +11,7 @@ public class WM_ESLineDocEvent extends AbstractEventHandler {
 		private PO po = null;
 
 	@Override 
-	protected void initialize() { 
-		registerTableEvent(IEventTopics.PO_AFTER_CHANGE, MWM_ESLine.Table_Name);
+	protected void initialize() {  
 		log.info("WM_ESLine<PLUGIN> .. IS NOW INITIALIZED");
 		}
 

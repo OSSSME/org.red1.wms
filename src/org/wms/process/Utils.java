@@ -1,13 +1,16 @@
 package org.wms.process;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.MProduct;
 import org.compiere.model.Query;
 import org.compiere.util.CLogger;
+import org.compiere.util.DB;
 import org.compiere.util.Env;
+import org.compiere.util.KeyNamePair;
 import org.compiere.util.TimeUtil;
 import org.wms.model.MWM_DeliveryScheduleLine;
 import org.wms.model.MWM_ESLine;
@@ -267,17 +270,18 @@ public class Utils {
 	 * @param inout
 	 */
 	public void sortFinalList(MWM_InOut inout) {
-		//sort inout list according to XYZ
-		List<MWM_InOutLine>iolines = new Query(Env.getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?",trxName)
-				.setParameters(inout.get_ID())
-				.setOrderBy(MWM_InOutLine.COLUMNNAME_M_Locator_ID)
-				.list();
+		//sort inout list according to WH,XYZ
+ 		String sql = "SELECT wl.WM_InOutLine_ID,l.Value FROM  WM_InOutLine wl,WM_InOut w,M_Locator l "
+ 				+ "WHERE w.WM_InOut_ID=? AND wl.WM_InOut_ID=w.WM_InOut_ID AND wl.M_Locator_ID=l.M_Locator_ID ORDER BY l.M_Warehouse_ID,l.X,l.Y,l.Z";
 		int seq = 1;
-		for (MWM_InOutLine line:iolines){	
-			line.setSequence(new BigDecimal(seq));
-			line.saveEx(trxName);
+		 KeyNamePair[] list = DB.getKeyNamePairs(trxName, sql, false,inout.get_ID());
+		for (KeyNamePair line:list){
+			int id = line.getKey();
+			MWM_InOutLine ioline = new MWM_InOutLine(Env.getCtx(),id,trxName);
+			ioline.setSequence(new BigDecimal(seq));
+			ioline.saveEx(trxName);
 			seq++;			
-		}
+		} 
 	}
 
 	/**

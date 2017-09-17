@@ -140,7 +140,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				continue; //still not processed at DeliverySchedule level, so no Shipment/Receipt possible
 			
 			if (line.getM_InOutLine_ID()>0)
-				throw new AdempiereException("Already has Shipment/Receipt record!");//already done before
+				log.warning("Already has Shipment/Receipt record!");//already done before
 				
 			if (line.getWM_DeliveryScheduleLine().getC_OrderLine().getC_Order_ID()!=c_Order_Holder){
 				if (inout!=null){

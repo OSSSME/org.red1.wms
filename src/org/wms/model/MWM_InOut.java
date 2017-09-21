@@ -154,6 +154,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			MInOutLine ioline = new MInOutLine(inout);
 			ioline.setC_OrderLine_ID(line.getC_OrderLine_ID());
 			ioline.setM_Product_ID(line.getM_Product_ID());
+			ioline.setM_AttributeSetInstance_ID(line.getC_OrderLine().getM_AttributeSetInstance_ID());
 			ioline.setC_UOM_ID(line.getC_UOM_ID());
 			ioline.setM_Locator_ID(line.getM_Locator_ID());
 			ioline.setQtyEntered(line.getQtyPicked());

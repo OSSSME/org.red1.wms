@@ -3,7 +3,7 @@
 import org.compiere.model.MOrderLine;
 import org.compiere.model.Query;import org.compiere.process.ProcessInfoParameter;
 import org.compiere.process.SvrProcess;
-import org.compiere.util.Env;import org.wms.model.MWM_DeliverySchedule;import org.wms.model.MWM_DeliveryScheduleLine;
+import org.compiere.util.Env;import org.wms.model.MWM_DeliverySchedule;import org.wms.model.MWM_DeliveryScheduleLine;import org.wms.model.MWM_InOutLine;
 
 	public class CreateDeliverySchedule extends SvrProcess {
 	public CreateDeliverySchedule(){			}			public CreateDeliverySchedule(List<MOrderLine> lines, Timestamp datePromised2, int wM_Gate_ID2){		DatePromised = datePromised2;		WM_Gate_ID = wM_Gate_ID2; 		externalorderlines = lines;		external = true;		setTrxName(lines.get(0).get_TrxName());	}		List<MOrderLine> externalorderlines = null;	boolean external = false;	private int WM_Gate_ID = 0;	private Timestamp DatePromised = null;	protected void prepare() {
@@ -27,7 +27,7 @@ import org.compiere.util.Env;import org.wms.model.MWM_DeliverySchedule;import 
 			int a = line.get_ID();
 
 			log.info("Selected line ID = "+a);
-						MWM_DeliveryScheduleLine dline = new MWM_DeliveryScheduleLine(Env.getCtx(), 0, trxName);			dline.setWM_DeliverySchedule_ID(schedule.get_ID());			dline.setC_OrderLine_ID(line.getC_OrderLine_ID());			dline.setM_Product_ID(line.getM_Product_ID());			dline.setM_AttributeSetInstance_ID(line.getM_AttributeSetInstance_ID());			dline.setC_UOM_ID(line.getC_UOM_ID());			dline.setQtyOrdered(line.getQtyOrdered());			dline.setReceived(lines.get(0).getC_Order().isSOTrx());			dline.setQtyDelivered(line.getQtyOrdered().subtract(line.getQtyDelivered()));			dline.saveEx(trxName); 
+						MWM_DeliveryScheduleLine dline = new MWM_DeliveryScheduleLine(Env.getCtx(), 0, trxName);			dline.setWM_DeliverySchedule_ID(schedule.get_ID());			dline.setC_OrderLine_ID(line.getC_OrderLine_ID());			dline.setM_Product_ID(line.getM_Product_ID());			dline.setM_AttributeSetInstance_ID(line.getM_AttributeSetInstance_ID());			dline.setC_UOM_ID(line.getC_UOM_ID());			dline.setReceived(lines.get(0).getC_Order().isSOTrx());			if (line.getQtyDelivered().compareTo(Env.ZERO)>0){				dline.setQtyOrdered(line.getQtyOrdered().subtract(line.getQtyDelivered()));				dline.setQtyDelivered(line.getQtyOrdered().subtract(line.getQtyDelivered()));			} else {				//check if has previous WM_InOut (backorder case) and if QtyDelivered then error of premature process				MWM_InOutLine wmioline = new Query(Env.getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_WM_DeliveryScheduleLine_ID+"=?",get_TrxName())						.setParameters(dline.get_ID())						.first();				if (wmioline!=null)					throw new AdempiereException("Back Order premature. Complete Material Receipt first");				dline.setQtyOrdered(line.getQtyOrdered());				dline.setQtyDelivered(line.getQtyOrdered());			}			dline.saveEx(trxName); 
 		}
 
 	return "RESULT: "+schedule.toString();

@@ -13,5 +13,5 @@ public class MWM_DeliveryScheduleLine extends X_WM_DeliveryScheduleLine{
 
 	public MWM_DeliveryScheduleLine(Properties ctx, ResultSet rs, String trxName) {
 		super(ctx, rs, trxName);
-	}
+	}		protected boolean beforeSave (boolean newRecord)	{		if (getQtyDelivered().compareTo(getQtyOrdered())<0){			setIsBackOrder(true); 		}		else 			setIsBackOrder(false);		return true;	}
 }

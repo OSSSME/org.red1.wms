@@ -3,7 +3,7 @@ import org.adempiere.base.event.AbstractEventHandler;
 import org.adempiere.base.event.IEventTopics;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;import org.compiere.util.Env;
-import org.osgi.service.event.Event;import org.wms.model.MWM_DeliverySchedule;
+import org.osgi.service.event.Event;
 
 public class WM_DeliveryScheduleDocEvent extends AbstractEventHandler {
  	private static CLogger log = CLogger.getCLogger(WM_DeliveryScheduleDocEvent.class);
@@ -11,12 +11,15 @@ public class WM_DeliveryScheduleDocEvent extends AbstractEventHandler {
 		private PO po = null;
 
 	@Override 
-	protected void initialize() {  
+	protected void initialize() { 
+		registerEvent(IEventTopics.AFTER_LOGIN);
 		log.info("WM_DeliverySchedule<PLUGIN> .. IS NOW INITIALIZED");
 		}
 
 	@Override 
 	protected void doHandleEvent(Event event){
- 
- } 
+		String type = event.getTopic();
+		if (type.equals(IEventTopics.AFTER_LOGIN)) {			Env.setContext(Env.getCtx(), "#WMS", true);
+		} 
+	}
 }

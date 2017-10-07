@@ -24,6 +24,7 @@ import org.compiere.model.MDocType;
 import org.compiere.model.MInOut;
 import org.compiere.model.MInOutLine;
 import org.compiere.model.MOrder;
+import org.compiere.model.MOrderLine;
 import org.compiere.model.ModelValidationEngine;
 
 import org.compiere.model.ModelValidator;
@@ -188,7 +189,29 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				huh.setIsActive(false);
 				huh.saveEx(get_TrxName());
 			}
-
+			//check if has previous BackOrder that is not complete (no QtyDelivered value) so disallow any new BackOrders 
+			//check if has previous WM_InOut (backorder case) and if QtyDelivered then error of premature process
+			MWM_DeliveryScheduleLine prevDsLine = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_C_OrderLine_ID+"=?"
+					+ " AND "+MWM_DeliveryScheduleLine.COLUMNNAME_IsBackOrder+"=? "
+							+ "AND "+MWM_DeliveryScheduleLine.COLUMNNAME_Received+"=?"
+									+ " AND "+MWM_DeliveryScheduleLine.COLUMNNAME_Created+"<?",get_TrxName())
+					.setParameters(del.getC_OrderLine_ID(),"Y","Y",del.getCreated())
+					.setOrderBy(COLUMNNAME_Created+ " DESC")
+					.first(); 
+ 			
+			//check if old backorder needs to reset
+			//get C_Orderline, check if Delivered=Ordered
+			MOrderLine orderline = new Query(Env.getCtx(),MOrderLine.Table_Name,MOrderLine.COLUMNNAME_C_OrderLine_ID+"=?",get_TrxName())
+						.setParameters(del.getC_OrderLine_ID())
+						.first();
+			if (orderline!=null){
+				//the prev DS Line backorder has to be updated by this new DS Line
+				if (prevDsLine!=null){
+					prevDsLine.setQtyDelivered(prevDsLine.getQtyDelivered().add(del.getQtyOrdered()));
+					if (prevDsLine.getQtyDelivered().compareTo(prevDsLine.getQtyOrdered())==0) 
+						prevDsLine.saveEx(get_TrxName());
+				} 
+			} 
 		}
 		if (inout!=null){
 			saveM_InOut(inout,lines);

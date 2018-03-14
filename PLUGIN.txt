@@ -1,0 +1,6 @@
+<extension id="org.my.process.MigrateProcess"
+  point="org.adempiere.base.Process">
+	<process
+		class="org.my.process.MigrateProcess">
+	</process>
+</extension>

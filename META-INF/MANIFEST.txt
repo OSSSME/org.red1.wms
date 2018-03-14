@@ -1,1 +1,1 @@
-Service-Component: OSGI-INF/WM_WarehousePickDocEvent.xml,OSGI-INF/WM_WarehousePickModelFactory.xml
+Service-Component: OSGI-INF/WM_MigrationDocEvent.xml,OSGI-INF/WM_MigrationModelFactory.xml

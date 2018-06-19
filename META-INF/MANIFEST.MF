@@ -27,7 +27,6 @@ Import-Package: org.adempiere.webui.factory,
  org.adempiere.webui.info,
  org.adempiere.webui.panel,
  org.compiere.model,
- org.kanbanboard.model,
  org.ninja.component,
  org.osgi.service.event;version="1.3.0"
 Bundle-ActivationPolicy: lazy

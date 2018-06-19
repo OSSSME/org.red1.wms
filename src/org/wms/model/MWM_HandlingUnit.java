@@ -15,13 +15,14 @@ import java.sql.ResultSet;
 
 import java.util.Properties;
 
-import java.util.logging.Level; 
+import java.util.logging.Level;
 
+import org.compiere.model.ModelValidationEngine;
+import org.compiere.model.ModelValidator;
 import org.compiere.print.ReportEngine;
-import org.compiere.util.Msg;
-import org.kanbanboard.model.MKanbanCard;
-import org.ninja.component.DocAction;
 import org.ninja.component.DocumentEngine;
+import org.compiere.util.Msg;
+import org.ninja.component.DocAction;
 import org.wms.model.X_WM_HandlingUnit;
 
 public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
@@ -33,13 +34,13 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 			setDocAction (DOCACTION_Prepare);
 			setProcessed(false);
 		}
-
+		docstatus = getDocStatus();
 	}
 
 	public MWM_HandlingUnit(Properties ctx, ResultSet rs, String trxName) {
 		super(ctx, rs, trxName); 
 	}
-
+	private String docstatus = "";
 	private static final long serialVersionUID = 1L;
 	
 	/**	Process Message 			*/
@@ -71,79 +72,145 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 		return engine.processIt (processAction, getDocAction());
 	}
  
-	public boolean waitingConfirmation() {
-		if (log.isLoggable(Level.INFO)) 
-			log.info("waitingConfirmation - " + toString());
-		setDocStatus(DOCSTATUS_WaitingConfirmation);
-		return true; 
-	}
- 
 	public boolean waitingPayment() {
 		if (log.isLoggable(Level.INFO)) 
 			log.info("waitingPayment - " + toString());
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_WAITPAY);
+ 		if (m_processMsg != null)
+			return false;
 		setDocStatus(DOCSTATUS_WaitingPayment);
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_WAITPAY);
+ 		if (m_processMsg != null)
+			return false;
 		return true; 
 	}
  
 	public boolean unlockIt() {
 		if (log.isLoggable(Level.INFO)) 
 			log.info("unlockIt - " + toString());
+ 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_UNLOCK);
+ 		if (m_processMsg != null)
+			return false;
 		setDocStatus(DOCSTATUS_Unknown);
+ 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_UNLOCK);
+ 		if (m_processMsg != null)
+			return false;
 		return true; 
 	}
  
 	public boolean invalidateIt() {
-		if (log.isLoggable(Level.INFO)) log.info("invalidateIt - " + toString());
+ 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_INVALID);
+ 		if (m_processMsg != null)
+			return false;
 		setDocStatus(DOCSTATUS_Invalid);
-		//red1 return false if condition disallow move - put in Error Message 
-		//MKanbanCard.KDB_ErrorMessage = "";
-		return true;
+ 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_INVALID);
+ 		if (m_processMsg != null)
+			return false;
+ 		return true;
 	}
  
 	public String prepareIt() {
 		if (log.isLoggable(Level.INFO)) log.info(toString());
-
+ 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_PREPARE);
+		if (m_processMsg != null)
+			return docstatus;
+ 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_PREPARE);
+		if (m_processMsg != null)
+			return docstatus;
 		return DocAction.STATUS_InProgress; 
 	}
 
  	public boolean approveIt() {
-		if (log.isLoggable(Level.INFO)) log.info("approveIt - " + toString());
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_APPROVE);
+		if (m_processMsg != null)
+			return false;
 		setDocStatus(DOCSTATUS_Approved);
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_APPROVE);
+		if (m_processMsg != null)
+			return false;
+
 		return true; 
 	}
 
  	public boolean rejectIt() { 
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_REJECT);
+		if (m_processMsg != null)
+			return false;
 		setDocStatus(DOCSTATUS_NotApproved);
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_REJECT);
+		if (m_processMsg != null)
+			return false;
 		return true;
 	}
 
  	public String completeIt() {
-  		return DocAction.STATUS_Completed;
+ 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_COMPLETE);
+		if (m_processMsg != null)
+			return docstatus; 
+ 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_COMPLETE);
+		if (m_processMsg != null)
+			return docstatus; 
+ 		return DocAction.STATUS_Completed;
 	}
 	
-	public boolean voidIt() {
+ 	public boolean voidIt() {
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_VOID);
+		if (m_processMsg != null)
+			return false; 
 		setDocStatus(DOCSTATUS_Voided);
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_VOID);
+		if (m_processMsg != null)
+			return false; 
 		return true;
 	}
-
  	public boolean closeIt() {
- 		setDocStatus(DOCSTATUS_Closed);
+		if (log.isLoggable(Level.INFO)) log.info("closeIt - " + toString());
+		// Before Close
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_CLOSE);
+		if (m_processMsg != null)
+			return false; 
+		setDocStatus(DOCSTATUS_Closed);
+		// After Close
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_CLOSE);
+		if (m_processMsg != null)
+			return false;
 		return true;
 	}
-
   	public boolean reverseCorrectIt() {
-  		setDocStatus(DOCSTATUS_Reversed);
+		if (log.isLoggable(Level.INFO)) log.info(toString());
+		// Before reverseCorrect
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_REVERSECORRECT);
+		if (m_processMsg != null)
+			return false;
+		setDocStatus(DOCSTATUS_Reversed);
+ 		// After reverseCorrect
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_REVERSECORRECT);
+		if (m_processMsg != null)
+			return false;
  		return true;
 	}
-
  	public boolean reverseAccrualIt() {
 		if (log.isLoggable(Level.INFO)) log.info(toString());
-		setDocStatus(DOCSTATUS_Reversed);
+		// Before reverseAccrual
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_REVERSEACCRUAL);
+		if (m_processMsg != null)
+			return false;
+ 		// After reverseAccrual
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_REVERSEACCRUAL);
+		if (m_processMsg != null)
+			return false; 
 		return true;
 	}
-
  	public boolean reActivateIt() {
 		if (log.isLoggable(Level.INFO)) log.info(toString());
+		// Before reActivate
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_REACTIVATE);
+		if (m_processMsg != null)
+			return false;
+ 		// After reActivate
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_REACTIVATE);
+		if (m_processMsg != null)
+			return false; 
 		return true;
 	}
 
@@ -206,20 +273,29 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
-	@Override
-	public boolean waitComplete() {
-		setDocStatus(DOCSTATUS_WaitingConfirmation);
-		return true;
-	}
+ 
 	@Override
 	public boolean waitPayment() {
+		log.info("wait Payment - " + toString());
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_WAITPAY);
+		if (m_processMsg != null)
+			return false;
 		setDocStatus(DOCSTATUS_WaitingPayment);
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_WAITPAY);
+		if (m_processMsg != null)
+			return false;
 		return true;
 	}
 	@Override
-	public boolean waitConfirmation() {
+	public boolean waitConfirmation() {		if (log.isLoggable(Level.INFO)) 
+		log.info("waitingConfirmation - " + toString());
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_WAITCONFIRM);
+		if (m_processMsg != null)
+			return false;
 		setDocStatus(DOCSTATUS_WaitingConfirmation);
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_WAITCONFIRM);
+		if (m_processMsg != null)
+			return false;
 		return true;
 	}
  

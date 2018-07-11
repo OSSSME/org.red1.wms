@@ -1,1 +1,1 @@
-Service-Component: OSGI-INF/WM_MigrationDocEvent.xml,OSGI-INF/WM_MigrationModelFactory.xml
+Service-Component: OSGI-INF/WM_HandlingUnitDocEvent.xml,OSGI-INF/WM_HandlingUnitModelFactory.xml

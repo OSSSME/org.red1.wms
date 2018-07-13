@@ -23,7 +23,8 @@ Require-Bundle: org.adempiere.base;bundle-version="2.1.0",
  org.adempiere.plugin.utils;bundle-version="2.1.0",
  org.adempiere.ui.zk
 Service-Component: OSGI-INF/*.xml
-Import-Package: org.adempiere.webui.factory,
+Import-Package: com.ibm.icu.math,
+ org.adempiere.webui.factory,
  org.adempiere.webui.info,
  org.adempiere.webui.panel,
  org.compiere.model,

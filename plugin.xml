@@ -97,5 +97,10 @@
 		class="org.wms.process.MigrateProcess">
 	</process>
 </extension>
-
+<extension id="org.my.process.GenerateHandlingUnit"
+  point="org.adempiere.base.Process">
+	<process
+		class="org.wms.process.GenerateHandlingUnit">
+	</process>
+</extension>
 </plugin>

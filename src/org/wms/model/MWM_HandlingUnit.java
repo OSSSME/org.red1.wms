@@ -7,29 +7,17 @@
 */
 package org.wms.model;
 
-
 import java.io.File;
-
 import java.math.BigDecimal;
-
 import java.sql.ResultSet;
-
 import java.util.Properties;
-
 import org.compiere.model.ModelValidator;
-
 import java.util.logging.Level;
-
 import org.compiere.model.ModelValidationEngine;
-
 import org.compiere.print.ReportEngine;
-
 import org.compiere.util.Msg;
-
-import org.ninja.component.DocAction;
-
-import org.ninja.component.DocumentEngine;
-
+import org.wms.component.DocAction;
+import org.wms.component.DocumentEngine; 
 
 public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 	public MWM_HandlingUnit(Properties ctx, int id, String trxName) {
@@ -38,65 +26,48 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 
 		if (id==0){
 			setDocStatus(DOCSTATUS_Drafted);
-
 			setDocAction (DOCACTION_Prepare);
-
 			setProcessed(false);
-
 		}
-
 		docstatus = getDocStatus();
-
-
 	}
-
 
 	public MWM_HandlingUnit(Properties ctx, ResultSet rs, String trxName) {
 		super(ctx, rs, trxName);
- 
 	}
 
 	private String docstatus = "";
-
 	private static final long serialVersionUID = 1L;
 
 	/**	Process Message 			*/
 	private String			m_processMsg = null;
- 
 	private boolean			m_justPrepared = false;
-
 
 	protected boolean beforeSave (boolean newRecord)
 	{
 		return super.beforeSave(newRecord);
-
 	}
 
 
 	protected boolean beforeDelete() {	 
 		return super.beforeDelete();
-
 	}
 
 
 	protected boolean afterSave (boolean newRecord, boolean success)
 	{
 		return super.afterSave(newRecord, success);
-
 	}
 
  
 	protected boolean afterDelete(boolean success) {		 
 		return super.afterDelete(success);
-
 	}
 
  
 	public boolean processIt(String processAction) throws Exception {
  		DocumentEngine engine = new DocumentEngine (this, getDocStatus());
-
 		return engine.processIt (processAction, getDocAction());
-
 	}
 
  
@@ -117,9 +88,7 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 			return false;
 
 		return true;
- 
 	}
-
  
 	public boolean unlockIt() {
 		if (log.isLoggable(Level.INFO)) 
@@ -138,10 +107,8 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 			return false;
 
 		return true;
- 
 	}
 
- 
 	public boolean invalidateIt() {
  		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_INVALID);
 
@@ -149,85 +116,57 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 			return false;
 
 		setDocStatus(DOCSTATUS_Invalid);
-
- 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_INVALID);
-
+		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_INVALID);
  		if (m_processMsg != null)
 			return false;
 
  		return true;
-
 	}
-
  
 	public String prepareIt() {
 		if (log.isLoggable(Level.INFO)) log.info(toString());
-
  		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_PREPARE);
-
 		if (m_processMsg != null)
 			return docstatus;
-
  		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_PREPARE);
-
 		if (m_processMsg != null)
 			return docstatus;
-
-		return DocAction.STATUS_InProgress;
- 
+		return DocAction.STATUS_InProgress; 
 	}
-
 
  	public boolean approveIt() {
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_APPROVE);
-
 		if (m_processMsg != null)
 			return false;
-
 		setDocStatus(DOCSTATUS_Approved);
-
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_APPROVE);
-
 		if (m_processMsg != null)
 			return false;
-
 
 		return true;
- 
-	}
-
+ 	}
 
  	public boolean rejectIt() { 
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_REJECT);
-
 		if (m_processMsg != null)
 			return false;
-
 		setDocStatus(DOCSTATUS_NotApproved);
-
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_REJECT);
-
 		if (m_processMsg != null)
 			return false;
 
-		return true;
-
+		return true; 
 	}
-
-
+ 
  	public String completeIt() {
  		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_COMPLETE);
+ 		if (m_processMsg != null)
+			return docstatus;
+   		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_COMPLETE);
 
 		if (m_processMsg != null)
-			return docstatus;
- 
- 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_COMPLETE);
-
-		if (m_processMsg != null)
-			return docstatus;
- 
- 		return DocAction.STATUS_Completed;
-
+			return docstatus; 
+ 		return DocAction.STATUS_Completed; 
 	}
 
 	
@@ -244,8 +183,7 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 		if (m_processMsg != null)
 			return false;
  
-		return true;
-
+		return true; 
 	}
 
  	public boolean closeIt() {

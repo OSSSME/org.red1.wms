@@ -15,9 +15,9 @@ import org.compiere.model.ModelValidator;
 import java.util.logging.Level;
 import org.compiere.model.ModelValidationEngine;
 import org.compiere.print.ReportEngine;
+import org.compiere.process.DocAction;
+import org.compiere.process.DocumentEngine;
 import org.compiere.util.Msg;
-import org.wms.component.DocAction;
-import org.wms.component.DocumentEngine; 
 
 public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 	public MWM_HandlingUnit(Properties ctx, int id, String trxName) {
@@ -69,60 +69,7 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
  		DocumentEngine engine = new DocumentEngine (this, getDocStatus());
 		return engine.processIt (processAction, getDocAction());
 	}
-
- 
-	public boolean waitingPayment() {
-		if (log.isLoggable(Level.INFO)) 
-			log.info("waitingPayment - " + toString());
-
-		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_WAITPAY);
-
- 		if (m_processMsg != null)
-			return false;
-
-		setDocStatus(DOCSTATUS_WaitingPayment);
-
-		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_WAITPAY);
-
- 		if (m_processMsg != null)
-			return false;
-
-		return true;
-	}
- 
-	public boolean unlockIt() {
-		if (log.isLoggable(Level.INFO)) 
-			log.info("unlockIt - " + toString());
-
- 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_UNLOCK);
-
- 		if (m_processMsg != null)
-			return false;
-
-		setDocStatus(DOCSTATUS_Unknown);
-
- 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_UNLOCK);
-
- 		if (m_processMsg != null)
-			return false;
-
-		return true;
-	}
-
-	public boolean invalidateIt() {
- 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_INVALID);
-
- 		if (m_processMsg != null)
-			return false;
-
-		setDocStatus(DOCSTATUS_Invalid);
-		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_INVALID);
- 		if (m_processMsg != null)
-			return false;
-
- 		return true;
-	}
- 
+  
 	public String prepareIt() {
 		if (log.isLoggable(Level.INFO)) log.info(toString());
  		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_PREPARE);
@@ -135,28 +82,11 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 	}
 
  	public boolean approveIt() {
-		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_APPROVE);
-		if (m_processMsg != null)
-			return false;
+ 
 		setDocStatus(DOCSTATUS_Approved);
-		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_APPROVE);
-		if (m_processMsg != null)
-			return false;
-
+ 
 		return true;
  	}
-
- 	public boolean rejectIt() { 
-		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_REJECT);
-		if (m_processMsg != null)
-			return false;
-		setDocStatus(DOCSTATUS_NotApproved);
-		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_REJECT);
-		if (m_processMsg != null)
-			return false;
-
-		return true; 
-	}
  
  	public String completeIt() {
  		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_COMPLETE);
@@ -351,64 +281,24 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 
 	}
 
+	@Override
+	public boolean unlockIt() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean invalidateIt() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean rejectIt() {
+		// TODO Auto-generated method stub
+		return false;
+	}
  
-	@Override
-	public boolean waitPayment() {
-		log.info("wait Payment - " + toString());
-
-		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_WAITPAY);
-
-		if (m_processMsg != null)
-			return false;
-
-		setDocStatus(DOCSTATUS_WaitingPayment);
-
-		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_WAITPAY);
-
-		if (m_processMsg != null)
-			return false;
-
-		return true;
-
-	}
-
-	@Override
-	public boolean waitConfirmation() {		if (log.isLoggable(Level.INFO)) 
-		log.info("waitingConfirmation - " + toString());
-
-		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_WAITCONFIRM);
-
-		if (m_processMsg != null)
-			return false;
-
-		setDocStatus(DOCSTATUS_WaitingConfirmation);
-
-		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_WAITCONFIRM);
-
-		if (m_processMsg != null)
-			return false;
-
-		return true;
-
-	}
-
-	@Override
-	public boolean draftIt() {
-		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_DRAFT);
-
-		if (m_processMsg != null)
-			return false;
-
-		setDocStatus(DOCSTATUS_Drafted);
-
-		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_DRAFT);
-
-		if (m_processMsg != null)
-			return false;
-
-		return true;
-
-	}
 
  
 }

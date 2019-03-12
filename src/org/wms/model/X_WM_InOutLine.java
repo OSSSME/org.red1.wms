@@ -25,14 +25,14 @@ import org.compiere.util.Env;
 
 /** Generated Model for WM_InOutLine
  *  @author iDempiere (generated) 
- *  @version Release 4.1 - $Id$ */
+ *  @version Release 6.2 - $Id$ */
 public class X_WM_InOutLine extends PO implements I_WM_InOutLine, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170518L;
+	private static final long serialVersionUID = 20190311L;
 
     /** Standard Constructor */
     public X_WM_InOutLine (Properties ctx, int WM_InOutLine_ID, String trxName)
@@ -71,6 +71,34 @@ public class X_WM_InOutLine extends PO implements I_WM_InOutLine, I_Persistent
         .append(get_ID()).append("]");
       return sb.toString();
     }
+
+	public org.compiere.model.I_C_DocType getC_DocType() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_DocType)MTable.get(getCtx(), org.compiere.model.I_C_DocType.Table_Name)
+			.getPO(getC_DocType_ID(), get_TrxName());	}
+
+	/** Set Document Type.
+		@param C_DocType_ID 
+		Document type or rules
+	  */
+	public void setC_DocType_ID (int C_DocType_ID)
+	{
+		if (C_DocType_ID < 0) 
+			set_Value (COLUMNNAME_C_DocType_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_DocType_ID, Integer.valueOf(C_DocType_ID));
+	}
+
+	/** Get Document Type.
+		@return Document type or rules
+	  */
+	public int getC_DocType_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_DocType_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
 
 	public org.compiere.model.I_C_OrderLine getC_OrderLine() throws RuntimeException
     {
@@ -147,6 +175,34 @@ public class X_WM_InOutLine extends PO implements I_WM_InOutLine, I_Persistent
 			return "Y".equals(oo);
 		}
 		return false;
+	}
+
+	public I_M_AttributeSetInstance getM_AttributeSetInstance() throws RuntimeException
+    {
+		return (I_M_AttributeSetInstance)MTable.get(getCtx(), I_M_AttributeSetInstance.Table_Name)
+			.getPO(getM_AttributeSetInstance_ID(), get_TrxName());	}
+
+	/** Set Attribute Set Instance.
+		@param M_AttributeSetInstance_ID 
+		Product Attribute Set Instance
+	  */
+	public void setM_AttributeSetInstance_ID (int M_AttributeSetInstance_ID)
+	{
+		if (M_AttributeSetInstance_ID < 0) 
+			set_Value (COLUMNNAME_M_AttributeSetInstance_ID, null);
+		else 
+			set_Value (COLUMNNAME_M_AttributeSetInstance_ID, Integer.valueOf(M_AttributeSetInstance_ID));
+	}
+
+	/** Get Attribute Set Instance.
+		@return Product Attribute Set Instance
+	  */
+	public int getM_AttributeSetInstance_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_M_AttributeSetInstance_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
 	}
 
 	public org.compiere.model.I_M_InOutLine getM_InOutLine() throws RuntimeException
@@ -297,8 +353,8 @@ public class X_WM_InOutLine extends PO implements I_WM_InOutLine, I_Persistent
 		return (I_WM_HandlingUnit)MTable.get(getCtx(), I_WM_HandlingUnit.Table_Name)
 			.getPO(getWM_HandlingUnit_ID(), get_TrxName());	}
 
-	/** Set WM_HandlingUnit_ID.
-		@param WM_HandlingUnit_ID WM_HandlingUnit_ID	  */
+	/** Set Handling Unit.
+		@param WM_HandlingUnit_ID Handling Unit	  */
 	public void setWM_HandlingUnit_ID (int WM_HandlingUnit_ID)
 	{
 		if (WM_HandlingUnit_ID < 1) 
@@ -307,11 +363,36 @@ public class X_WM_InOutLine extends PO implements I_WM_InOutLine, I_Persistent
 			set_Value (COLUMNNAME_WM_HandlingUnit_ID, Integer.valueOf(WM_HandlingUnit_ID));
 	}
 
-	/** Get WM_HandlingUnit_ID.
-		@return WM_HandlingUnit_ID	  */
+	/** Get Handling Unit.
+		@return Handling Unit	  */
 	public int getWM_HandlingUnit_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_WM_HandlingUnit_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public I_WM_InOut getWM_InOut() throws RuntimeException
+    {
+		return (I_WM_InOut)MTable.get(getCtx(), I_WM_InOut.Table_Name)
+			.getPO(getWM_InOut_ID(), get_TrxName());	}
+
+	/** Set InOut.
+		@param WM_InOut_ID InOut	  */
+	public void setWM_InOut_ID (int WM_InOut_ID)
+	{
+		if (WM_InOut_ID < 1) 
+			set_ValueNoCheck (COLUMNNAME_WM_InOut_ID, null);
+		else 
+			set_ValueNoCheck (COLUMNNAME_WM_InOut_ID, Integer.valueOf(WM_InOut_ID));
+	}
+
+	/** Get InOut.
+		@return InOut	  */
+	public int getWM_InOut_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_WM_InOut_ID);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
@@ -349,30 +430,5 @@ public class X_WM_InOutLine extends PO implements I_WM_InOutLine, I_Persistent
 	public String getWM_InOutLine_UU () 
 	{
 		return (String)get_Value(COLUMNNAME_WM_InOutLine_UU);
-	}
-
-	public I_WM_InOut getWM_InOut() throws RuntimeException
-    {
-		return (I_WM_InOut)MTable.get(getCtx(), I_WM_InOut.Table_Name)
-			.getPO(getWM_InOut_ID(), get_TrxName());	}
-
-	/** Set InOut.
-		@param WM_InOut_ID InOut	  */
-	public void setWM_InOut_ID (int WM_InOut_ID)
-	{
-		if (WM_InOut_ID < 1) 
-			set_ValueNoCheck (COLUMNNAME_WM_InOut_ID, null);
-		else 
-			set_ValueNoCheck (COLUMNNAME_WM_InOut_ID, Integer.valueOf(WM_InOut_ID));
-	}
-
-	/** Get InOut.
-		@return InOut	  */
-	public int getWM_InOut_ID () 
-	{
-		Integer ii = (Integer)get_Value(COLUMNNAME_WM_InOut_ID);
-		if (ii == null)
-			 return 0;
-		return ii.intValue();
 	}
 }

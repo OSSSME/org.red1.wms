@@ -23,7 +23,7 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Interface for WM_DeliverySchedule
  *  @author iDempiere (generated) 
- *  @version Release 4.1
+ *  @version Release 6.2
  */
 @SuppressWarnings("all")
 public interface I_WM_DeliverySchedule 
@@ -32,7 +32,7 @@ public interface I_WM_DeliverySchedule
     /** TableName=WM_DeliverySchedule */
     public static final String Table_Name = "WM_DeliverySchedule";
 
-    /** AD_Table_ID=1000019 */
+    /** AD_Table_ID=1000023 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -46,16 +46,22 @@ public interface I_WM_DeliverySchedule
     /** Column name AD_Client_ID */
     public static final String COLUMNNAME_AD_Client_ID = "AD_Client_ID";
 
-	/** Get Client	  */
+	/** Get Client.
+	  * Client/Tenant for this installation.
+	  */
 	public int getAD_Client_ID();
 
     /** Column name AD_Org_ID */
     public static final String COLUMNNAME_AD_Org_ID = "AD_Org_ID";
 
-	/** Set Organization	  */
+	/** Set Organization.
+	  * Organizational entity within client
+	  */
 	public void setAD_Org_ID (int AD_Org_ID);
 
-	/** Get Organization	  */
+	/** Get Organization.
+	  * Organizational entity within client
+	  */
 	public int getAD_Org_ID();
 
     /** Column name AD_User_ID */
@@ -88,6 +94,21 @@ public interface I_WM_DeliverySchedule
 
 	public org.compiere.model.I_C_BPartner getC_BPartner() throws RuntimeException;
 
+    /** Column name C_DocType_ID */
+    public static final String COLUMNNAME_C_DocType_ID = "C_DocType_ID";
+
+	/** Set Document Type.
+	  * Document type or rules
+	  */
+	public void setC_DocType_ID (int C_DocType_ID);
+
+	/** Get Document Type.
+	  * Document type or rules
+	  */
+	public int getC_DocType_ID();
+
+	public org.compiere.model.I_C_DocType getC_DocType() throws RuntimeException;
+
     /** Column name C_Order_ID */
     public static final String COLUMNNAME_C_Order_ID = "C_Order_ID";
 
@@ -106,13 +127,17 @@ public interface I_WM_DeliverySchedule
     /** Column name Created */
     public static final String COLUMNNAME_Created = "Created";
 
-	/** Get Created	  */
+	/** Get Created.
+	  * Date this record was created
+	  */
 	public Timestamp getCreated();
 
     /** Column name CreatedBy */
     public static final String COLUMNNAME_CreatedBy = "CreatedBy";
 
-	/** Get Created By	  */
+	/** Get Created By.
+	  * User who created this records
+	  */
 	public int getCreatedBy();
 
     /** Column name DateDelivered */
@@ -183,10 +208,14 @@ public interface I_WM_DeliverySchedule
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
 
-	/** Set Active	  */
+	/** Set Active.
+	  * The record is active in the system
+	  */
 	public void setIsActive (boolean IsActive);
 
-	/** Get Active	  */
+	/** Get Active.
+	  * The record is active in the system
+	  */
 	public boolean isActive();
 
     /** Column name IsApproved */
@@ -214,6 +243,21 @@ public interface I_WM_DeliverySchedule
 	  * This is a Sales Transaction
 	  */
 	public boolean isSOTrx();
+
+    /** Column name M_InOut_ID */
+    public static final String COLUMNNAME_M_InOut_ID = "M_InOut_ID";
+
+	/** Set Shipment/Receipt.
+	  * Material Shipment Document
+	  */
+	public void setM_InOut_ID (int M_InOut_ID);
+
+	/** Get Shipment/Receipt.
+	  * Material Shipment Document
+	  */
+	public int getM_InOut_ID();
+
+	public org.compiere.model.I_M_InOut getM_InOut() throws RuntimeException;
 
     /** Column name M_Warehouse_ID */
     public static final String COLUMNNAME_M_Warehouse_ID = "M_Warehouse_ID";
@@ -277,13 +321,17 @@ public interface I_WM_DeliverySchedule
     /** Column name Updated */
     public static final String COLUMNNAME_Updated = "Updated";
 
-	/** Get Updated	  */
+	/** Get Updated.
+	  * Date this record was updated
+	  */
 	public Timestamp getUpdated();
 
     /** Column name UpdatedBy */
     public static final String COLUMNNAME_UpdatedBy = "UpdatedBy";
 
-	/** Get Updated By	  */
+	/** Get Updated By.
+	  * User who updated this records
+	  */
 	public int getUpdatedBy();
 
     /** Column name WM_DeliverySchedule_ID */
@@ -294,6 +342,15 @@ public interface I_WM_DeliverySchedule
 
 	/** Get DeliverySchedule	  */
 	public int getWM_DeliverySchedule_ID();
+
+    /** Column name WM_DeliverySchedule_UU */
+    public static final String COLUMNNAME_WM_DeliverySchedule_UU = "WM_DeliverySchedule_UU";
+
+	/** Set WM_DeliverySchedule_UU	  */
+	public void setWM_DeliverySchedule_UU (String WM_DeliverySchedule_UU);
+
+	/** Get WM_DeliverySchedule_UU	  */
+	public String getWM_DeliverySchedule_UU();
 
     /** Column name WM_Gate_ID */
     public static final String COLUMNNAME_WM_Gate_ID = "WM_Gate_ID";

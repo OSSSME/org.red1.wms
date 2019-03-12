@@ -1,6 +1,6 @@
-<extension id="org.my.process.GenerateHandlingUnit"
+<extension id="org.my.process.SetGatePromisedDate"
   point="org.adempiere.base.Process">
 	<process
-		class="org.my.process.GenerateHandlingUnit">
+		class="org.my.process.SetGatePromisedDate">
 	</process>
 </extension>

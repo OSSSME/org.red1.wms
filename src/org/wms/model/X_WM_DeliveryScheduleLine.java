@@ -25,14 +25,14 @@ import org.compiere.util.Env;
 
 /** Generated Model for WM_DeliveryScheduleLine
  *  @author iDempiere (generated) 
- *  @version Release 4.1 - $Id$ */
+ *  @version Release 6.2 - $Id$ */
 public class X_WM_DeliveryScheduleLine extends PO implements I_WM_DeliveryScheduleLine, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170925L;
+	private static final long serialVersionUID = 20190311L;
 
     /** Standard Constructor */
     public X_WM_DeliveryScheduleLine (Properties ctx, int WM_DeliveryScheduleLine_ID, String trxName)
@@ -177,6 +177,34 @@ public class X_WM_DeliveryScheduleLine extends PO implements I_WM_DeliverySchedu
 		return ii.intValue();
 	}
 
+	public org.compiere.model.I_M_InOutLine getM_InOutLine() throws RuntimeException
+    {
+		return (org.compiere.model.I_M_InOutLine)MTable.get(getCtx(), org.compiere.model.I_M_InOutLine.Table_Name)
+			.getPO(getM_InOutLine_ID(), get_TrxName());	}
+
+	/** Set Shipment/Receipt Line.
+		@param M_InOutLine_ID 
+		Line on Shipment or Receipt document
+	  */
+	public void setM_InOutLine_ID (int M_InOutLine_ID)
+	{
+		if (M_InOutLine_ID < 1) 
+			set_Value (COLUMNNAME_M_InOutLine_ID, null);
+		else 
+			set_Value (COLUMNNAME_M_InOutLine_ID, Integer.valueOf(M_InOutLine_ID));
+	}
+
+	/** Get Shipment/Receipt Line.
+		@return Line on Shipment or Receipt document
+	  */
+	public int getM_InOutLine_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_M_InOutLine_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
 	public org.compiere.model.I_M_Product getM_Product() throws RuntimeException
     {
 		return (org.compiere.model.I_M_Product)MTable.get(getCtx(), org.compiere.model.I_M_Product.Table_Name)
@@ -266,6 +294,31 @@ public class X_WM_DeliveryScheduleLine extends PO implements I_WM_DeliverySchedu
 		return false;
 	}
 
+	public I_WM_DeliverySchedule getWM_DeliverySchedule() throws RuntimeException
+    {
+		return (I_WM_DeliverySchedule)MTable.get(getCtx(), I_WM_DeliverySchedule.Table_Name)
+			.getPO(getWM_DeliverySchedule_ID(), get_TrxName());	}
+
+	/** Set DeliverySchedule.
+		@param WM_DeliverySchedule_ID DeliverySchedule	  */
+	public void setWM_DeliverySchedule_ID (int WM_DeliverySchedule_ID)
+	{
+		if (WM_DeliverySchedule_ID < 1) 
+			set_ValueNoCheck (COLUMNNAME_WM_DeliverySchedule_ID, null);
+		else 
+			set_ValueNoCheck (COLUMNNAME_WM_DeliverySchedule_ID, Integer.valueOf(WM_DeliverySchedule_ID));
+	}
+
+	/** Get DeliverySchedule.
+		@return DeliverySchedule	  */
+	public int getWM_DeliverySchedule_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_WM_DeliverySchedule_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
 	/** Set DeliveryScheduleLine.
 		@param WM_DeliveryScheduleLine_ID DeliveryScheduleLine	  */
 	public void setWM_DeliveryScheduleLine_ID (int WM_DeliveryScheduleLine_ID)
@@ -298,31 +351,6 @@ public class X_WM_DeliveryScheduleLine extends PO implements I_WM_DeliverySchedu
 	public String getWM_DeliveryScheduleLine_UU () 
 	{
 		return (String)get_Value(COLUMNNAME_WM_DeliveryScheduleLine_UU);
-	}
-
-	public I_WM_DeliverySchedule getWM_DeliverySchedule() throws RuntimeException
-    {
-		return (I_WM_DeliverySchedule)MTable.get(getCtx(), I_WM_DeliverySchedule.Table_Name)
-			.getPO(getWM_DeliverySchedule_ID(), get_TrxName());	}
-
-	/** Set DeliverySchedule.
-		@param WM_DeliverySchedule_ID DeliverySchedule	  */
-	public void setWM_DeliverySchedule_ID (int WM_DeliverySchedule_ID)
-	{
-		if (WM_DeliverySchedule_ID < 1) 
-			set_ValueNoCheck (COLUMNNAME_WM_DeliverySchedule_ID, null);
-		else 
-			set_ValueNoCheck (COLUMNNAME_WM_DeliverySchedule_ID, Integer.valueOf(WM_DeliverySchedule_ID));
-	}
-
-	/** Get DeliverySchedule.
-		@return DeliverySchedule	  */
-	public int getWM_DeliverySchedule_ID () 
-	{
-		Integer ii = (Integer)get_Value(COLUMNNAME_WM_DeliverySchedule_ID);
-		if (ii == null)
-			 return 0;
-		return ii.intValue();
 	}
 
 	public I_WM_InOutLine getWM_InOutLine() throws RuntimeException

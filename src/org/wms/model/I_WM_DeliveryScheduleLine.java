@@ -23,7 +23,7 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Interface for WM_DeliveryScheduleLine
  *  @author iDempiere (generated) 
- *  @version Release 4.1
+ *  @version Release 6.2
  */
 @SuppressWarnings("all")
 public interface I_WM_DeliveryScheduleLine 
@@ -32,7 +32,7 @@ public interface I_WM_DeliveryScheduleLine
     /** TableName=WM_DeliveryScheduleLine */
     public static final String Table_Name = "WM_DeliveryScheduleLine";
 
-    /** AD_Table_ID=1000016 */
+    /** AD_Table_ID=1000024 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -79,21 +79,6 @@ public interface I_WM_DeliveryScheduleLine
 
 	public org.compiere.model.I_C_OrderLine getC_OrderLine() throws RuntimeException;
 
-    /** Column name C_UOM_ID */
-    public static final String COLUMNNAME_C_UOM_ID = "C_UOM_ID";
-
-	/** Set UOM.
-	  * Unit of Measure
-	  */
-	public void setC_UOM_ID (int C_UOM_ID);
-
-	/** Get UOM.
-	  * Unit of Measure
-	  */
-	public int getC_UOM_ID();
-
-	public org.compiere.model.I_C_UOM getC_UOM() throws RuntimeException;
-
     /** Column name Created */
     public static final String COLUMNNAME_Created = "Created";
 
@@ -109,6 +94,21 @@ public interface I_WM_DeliveryScheduleLine
 	  * User who created this records
 	  */
 	public int getCreatedBy();
+
+    /** Column name C_UOM_ID */
+    public static final String COLUMNNAME_C_UOM_ID = "C_UOM_ID";
+
+	/** Set UOM.
+	  * Unit of Measure
+	  */
+	public void setC_UOM_ID (int C_UOM_ID);
+
+	/** Get UOM.
+	  * Unit of Measure
+	  */
+	public int getC_UOM_ID();
+
+	public org.compiere.model.I_C_UOM getC_UOM() throws RuntimeException;
 
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
@@ -146,6 +146,21 @@ public interface I_WM_DeliveryScheduleLine
 	public int getM_AttributeSetInstance_ID();
 
 	public I_M_AttributeSetInstance getM_AttributeSetInstance() throws RuntimeException;
+
+    /** Column name M_InOutLine_ID */
+    public static final String COLUMNNAME_M_InOutLine_ID = "M_InOutLine_ID";
+
+	/** Set Shipment/Receipt Line.
+	  * Line on Shipment or Receipt document
+	  */
+	public void setM_InOutLine_ID (int M_InOutLine_ID);
+
+	/** Get Shipment/Receipt Line.
+	  * Line on Shipment or Receipt document
+	  */
+	public int getM_InOutLine_ID();
+
+	public org.compiere.model.I_M_InOutLine getM_InOutLine() throws RuntimeException;
 
     /** Column name M_Product_ID */
     public static final String COLUMNNAME_M_Product_ID = "M_Product_ID";
@@ -213,6 +228,17 @@ public interface I_WM_DeliveryScheduleLine
 	  */
 	public int getUpdatedBy();
 
+    /** Column name WM_DeliverySchedule_ID */
+    public static final String COLUMNNAME_WM_DeliverySchedule_ID = "WM_DeliverySchedule_ID";
+
+	/** Set DeliverySchedule	  */
+	public void setWM_DeliverySchedule_ID (int WM_DeliverySchedule_ID);
+
+	/** Get DeliverySchedule	  */
+	public int getWM_DeliverySchedule_ID();
+
+	public I_WM_DeliverySchedule getWM_DeliverySchedule() throws RuntimeException;
+
     /** Column name WM_DeliveryScheduleLine_ID */
     public static final String COLUMNNAME_WM_DeliveryScheduleLine_ID = "WM_DeliveryScheduleLine_ID";
 
@@ -230,17 +256,6 @@ public interface I_WM_DeliveryScheduleLine
 
 	/** Get WM_DeliveryScheduleLine_UU	  */
 	public String getWM_DeliveryScheduleLine_UU();
-
-    /** Column name WM_DeliverySchedule_ID */
-    public static final String COLUMNNAME_WM_DeliverySchedule_ID = "WM_DeliverySchedule_ID";
-
-	/** Set DeliverySchedule	  */
-	public void setWM_DeliverySchedule_ID (int WM_DeliverySchedule_ID);
-
-	/** Get DeliverySchedule	  */
-	public int getWM_DeliverySchedule_ID();
-
-	public I_WM_DeliverySchedule getWM_DeliverySchedule() throws RuntimeException;
 
     /** Column name WM_InOutLine_ID */
     public static final String COLUMNNAME_WM_InOutLine_ID = "WM_InOutLine_ID";

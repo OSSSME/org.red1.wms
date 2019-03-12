@@ -23,7 +23,7 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Interface for WM_InOutLine
  *  @author iDempiere (generated) 
- *  @version Release 4.1
+ *  @version Release 6.2
  */
 @SuppressWarnings("all")
 public interface I_WM_InOutLine 
@@ -32,7 +32,7 @@ public interface I_WM_InOutLine
     /** TableName=WM_InOutLine */
     public static final String Table_Name = "WM_InOutLine";
 
-    /** AD_Table_ID=1000015 */
+    /** AD_Table_ID=1000025 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -64,6 +64,21 @@ public interface I_WM_InOutLine
 	  */
 	public int getAD_Org_ID();
 
+    /** Column name C_DocType_ID */
+    public static final String COLUMNNAME_C_DocType_ID = "C_DocType_ID";
+
+	/** Set Document Type.
+	  * Document type or rules
+	  */
+	public void setC_DocType_ID (int C_DocType_ID);
+
+	/** Get Document Type.
+	  * Document type or rules
+	  */
+	public int getC_DocType_ID();
+
+	public org.compiere.model.I_C_DocType getC_DocType() throws RuntimeException;
+
     /** Column name C_OrderLine_ID */
     public static final String COLUMNNAME_C_OrderLine_ID = "C_OrderLine_ID";
 
@@ -78,21 +93,6 @@ public interface I_WM_InOutLine
 	public int getC_OrderLine_ID();
 
 	public org.compiere.model.I_C_OrderLine getC_OrderLine() throws RuntimeException;
-
-    /** Column name C_UOM_ID */
-    public static final String COLUMNNAME_C_UOM_ID = "C_UOM_ID";
-
-	/** Set UOM.
-	  * Unit of Measure
-	  */
-	public void setC_UOM_ID (int C_UOM_ID);
-
-	/** Get UOM.
-	  * Unit of Measure
-	  */
-	public int getC_UOM_ID();
-
-	public org.compiere.model.I_C_UOM getC_UOM() throws RuntimeException;
 
     /** Column name Created */
     public static final String COLUMNNAME_Created = "Created";
@@ -109,6 +109,21 @@ public interface I_WM_InOutLine
 	  * User who created this records
 	  */
 	public int getCreatedBy();
+
+    /** Column name C_UOM_ID */
+    public static final String COLUMNNAME_C_UOM_ID = "C_UOM_ID";
+
+	/** Set UOM.
+	  * Unit of Measure
+	  */
+	public void setC_UOM_ID (int C_UOM_ID);
+
+	/** Get UOM.
+	  * Unit of Measure
+	  */
+	public int getC_UOM_ID();
+
+	public org.compiere.model.I_C_UOM getC_UOM() throws RuntimeException;
 
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
@@ -131,6 +146,21 @@ public interface I_WM_InOutLine
 
 	/** Get IsPacked	  */
 	public boolean isPacked();
+
+    /** Column name M_AttributeSetInstance_ID */
+    public static final String COLUMNNAME_M_AttributeSetInstance_ID = "M_AttributeSetInstance_ID";
+
+	/** Set Attribute Set Instance.
+	  * Product Attribute Set Instance
+	  */
+	public void setM_AttributeSetInstance_ID (int M_AttributeSetInstance_ID);
+
+	/** Get Attribute Set Instance.
+	  * Product Attribute Set Instance
+	  */
+	public int getM_AttributeSetInstance_ID();
+
+	public I_M_AttributeSetInstance getM_AttributeSetInstance() throws RuntimeException;
 
     /** Column name M_InOutLine_ID */
     public static final String COLUMNNAME_M_InOutLine_ID = "M_InOutLine_ID";
@@ -225,13 +255,24 @@ public interface I_WM_InOutLine
     /** Column name WM_HandlingUnit_ID */
     public static final String COLUMNNAME_WM_HandlingUnit_ID = "WM_HandlingUnit_ID";
 
-	/** Set WM_HandlingUnit_ID	  */
+	/** Set Handling Unit	  */
 	public void setWM_HandlingUnit_ID (int WM_HandlingUnit_ID);
 
-	/** Get WM_HandlingUnit_ID	  */
+	/** Get Handling Unit	  */
 	public int getWM_HandlingUnit_ID();
 
 	public I_WM_HandlingUnit getWM_HandlingUnit() throws RuntimeException;
+
+    /** Column name WM_InOut_ID */
+    public static final String COLUMNNAME_WM_InOut_ID = "WM_InOut_ID";
+
+	/** Set InOut	  */
+	public void setWM_InOut_ID (int WM_InOut_ID);
+
+	/** Get InOut	  */
+	public int getWM_InOut_ID();
+
+	public I_WM_InOut getWM_InOut() throws RuntimeException;
 
     /** Column name WM_InOutLine_ID */
     public static final String COLUMNNAME_WM_InOutLine_ID = "WM_InOutLine_ID";
@@ -250,15 +291,4 @@ public interface I_WM_InOutLine
 
 	/** Get WM_InOutLine_UU	  */
 	public String getWM_InOutLine_UU();
-
-    /** Column name WM_InOut_ID */
-    public static final String COLUMNNAME_WM_InOut_ID = "WM_InOut_ID";
-
-	/** Set InOut	  */
-	public void setWM_InOut_ID (int WM_InOut_ID);
-
-	/** Get InOut	  */
-	public int getWM_InOut_ID();
-
-	public I_WM_InOut getWM_InOut() throws RuntimeException;
 }

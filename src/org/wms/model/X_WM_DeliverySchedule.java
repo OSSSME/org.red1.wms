@@ -24,14 +24,14 @@ import org.compiere.model.*;
 
 /** Generated Model for WM_DeliverySchedule
  *  @author iDempiere (generated) 
- *  @version Release 4.1 - $Id$ */
+ *  @version Release 6.2 - $Id$ */
 public class X_WM_DeliverySchedule extends PO implements I_WM_DeliverySchedule, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170422L;
+	private static final long serialVersionUID = 20190311L;
 
     /** Standard Constructor */
     public X_WM_DeliverySchedule (Properties ctx, int WM_DeliverySchedule_ID, String trxName)
@@ -122,6 +122,34 @@ public class X_WM_DeliverySchedule extends PO implements I_WM_DeliverySchedule, 
 	public int getC_BPartner_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_C_BPartner_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.compiere.model.I_C_DocType getC_DocType() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_DocType)MTable.get(getCtx(), org.compiere.model.I_C_DocType.Table_Name)
+			.getPO(getC_DocType_ID(), get_TrxName());	}
+
+	/** Set Document Type.
+		@param C_DocType_ID 
+		Document type or rules
+	  */
+	public void setC_DocType_ID (int C_DocType_ID)
+	{
+		if (C_DocType_ID < 0) 
+			set_Value (COLUMNNAME_C_DocType_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_DocType_ID, Integer.valueOf(C_DocType_ID));
+	}
+
+	/** Get Document Type.
+		@return Document type or rules
+	  */
+	public int getC_DocType_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_DocType_ID);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
@@ -346,6 +374,34 @@ public class X_WM_DeliverySchedule extends PO implements I_WM_DeliverySchedule, 
 		return false;
 	}
 
+	public org.compiere.model.I_M_InOut getM_InOut() throws RuntimeException
+    {
+		return (org.compiere.model.I_M_InOut)MTable.get(getCtx(), org.compiere.model.I_M_InOut.Table_Name)
+			.getPO(getM_InOut_ID(), get_TrxName());	}
+
+	/** Set Shipment/Receipt.
+		@param M_InOut_ID 
+		Material Shipment Document
+	  */
+	public void setM_InOut_ID (int M_InOut_ID)
+	{
+		if (M_InOut_ID < 1) 
+			set_Value (COLUMNNAME_M_InOut_ID, null);
+		else 
+			set_Value (COLUMNNAME_M_InOut_ID, Integer.valueOf(M_InOut_ID));
+	}
+
+	/** Get Shipment/Receipt.
+		@return Material Shipment Document
+	  */
+	public int getM_InOut_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_M_InOut_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
 	public org.compiere.model.I_M_Warehouse getM_Warehouse() throws RuntimeException
     {
 		return (org.compiere.model.I_M_Warehouse)MTable.get(getCtx(), org.compiere.model.I_M_Warehouse.Table_Name)
@@ -461,6 +517,20 @@ public class X_WM_DeliverySchedule extends PO implements I_WM_DeliverySchedule, 
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	/** Set WM_DeliverySchedule_UU.
+		@param WM_DeliverySchedule_UU WM_DeliverySchedule_UU	  */
+	public void setWM_DeliverySchedule_UU (String WM_DeliverySchedule_UU)
+	{
+		set_Value (COLUMNNAME_WM_DeliverySchedule_UU, WM_DeliverySchedule_UU);
+	}
+
+	/** Get WM_DeliverySchedule_UU.
+		@return WM_DeliverySchedule_UU	  */
+	public String getWM_DeliverySchedule_UU () 
+	{
+		return (String)get_Value(COLUMNNAME_WM_DeliverySchedule_UU);
 	}
 
 	public I_WM_Gate getWM_Gate() throws RuntimeException

@@ -1,6 +1,7 @@
 package org.wms.process;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +30,7 @@ public class Utils {
 	private String trxName="";
 	private int WM_HandlingUnit_ID = 0;
 	private boolean same = false;
-	
+	private Timestamp Today = new Timestamp (System.currentTimeMillis()); 
 	MWM_HandlingUnit hu = null;
 	
 	CLogger			log = CLogger.getCLogger (getClass());
@@ -120,7 +121,8 @@ public class Utils {
 		} 
 		MWM_HandlingUnitHistory huh = new Query(Env.getCtx(),MWM_HandlingUnitHistory.Table_Name,MWM_HandlingUnitHistory.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "
 		+MWM_HandlingUnitHistory.COLUMNNAME_DateEnd+" IS NULL",trxName)
-				.setParameters(hu.get_ID()).first();
+				.setParameters(hu.get_ID())
+				.first();
 		if (huh==null) {
 			log.severe("No Handling Unit to release (DateEnd Not null)");
 			return;
@@ -145,8 +147,17 @@ public class Utils {
 		storline.setIsSOTrx(dsline.getWM_DeliverySchedule().isSOTrx());
 		if (dsline.isReceived())
 			storline.setDateStart(dsline.getWM_DeliverySchedule().getDateDelivered());
-		else
-			storline.setDateStart(dsline.getWM_DeliverySchedule().getDatePromised());
+		else { 
+			if (dsline.getWM_DeliverySchedule().getDatePromised()==null)
+				throw new AdempiereException("Set Gate/PromisedDate first");
+			if (dsline.getWM_DeliverySchedule().getDatePromised().after(Today))
+				storline.setDateStart(dsline.getWM_DeliverySchedule().getDatePromised());
+			else if (dsline.getC_OrderLine().getDatePromised().after(Today))
+				storline.setDateStart(dsline.getC_OrderLine().getDatePromised());
+			else
+				throw new AdempiereException("DSLine.NotReceived OR NOT FUTRE: NoDatePromised OR Order NoDatePromised");
+		//9Mac19 -  Future Forecast is when No DateStart if Not Received Delivery Schedule and No future Promise Date.
+			}
 		
 		MProduct product = (MProduct)dsline.getM_Product();
 		if (product.getGuaranteeDays()>0)
@@ -259,6 +270,8 @@ public class Utils {
 		inoutline.setM_Product_ID(dsline.getM_Product_ID());
 		inoutline.setQtyPicked(alloted);
 		inoutline.setWM_DeliveryScheduleLine_ID(dsline.get_ID());
+		inoutline.setM_AttributeSetInstance_ID(dsline.getM_AttributeSetInstance_ID());
+		inoutline.setC_DocType_ID(dsline.getWM_DeliverySchedule().getC_DocType_ID());
 		inoutline.saveEx(trxName);
 		dsline.setWM_InOutLine_ID(inoutline.get_ID());
 		dsline.saveEx(trxName);
@@ -294,7 +307,8 @@ public class Utils {
 		for (MWM_InOutLine line:lines){
 			MWM_DeliveryScheduleLine dsline = (MWM_DeliveryScheduleLine) line.getWM_DeliveryScheduleLine();
 			MWM_EmptyStorageLine esline = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_WM_InOutLine_ID+"=?",trxName)
-					.setParameters(line.getWM_InOutLine_ID()).first(); 
+					.setParameters(line.getWM_InOutLine_ID())
+					.first(); 
 			MWM_HandlingUnit hu = (MWM_HandlingUnit) line.getWM_HandlingUnit();
 			WM_HandlingUnit_ID = hu.get_ID(); 
 			releaseHandlingUnitHistory(dsline, line, esline);

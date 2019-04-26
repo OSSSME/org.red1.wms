@@ -1,6 +1,6 @@
-<extension id="org.my.process.SetGatePromisedDate"
+<extension id="org.my.process.DivideByPalletSize"
   point="org.adempiere.base.Process">
 	<process
-		class="org.my.process.SetGatePromisedDate">
+		class="org.my.process.DivideByPalletSize">
 	</process>
 </extension>

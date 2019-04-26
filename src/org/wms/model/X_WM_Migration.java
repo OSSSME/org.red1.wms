@@ -26,14 +26,14 @@ import org.compiere.util.Env;
 
 /** Generated Model for WM_Migration
  *  @author iDempiere (generated) 
- *  @version Release 5.1 - $Id$ */
+ *  @version Release 6.2 - $Id$ */
 public class X_WM_Migration extends PO implements I_WM_Migration, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20180310L;
+	private static final long serialVersionUID = 20190426L;
 
     /** Standard Constructor */
     public X_WM_Migration (Properties ctx, int WM_Migration_ID, String trxName)
@@ -101,34 +101,6 @@ public class X_WM_Migration extends PO implements I_WM_Migration, I_Persistent
 		return ii.intValue();
 	}
 
-	public org.compiere.model.I_M_Product getM_Product() throws RuntimeException
-    {
-		return (org.compiere.model.I_M_Product)MTable.get(getCtx(), org.compiere.model.I_M_Product.Table_Name)
-			.getPO(getM_Product_ID(), get_TrxName());	}
-
-	/** Set Product.
-		@param M_Product_ID 
-		Product, Service, Item
-	  */
-	public void setM_Product_ID (int M_Product_ID)
-	{
-		if (M_Product_ID < 1) 
-			set_Value (COLUMNNAME_M_Product_ID, null);
-		else 
-			set_Value (COLUMNNAME_M_Product_ID, Integer.valueOf(M_Product_ID));
-	}
-
-	/** Get Product.
-		@return Product, Service, Item
-	  */
-	public int getM_Product_ID () 
-	{
-		Integer ii = (Integer)get_Value(COLUMNNAME_M_Product_ID);
-		if (ii == null)
-			 return 0;
-		return ii.intValue();
-	}
-
 	/** Set Movement Date.
 		@param MovementDate 
 		Date a product was moved in or out of inventory
@@ -166,6 +138,34 @@ public class X_WM_Migration extends PO implements I_WM_Migration, I_Persistent
 		return bd;
 	}
 
+	public org.compiere.model.I_M_Product getM_Product() throws RuntimeException
+    {
+		return (org.compiere.model.I_M_Product)MTable.get(getCtx(), org.compiere.model.I_M_Product.Table_Name)
+			.getPO(getM_Product_ID(), get_TrxName());	}
+
+	/** Set Product.
+		@param M_Product_ID 
+		Product, Service, Item
+	  */
+	public void setM_Product_ID (int M_Product_ID)
+	{
+		if (M_Product_ID < 1) 
+			set_Value (COLUMNNAME_M_Product_ID, null);
+		else 
+			set_Value (COLUMNNAME_M_Product_ID, Integer.valueOf(M_Product_ID));
+	}
+
+	/** Get Product.
+		@return Product, Service, Item
+	  */
+	public int getM_Product_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_M_Product_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
 	/** Set Price.
 		@param Price 
 		Price
@@ -184,6 +184,31 @@ public class X_WM_Migration extends PO implements I_WM_Migration, I_Persistent
 		if (bd == null)
 			 return Env.ZERO;
 		return bd;
+	}
+
+	public I_WM_HandlingUnit getWM_HandlingUnit() throws RuntimeException
+    {
+		return (I_WM_HandlingUnit)MTable.get(getCtx(), I_WM_HandlingUnit.Table_Name)
+			.getPO(getWM_HandlingUnit_ID(), get_TrxName());	}
+
+	/** Set Handling Unit.
+		@param WM_HandlingUnit_ID Handling Unit	  */
+	public void setWM_HandlingUnit_ID (int WM_HandlingUnit_ID)
+	{
+		if (WM_HandlingUnit_ID < 1) 
+			set_Value (COLUMNNAME_WM_HandlingUnit_ID, null);
+		else 
+			set_Value (COLUMNNAME_WM_HandlingUnit_ID, Integer.valueOf(WM_HandlingUnit_ID));
+	}
+
+	/** Get Handling Unit.
+		@return Handling Unit	  */
+	public int getWM_HandlingUnit_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_WM_HandlingUnit_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
 	}
 
 	/** Set Migration.

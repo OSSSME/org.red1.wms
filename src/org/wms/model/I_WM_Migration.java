@@ -23,7 +23,7 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Interface for WM_Migration
  *  @author iDempiere (generated) 
- *  @version Release 5.1
+ *  @version Release 6.2
  */
 @SuppressWarnings("all")
 public interface I_WM_Migration 
@@ -32,7 +32,7 @@ public interface I_WM_Migration
     /** TableName=WM_Migration */
     public static final String Table_Name = "WM_Migration";
 
-    /** AD_Table_ID=1000029 */
+    /** AD_Table_ID=1000033 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -46,37 +46,51 @@ public interface I_WM_Migration
     /** Column name AD_Client_ID */
     public static final String COLUMNNAME_AD_Client_ID = "AD_Client_ID";
 
-	/** Get Client	  */
+	/** Get Client.
+	  * Client/Tenant for this installation.
+	  */
 	public int getAD_Client_ID();
 
     /** Column name AD_Org_ID */
     public static final String COLUMNNAME_AD_Org_ID = "AD_Org_ID";
 
-	/** Set Organization	  */
+	/** Set Organization.
+	  * Organizational entity within client
+	  */
 	public void setAD_Org_ID (int AD_Org_ID);
 
-	/** Get Organization	  */
+	/** Get Organization.
+	  * Organizational entity within client
+	  */
 	public int getAD_Org_ID();
 
     /** Column name Created */
     public static final String COLUMNNAME_Created = "Created";
 
-	/** Get Created	  */
+	/** Get Created.
+	  * Date this record was created
+	  */
 	public Timestamp getCreated();
 
     /** Column name CreatedBy */
     public static final String COLUMNNAME_CreatedBy = "CreatedBy";
 
-	/** Get Created By	  */
+	/** Get Created By.
+	  * User who created this records
+	  */
 	public int getCreatedBy();
 
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
 
-	/** Set Active	  */
+	/** Set Active.
+	  * The record is active in the system
+	  */
 	public void setIsActive (boolean IsActive);
 
-	/** Get Active	  */
+	/** Get Active.
+	  * The record is active in the system
+	  */
 	public boolean isActive();
 
     /** Column name M_Locator_ID */
@@ -93,21 +107,6 @@ public interface I_WM_Migration
 	public int getM_Locator_ID();
 
 	public I_M_Locator getM_Locator() throws RuntimeException;
-
-    /** Column name M_Product_ID */
-    public static final String COLUMNNAME_M_Product_ID = "M_Product_ID";
-
-	/** Set Product.
-	  * Product, Service, Item
-	  */
-	public void setM_Product_ID (int M_Product_ID);
-
-	/** Get Product.
-	  * Product, Service, Item
-	  */
-	public int getM_Product_ID();
-
-	public org.compiere.model.I_M_Product getM_Product() throws RuntimeException;
 
     /** Column name MovementDate */
     public static final String COLUMNNAME_MovementDate = "MovementDate";
@@ -135,6 +134,21 @@ public interface I_WM_Migration
 	  */
 	public BigDecimal getMovementQty();
 
+    /** Column name M_Product_ID */
+    public static final String COLUMNNAME_M_Product_ID = "M_Product_ID";
+
+	/** Set Product.
+	  * Product, Service, Item
+	  */
+	public void setM_Product_ID (int M_Product_ID);
+
+	/** Get Product.
+	  * Product, Service, Item
+	  */
+	public int getM_Product_ID();
+
+	public org.compiere.model.I_M_Product getM_Product() throws RuntimeException;
+
     /** Column name Price */
     public static final String COLUMNNAME_Price = "Price";
 
@@ -151,14 +165,29 @@ public interface I_WM_Migration
     /** Column name Updated */
     public static final String COLUMNNAME_Updated = "Updated";
 
-	/** Get Updated	  */
+	/** Get Updated.
+	  * Date this record was updated
+	  */
 	public Timestamp getUpdated();
 
     /** Column name UpdatedBy */
     public static final String COLUMNNAME_UpdatedBy = "UpdatedBy";
 
-	/** Get Updated By	  */
+	/** Get Updated By.
+	  * User who updated this records
+	  */
 	public int getUpdatedBy();
+
+    /** Column name WM_HandlingUnit_ID */
+    public static final String COLUMNNAME_WM_HandlingUnit_ID = "WM_HandlingUnit_ID";
+
+	/** Set Handling Unit	  */
+	public void setWM_HandlingUnit_ID (int WM_HandlingUnit_ID);
+
+	/** Get Handling Unit	  */
+	public int getWM_HandlingUnit_ID();
+
+	public I_WM_HandlingUnit getWM_HandlingUnit() throws RuntimeException;
 
     /** Column name WM_Migration_ID */
     public static final String COLUMNNAME_WM_Migration_ID = "WM_Migration_ID";

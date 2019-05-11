@@ -20,6 +20,7 @@ import java.util.logging.Level;
 import org.wms.model.X_WM_InOut;
 import org.wms.process.Utils;
 import org.adempiere.exceptions.AdempiereException;
+import org.compiere.model.MBPartner;
 import org.compiere.model.MDocType;
 import org.compiere.model.MInOut;
 import org.compiere.model.MInOutLine;
@@ -119,7 +120,11 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
  
 	public String prepareIt() {
 		if (log.isLoggable(Level.INFO)) log.info(toString());
-
+		MBPartner partner = (MBPartner) getC_BPartner();
+		if (partner.isVendor() && partner.isCustomer())
+			//TODO red1 complete Movement, and create new set of Putaway at virtual locator (future feature)
+			return "No Shipment/Receipt Customer/Vendor. Handled by Consignment Module";
+		
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_PREPARE);
 
 		if (m_processMsg != null)

@@ -113,7 +113,7 @@ public class Utils {
 	 * @param oline
 	 * @param empty
 	 */
-	public void releaseHandlingUnitHistory(MWM_DeliveryScheduleLine dsline,MWM_InOutLine oline, MWM_EmptyStorageLine empty) {
+	private void releaseHandlingUnitHistory(MWM_DeliveryScheduleLine dsline,MWM_InOutLine oline, MWM_EmptyStorageLine empty) {
 		MWM_HandlingUnit hu = (MWM_HandlingUnit) empty.getWM_HandlingUnit();
 		if (hu==null){
 			log.severe("HandlingUnit not found for EmptyLine at this Locator - "+empty.getWM_EmptyStorage().getM_Locator().getValue());
@@ -265,7 +265,7 @@ public class Utils {
 	public MWM_InOutLine newInOutLine(MWM_InOut inout, MWM_DeliveryScheduleLine dsline, BigDecimal alloted) {
 		MWM_InOutLine inoutline = new MWM_InOutLine(Env.getCtx(),0,trxName);
 		inoutline.setWM_InOut_ID(inout.get_ID());
-		inoutline.setC_UOM_ID(dsline.getC_UOM_ID());
+		inoutline.setC_UOM_ID(dsline.getM_Product().getC_UOM_ID());
 		inoutline.setC_OrderLine_ID(dsline.getC_OrderLine_ID());
 		inoutline.setM_Product_ID(dsline.getM_Product_ID());
 		inoutline.setQtyPicked(alloted);

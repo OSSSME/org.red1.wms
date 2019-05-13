@@ -24,6 +24,7 @@ import org.compiere.model.MBPartner;
 import org.compiere.model.MDocType;
 import org.compiere.model.MInOut;
 import org.compiere.model.MInOutLine;
+import org.compiere.model.MMovement;
 import org.compiere.model.MOrder;
 import org.compiere.model.MOrderLine;
 import org.compiere.model.ModelValidationEngine;
@@ -45,18 +46,13 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 
 		if (id==0){
 			setDocStatus(DOCSTATUS_Drafted);
-
 			setDocAction (DOCACTION_Prepare);
-
 			setProcessed(false);
-
 		}
-
 	}
 
 	public MWM_InOut(Properties ctx, ResultSet rs, String trxName) {
 		super(ctx, rs, trxName);
- 
 	}
 
 	private static final long serialVersionUID = 1L;
@@ -70,65 +66,62 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 	protected boolean beforeSave (boolean newRecord)
 	{
 		return super.beforeSave(newRecord);
-
 	}
 
 	protected boolean beforeDelete() {	 
 		return super.beforeDelete();
-
 	}
 
 	protected boolean afterSave (boolean newRecord, boolean success)
 	{
 		return super.afterSave(newRecord, success);
-
 	}
  
 	protected boolean afterDelete(boolean success) {
-		 
 		return super.afterDelete(success);
-
 	}
   
  
 	public boolean processIt(String processAction) throws Exception {
 		m_processMsg = null;
-
 		DocumentEngine engine = new DocumentEngine (this, getDocStatus());
-
 		return engine.processIt (processAction, getDocAction());
-
 	}
  
 	public boolean unlockIt() {
 		if (log.isLoggable(Level.INFO)) 
 			log.info("unlockIt - " + toString());
-
-
 		return true;
-
 	}
  
 	public boolean invalidateIt() {
 		if (log.isLoggable(Level.INFO)) log.info("invalidateIt - " + toString());
-
 		setDocAction(DOCACTION_Prepare);
-
 		return true;
-
 	}
  
 	public String prepareIt() {
 		if (log.isLoggable(Level.INFO)) log.info(toString());
-		MBPartner partner = (MBPartner) getC_BPartner();
-		if (partner.isVendor() && partner.isCustomer())
-			//TODO red1 complete Movement, and create new set of Putaway at virtual locator (future feature)
-			return "No Shipment/Receipt Customer/Vendor. Handled by Consignment Module";
-		
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_PREPARE);
-
 		if (m_processMsg != null)
 			return DocAction.STATUS_Invalid;
+		
+		MBPartner partner = (MBPartner) getC_BPartner();
+		if ((partner.isVendor() && partner.isCustomer()) || getName().startsWith("CONSIGNMENT")) {
+			//TODO red1 complete Movement, and create new set of Putaway at virtual locator (consignment)
+			MMovement move = new Query(getCtx(),MMovement.Table_Name,MMovement.COLUMNNAME_Description+"=?",get_TrxName())
+			.setParameters(getName())
+			.first();
+			
+			if (move==null)
+				System.out.println("NO CONSIGNMENT MOVE FOR:"+getName());
+			else {
+				if (!move.processIt(MMovement.DOCACTION_Complete)) {
+					throw new IllegalStateException("Movement Process Failed: " + move + " - " + move.getProcessMsg());
+				}
+			}
+			return "Consignment Movement Processed: "+partner.getName();
+		}
 		
 		//Create Material Receipt process    
 		MInOut inout = null;

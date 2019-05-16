@@ -3,7 +3,7 @@
 import org.compiere.process.SvrProcess;import org.wms.model.MWM_HandlingUnit;
 
 	public class GenerateHandlingUnit extends SvrProcess {
-	private int Counter = 0;
+	private Integer Counter = 0;
 	private String Prefix = "";
 	int cnt = 0;	private int Capacity = 0;
 	protected void prepare() {
@@ -22,7 +22,7 @@
 			}
 		}
 	}
-	protected String doIt() {		for (int i=0;i<Counter;i++) {			createHandlingUnit(i+1);		}
+	protected String doIt() {		//leading zeros string from Capacity/10		int leading = Counter.toString().length();		StringBuilder zeros = new StringBuilder();		for (int i=0;i<leading;i++) {			zeros.append("0");		} 		for (int i=0;i<Counter;i++) {			createHandlingUnit(leading,i+1); 		}
 		return "Handling Units done:"+cnt;
-	}	private void createHandlingUnit(int c) { 		MWM_HandlingUnit hu = new MWM_HandlingUnit(getCtx(), 0, get_TrxName());		hu.setCapacity(new BigDecimal(Capacity));		hu.setDocStatus(MWM_HandlingUnit.DOCSTATUS_Drafted);		hu.setName(Prefix+c);		hu.saveEx(get_TrxName());		statusUpdate("Generate HandlingUnit " + hu.getName());		cnt++;	}
+	}	private void createHandlingUnit(int leading,int c) { 		MWM_HandlingUnit hu = new MWM_HandlingUnit(getCtx(), 0, get_TrxName());		hu.setCapacity(new BigDecimal(Capacity));		hu.setDocStatus(MWM_HandlingUnit.DOCSTATUS_Drafted); 		hu.setName(Prefix+String.format("%0"+leading+"d", c));		hu.saveEx(get_TrxName());		statusUpdate("Generate HandlingUnit " + hu.getName());		cnt++;	}
 }

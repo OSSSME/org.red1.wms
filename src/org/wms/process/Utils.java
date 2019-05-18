@@ -50,8 +50,8 @@ public class Utils {
 		 if (sameDistribution && same){			 
 		 }else{
 				hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+">=? AND "
-						+MWM_HandlingUnit.COLUMNNAME_QtyMovement+"=?",trxName)
-						.setParameters(WM_HandlingUnit_ID,Env.ZERO)
+						+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)
+						.setParameters(WM_HandlingUnit_ID,MWM_HandlingUnit.DOCSTATUS_Drafted)
 						.setOrderBy(X_WM_HandlingUnit.COLUMNNAME_Name)
 						.first();
 				if (hu==null){

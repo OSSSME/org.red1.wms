@@ -48,17 +48,8 @@ public class Utils {
 	 */
 	public MWM_InOutLine assignHandlingUnit(boolean sameDistribution, MWM_InOutLine inoutline, MWM_EmptyStorageLine eline, BigDecimal qty) { 
 		 if (sameDistribution && same){			 
-		 }else{
-				hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+">=? AND "
-						+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)
-						.setParameters(WM_HandlingUnit_ID,MWM_HandlingUnit.DOCSTATUS_Drafted)
-						.setOrderBy(X_WM_HandlingUnit.COLUMNNAME_Name)
-						.first();
-				if (hu==null){
-					log.severe("No Available Handling Unit starting from: "+WM_HandlingUnit_ID);
-					return null;
-				}
-		 }
+		 }else  
+			getAvailableHandlingUnit();
 		 //SameDistribution = use same HandlingUnit for all selected items
 		if (same){
 			hu.setQtyMovement(hu.getQtyMovement().add(qty));
@@ -94,6 +85,23 @@ public class Utils {
 		inoutline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
 		inoutline.saveEx(trxName);
 		return inoutline;
+	}
+
+	private void getAvailableHandlingUnit() {
+		hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "
+				+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)
+				.setParameters(WM_HandlingUnit_ID,MWM_HandlingUnit.DOCSTATUS_Drafted) 
+				.first();
+		if (hu==null) {//try again, open to more later ones		
+			hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+">? AND "
+				+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)
+				.setParameters(WM_HandlingUnit_ID,MWM_HandlingUnit.DOCSTATUS_Drafted) 
+				.setOrderBy(MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID)
+				.first();
+			if (hu==null)
+				throw new AdempiereException("No more Available HandlingUnits. Generate again.");
+			WM_HandlingUnit_ID = hu.get_ID(); 
+		} 
 	}
 
 	/**

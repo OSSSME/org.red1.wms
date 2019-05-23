@@ -1,6 +1,7 @@
 package org.wms.process;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,11 +77,13 @@ public class Utils {
 		huh.setM_Product_ID(inoutline.getM_Product_ID());
 		huh.setDateStart(hu.getUpdated());
 		huh.saveEx(trxName);
-		if (eline==null)
-			log.warning("Assign Handling Unit - No EmptyStorageLine yet. InOutLine details: "+inoutline.toString());
-		else {
-			eline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
-			eline.saveEx(trxName);
+		if (inoutline.getWM_InOut().isSOTrx()) {
+			if (eline==null)
+				log.warning("Assign Handling Unit - No EmptyStorageLine yet. InOutLine details: "+inoutline.toString());
+			else {
+				eline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
+				eline.saveEx(trxName);
+			}
 		}
 		inoutline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
 		inoutline.saveEx(trxName);
@@ -187,7 +190,7 @@ public class Utils {
 		//link source SEL and new SEL with WM_ESLine
 		MWM_ESLine link = new MWM_ESLine(Env.getCtx(),0,trxName);
 		link.setWM_EmptyStorageLine_ID(eline.get_ID());
-		link.setValue(new Integer(newline.get_ID()).toString());
+		link.setValue(Integer.toString(newline.get_ID()));
 		link.setProcessed(false);
 		link.saveEx(trxName);
 	} 
@@ -201,7 +204,9 @@ public class Utils {
 	 */
 	public void pickedEmptyStorageLine(MWM_InOutLine inoutline,MWM_EmptyStorageLine newline) {  
 		MWM_ESLine link = new Query(Env.getCtx(),MWM_ESLine.Table_Name,MWM_ESLine.COLUMNNAME_Value+"=?",trxName)
-				.setParameters(new Integer(newline.get_ID()).toString()).first();
+				.setParameters(Integer.toString(newline.get_ID()))
+				.setOnlyActiveRecords(true)
+				.first();
 		if (link!=null){
 			if (link.isProcessed()){
 				log.info("ESLine link already processed ");
@@ -210,12 +215,14 @@ public class Utils {
 			MWM_EmptyStorageLine eline =  new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_WM_EmptyStorageLine_ID+"=?",trxName)
 					.setParameters(link.getWM_EmptyStorageLine_ID()).first();
 			MWM_EmptyStorageLine linkedline = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_WM_EmptyStorageLine_ID+"=?",trxName)
-					.setParameters(new Integer(link.getValue()).intValue()).first();
+					.setParameters(Integer.parseInt(link.getValue()))
+					.first();
 			linkedline.setDateEnd(inoutline.getUpdated());
 			linkedline.saveEx(trxName);	
 			eline.setQtyMovement(eline.getQtyMovement().subtract(linkedline.getQtyMovement()));
 			eline.saveEx(trxName);
 			link.setProcessed(true);
+			link.setIsActive(false);
 			link.saveEx(trxName);
 		}
 	}
@@ -254,7 +261,7 @@ public class Utils {
 	public void calculatePercentageVacant(boolean received,MWM_EmptyStorage empty) {
 		if (!received)
 			return;//future, do not want to affect statistics of EmptyStorage
-		empty.setPercentage((empty.getAvailableCapacity().divide(empty.getVacantCapacity(),2,BigDecimal.ROUND_HALF_UP)).multiply(Env.ONEHUNDRED));
+		empty.setPercentage((empty.getAvailableCapacity().divide(empty.getVacantCapacity(),2,RoundingMode.HALF_EVEN)).multiply(Env.ONEHUNDRED));
 		//set is Full if 0% vacant
 		if (empty.getPercentage().compareTo(Env.ZERO)<=0)
 			empty.setIsFull(true);

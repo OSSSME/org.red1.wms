@@ -107,7 +107,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			return DocAction.STATUS_Invalid;
 		
 		MBPartner partner = (MBPartner) getC_BPartner();
-		if ((partner.isVendor() && partner.isCustomer()) || getName().startsWith("CONSIGNMENT")) {
+		if ((partner.isVendor() && partner.isCustomer()) || getName().endsWith("CONSIGNMENT")) {
 			//TODO red1 complete Movement, and create new set of Putaway at virtual locator (consignment)
 			MMovement move = new Query(getCtx(),MMovement.Table_Name,MMovement.COLUMNNAME_Description+"=?",get_TrxName())
 			.setParameters(getName())

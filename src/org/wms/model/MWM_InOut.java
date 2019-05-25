@@ -10,7 +10,7 @@ package org.wms.model;
 import java.io.File;
 
 import java.math.BigDecimal;
-
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.util.List;
 import java.util.Properties;
@@ -27,6 +27,8 @@ import org.compiere.model.MInOutLine;
 import org.compiere.model.MMovement;
 import org.compiere.model.MOrder;
 import org.compiere.model.MOrderLine;
+import org.compiere.model.MProduct;
+import org.compiere.model.MUOMConversion;
 import org.compiere.model.ModelValidationEngine;
 
 import org.compiere.model.ModelValidator;
@@ -38,8 +40,16 @@ import org.compiere.process.DocumentEngine;
 import org.compiere.process.DocAction;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
+import org.compiere.util.TimeUtil;
 
-
+/**
+ * During Completion, DeliverySchedule must be Received to proceed. 
+ * WM_EmptyStorage Vacant and PercentageAvailable are updated
+ * WM_EmptyStorageLines are affected
+ * M_InOut Shipment/Receipt OR M_Movement is created
+ * @author red1
+ *
+ */
 public class MWM_InOut extends X_WM_InOut implements DocAction {
 	public MWM_InOut(Properties ctx, int id, String trxName) {
 		super(ctx, id, trxName);
@@ -61,6 +71,14 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 	private String			m_processMsg = null;
 
 	private boolean			m_justPrepared = false;
+
+	private BigDecimal eachQty;
+
+	private BigDecimal currentUOM;
+
+	private BigDecimal boxConversion;
+
+	private BigDecimal packFactor;
 
 	
 	protected boolean beforeSave (boolean newRecord)
@@ -108,8 +126,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		
 		MBPartner partner = (MBPartner) getC_BPartner();
 		if ((partner.isVendor() && partner.isCustomer()) || getName().endsWith("CONSIGNMENT")) {
-			//TODO red1 complete Movement, and create new set of Putaway at virtual locator (consignment)
-			MMovement move = new Query(getCtx(),MMovement.Table_Name,MMovement.COLUMNNAME_Description+"=?",get_TrxName())
+			//create Movement, and update WM_EmptyStorage/Lines
+			MMovement move = new Query(getCtx(),MMovement.Table_Name,MMovement.COLUMNNAME_Description+"Like '?%'",get_TrxName())
 			.setParameters(getName())
 			.first();
 			
@@ -131,41 +149,43 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		
 		//holder for separate M_InOut according to different C_Order
 		int c_Order_Holder = 0;
-		for (MWM_InOutLine line:lines){
+		for (MWM_InOutLine wioline:lines){
 			MWM_DeliveryScheduleLine del = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_WM_DeliveryScheduleLine_ID+"=?",get_TrxName())
-					.setParameters(line.getWM_DeliveryScheduleLine_ID())
+					.setParameters(wioline.getWM_DeliveryScheduleLine_ID())
 					.first();
-			if (!del.isReceived())
-				continue; //still not processed at DeliverySchedule level, so no Shipment/Receipt possible
+			if (del!=null && !del.isReceived())
+				throw new AdempiereException("DeliverySchedule Line still not Received"); //still not processed at DeliverySchedule level, so no Shipment/Receipt possible
 			
-			if (line.getM_InOutLine_ID()>0)
-				log.warning("Already has Shipment/Receipt record!");//already done before
+			if (wioline.getM_InOutLine_ID()>0)
+				throw new AdempiereException("Already has Shipment/Receipt record!");//already done before
 				
-			if (line.getWM_DeliveryScheduleLine().getC_OrderLine().getC_Order_ID()!=c_Order_Holder){
+			if (del.getC_OrderLine().getC_Order_ID()!=c_Order_Holder){
 				if (inout!=null){
 					saveM_InOut(inout,lines);
 				}
 				//create new MInOut  as C_Order_ID has changed
 				inout = new MInOut(Env.getCtx(),0,get_TrxName());
 				saveM_InOut(inout,lines);
-				c_Order_Holder = line.getWM_DeliveryScheduleLine().getC_OrderLine().getC_Order_ID();
+				c_Order_Holder = del.getC_OrderLine().getC_Order_ID();
 			}
+			processWMSStorage(wioline,del);
+			
 			MInOutLine ioline = new MInOutLine(inout);
-			ioline.setC_OrderLine_ID(line.getC_OrderLine_ID());
-			ioline.setM_Product_ID(line.getM_Product_ID());
-			ioline.setM_AttributeSetInstance_ID(line.getM_AttributeSetInstance_ID());
-			ioline.setC_UOM_ID(line.getC_UOM_ID());
-			ioline.setM_Locator_ID(line.getM_Locator_ID());
-			ioline.setQtyEntered(line.getQtyPicked());
-			ioline.setMovementQty(line.getQtyPicked());
+			ioline.setC_OrderLine_ID(wioline.getC_OrderLine_ID());
+			ioline.setM_Product_ID(wioline.getM_Product_ID());
+			ioline.setM_AttributeSetInstance_ID(wioline.getM_AttributeSetInstance_ID());
+			ioline.setC_UOM_ID(wioline.getC_UOM_ID());
+			ioline.setM_Locator_ID(wioline.getM_Locator_ID());
+			ioline.setQtyEntered(wioline.getQtyPicked());
+			ioline.setMovementQty(wioline.getQtyPicked());
 			ioline.saveEx(get_TrxName());		
 			//populate back WM_InOutLine with M_InOutLine_ID
-			line.setM_InOutLine_ID(ioline.get_ID());ioline.getM_Locator();ioline.getM_Warehouse_ID();
-			line.saveEx(get_TrxName());
+			wioline.setM_InOutLine_ID(ioline.get_ID());ioline.getM_Locator();ioline.getM_Warehouse_ID();
+			wioline.saveEx(get_TrxName());
 			//if Sales' Shipment, then release the Handling Unit 
 			if (inout.isSOTrx()){
 				MWM_HandlingUnit hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=?",get_TrxName())
-						.setParameters(line.getWM_HandlingUnit_ID())
+						.setParameters(wioline.getWM_HandlingUnit_ID())
 						.first();
 				hu.setQtyMovement(Env.ZERO);
 				hu.setDocStatus(STATUS_Drafted);
@@ -173,14 +193,14 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				//deactivate HandlingUnit history
 				MWM_HandlingUnitHistory huh = new Query(Env.getCtx(),MWM_HandlingUnitHistory.Table_Name,MWM_HandlingUnitHistory.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "
 						+MWM_HandlingUnitHistory.COLUMNNAME_WM_InOutLine_ID+"=?",get_TrxName())
-						.setParameters(hu.get_ID(),line.get_ID())
+						.setParameters(hu.get_ID(),wioline.get_ID())
 						.first();
 				if (huh==null){
-					log.severe("HandlingUnit has no history: "+line.getWM_HandlingUnit().getName());
+					log.severe("HandlingUnit has no history: "+wioline.getWM_HandlingUnit().getName());
 					continue;
 				}
 				if (huh.getDateEnd()==null){
-					log.warning("HandlingUnit history has no DateEnd during Receive of DeliverySchedule: "+line.getWM_HandlingUnit().getName());
+					log.warning("HandlingUnit history has no DateEnd during Receive of DeliverySchedule: "+wioline.getWM_HandlingUnit().getName());
 					huh.setDateEnd(hu.getUpdated());
 				}
 				huh.setIsActive(false);
@@ -522,7 +542,77 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		return null;
 
 	}
+ 	/**
+ 	 * WM_EmptyStorage is processed here to affect Vacant Storage Qty and Percentage Available
+ 	 * @param iolineID
+ 	 * @param dsline
+ 	 */
+ 	private void processWMSStorage(MWM_InOutLine wioline,MWM_DeliveryScheduleLine dsline) {
 
+		Utils util = new Utils(get_TrxName());
+	
+		if (!dsline.isReceived())
+			throw new AdempiereException("DeliveryLine not Received. Complete its DeliverySchedule first.");
+		else {
+			if (wioline==null)
+				throw new AdempiereException("WMS InOutLine lost!");
+		eachQty=uomFactors(dsline);
+		
+		MWM_EmptyStorageLine esline = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_WM_InOutLine_ID+"=?",get_TrxName())
+			.setParameters(wioline.get_ID())
+			.first(); 					
+		if (esline==null)
+			throw new AdempiereException("WMDeliveryScheduleLine PO_After_Change. WMEmptyStorageLine Not in WMInOutLine of DeliveryScheduleLine"); 
+		
+		MWM_EmptyStorage storage = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_WM_EmptyStorage_ID+"=?",get_TrxName())
+			.setParameters(esline.getWM_EmptyStorage_ID())
+			.first();
+		if (esline.isSOTrx()) { //OutBound confirmation
+			BigDecimal picked = esline.getQtyMovement();
+			BigDecimal picking = picked.divide(boxConversion,2,RoundingMode.HALF_EVEN);			
+			BigDecimal vacancy = storage.getAvailableCapacity().add(picking); 
+			storage.setAvailableCapacity(vacancy);
+			util.pickedEmptyStorageLine(wioline, esline);
+		}
+		else { 	//purchasing InBound
+			MProduct product = (MProduct)dsline.getM_Product();
+			if (product.getGuaranteeDays()>0)
+				esline.setDateEnd(TimeUtil.addDays(dsline.getUpdated(), product.getGuaranteeDays()));	
+			storage.setAvailableCapacity(storage.getAvailableCapacity().subtract(esline.getQtyMovement().divide(boxConversion,2,RoundingMode.HALF_EVEN)));
+			BigDecimal vacancy = storage.getAvailableCapacity();	 
+			storage.setAvailableCapacity(vacancy);
+		}			
+		util.calculatePercentageVacant(dsline.isReceived(),storage);//TODO Available Capacity
+		esline.saveEx(get_TrxName());
+		//TODO IsActive = N when DeliverySchedule.DocStatus='CO' and IsSOTrx 
+		log.info("Processed InoutLine:"+wioline.toString()+" StorageLine:"+esline.toString());
+	}
+	log.fine("MWM_DeliveryScheduleLine changed: "+dsline.get_ID());
+}
+
+private BigDecimal uomFactors(MWM_DeliveryScheduleLine line) {
+BigDecimal qtyEntered = line.getQtyOrdered();//.multiply(new BigDecimal(product.getUnitsPerPack()));
+
+//Current = current UOM Conversion Qty
+MUOMConversion currentuomConversion = new Query(Env.getCtx(),MUOMConversion.Table_Name,MUOMConversion.COLUMNNAME_M_Product_ID+"=? AND "
++MUOMConversion.COLUMNNAME_C_UOM_To_ID+"=?",null)
+.setParameters(line.getM_Product_ID(),line.getC_UOM_ID())
+.first();
+if (currentuomConversion!=null)
+currentUOM = currentuomConversion.getDivideRate();
+BigDecimal eachQty=qtyEntered.multiply(currentUOM);
+
+//Pack Factor calculation
+MUOMConversion highestUOMConversion = new Query(Env.getCtx(),MUOMConversion.Table_Name,MUOMConversion.COLUMNNAME_M_Product_ID+"=?",null)
+.setParameters(line.getM_Product_ID())
+.setOrderBy(MUOMConversion.COLUMNNAME_DivideRate+" DESC")
+.first(); 
+if (highestUOMConversion!=null) {
+boxConversion = highestUOMConversion.getDivideRate();
+packFactor = boxConversion.multiply(highestUOMConversion.getDivideRate().divide(currentUOM,2,RoundingMode.HALF_EVEN));
+}
+return eachQty;
+}
  
 }
 

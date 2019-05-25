@@ -81,8 +81,8 @@ public class Utils {
 			if (eline==null)
 				log.warning("Assign Handling Unit - No EmptyStorageLine yet. InOutLine details: "+inoutline.toString());
 			else {
-				eline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
-				eline.saveEx(trxName);
+//red1 			eline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
+//red1 			eline.saveEx(trxName);
 			}
 		}
 		inoutline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);

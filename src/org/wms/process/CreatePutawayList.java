@@ -349,8 +349,8 @@ import org.wms.model.MWM_WarehousePick;
 		MWM_InOutLine inoutline = util.newInOutLine(inout,dsline,alloted); 
 		setLocator(inoutline,locator_id); 
 		//MWM_EmptyStorageLine eline = util.newEmptyStorageLine(dsline,alloted,empty,inoutline);
-		if (isReceived)
-			inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline,alloted); 
+		//if (isReceived)
+		inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline,alloted); 
 		//if (isReceived)
 			//util.calculatePercentageVacant(dsline.isReceived(),empty);// 
 		return balance;
@@ -431,8 +431,8 @@ import org.wms.model.MWM_WarehousePick;
 			
 		BigDecimal binPickQty = line.getQtyOrdered();//.multiply(new BigDecimal(product.getUnitsPerPack()));
 		for (MWM_EmptyStorageLine eline:elines){
-			if (eline.getWM_InOutLine().getM_InOutLine_ID()<1 && line.isReceived())
-				throw new AdempiereException("This Product Has No Shipment/Receipt record. Complete its WM Inout first before picking - "+product.getName()+" -> "+eline.getWM_InOutLine());
+			//if (eline.getWM_InOutLine().getM_InOutLine_ID()<1 && line.isReceived())
+			//	throw new AdempiereException("This Product Has No Shipment/Receipt record. Complete its WM Inout first before picking - "+product.getName()+" -> "+eline.getWM_InOutLine());
 			
 			//cannot take Blocked
 			MWM_EmptyStorage storage = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_WM_EmptyStorage_ID+"=?",trxName)
@@ -498,18 +498,18 @@ import org.wms.model.MWM_WarehousePick;
 		} else {
 			MWM_InOutLine inoutline = util.newInOutLine(inout,line,picked); 
 			setLocator(inoutline, eline.getWM_EmptyStorage().getM_Locator_ID());
-	/*		if (isReceived){
-				eline.setDateEnd(inoutline.getUpdated());
-				eline.setQtyMovement(Env.ZERO);
+		if (isReceived){
+				//eline.setDateEnd(inoutline.getUpdated());
+				//eline.setQtyMovement(Env.ZERO);
 				if (WM_HandlingUnit_ID>0){
 					util.releaseHandlingUnit(eline);
 					util.setHandlingUnit(WM_HandlingUnit_ID); 
-					inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline, eline, picked);
+					inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline, picked);
 				}
-			} else
-				eline.setDateEnd(line.getWM_DeliverySchedule().getDatePromised());
+			}// else
+				//eline.setDateEnd(line.getWM_DeliverySchedule().getDatePromised());
 			
-			eline.saveEx(trxName);*/
+		//	eline.saveEx(trxName);
 		}
 		//if (isReceived)	
 		//	util.calculatePercentageVacant(line.isReceived(),empty);//empty.saved() there  

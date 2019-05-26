@@ -73,10 +73,10 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 
 	private boolean			m_justPrepared = false;
 
-	private BigDecimal eachQty;
-	private BigDecimal currentUOM;
-	private BigDecimal boxConversion;
-	private BigDecimal packFactor;
+	private BigDecimal eachQty=Env.ONE;
+	private BigDecimal currentUOM=Env.ONE;
+	private BigDecimal boxConversion=Env.ONE;
+	private BigDecimal packFactor=Env.ONE;
 	Utils util = new Utils(get_TrxName());
 	
 	protected boolean beforeSave (boolean newRecord)
@@ -162,9 +162,13 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				saveM_InOut(inout,lines);
 				c_Order_Holder = del.getC_OrderLine().getC_Order_ID();
 			}
-			MWM_EmptyStorageLine esline = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_WM_InOutLine_ID+"=?",get_TrxName())
-				.setParameters(wioline.get_ID())
-				.first(); 					
+			//MWM_EmptyStorageLine esline = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_WM_InOutLine_ID+"=?",get_TrxName())
+			//	.setParameters(wioline.get_ID())
+			//	.first(); 	
+			//get WMEmptyStorage from WIOLine.MLocator
+			MWM_EmptyStorage empty = new Query(getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",get_TrxName())
+					.setParameters(wioline.getM_Locator_ID()).first();
+			MWM_EmptyStorageLine esline = util.newEmptyStorageLine(del, wioline.getQtyPicked(), empty, wioline);
 			if (esline==null)
 				throw new AdempiereException("WMDeliveryScheduleLine PO_After_Change. WMEmptyStorageLine Not in WMInOutLine of DeliveryScheduleLine"); 
 			
@@ -553,31 +557,34 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			if (wioline==null)
 				throw new AdempiereException("WMS InOutLine lost!");
 		
-		MWM_EmptyStorage storage = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_WM_EmptyStorage_ID+"=?",get_TrxName())
-			.setParameters(esline.getWM_EmptyStorage_ID())
-			.first();
-		if (esline.isSOTrx()) { //OutBound confirmation
-			BigDecimal picked = esline.getQtyMovement();
-			BigDecimal picking = picked.divide(boxConversion,2,RoundingMode.HALF_EVEN);			
-			BigDecimal vacancy = storage.getAvailableCapacity().add(picking); 
-			storage.setAvailableCapacity(vacancy);
-			util.pickedEmptyStorageLine(wioline, esline);
-		}
-		else { 	//purchasing InBound
-			MProduct product = (MProduct)dsline.getM_Product();
-			if (product.getGuaranteeDays()>0)
-				esline.setDateEnd(TimeUtil.addDays(dsline.getUpdated(), product.getGuaranteeDays()));	
-			storage.setAvailableCapacity(storage.getAvailableCapacity().subtract(esline.getQtyMovement().divide(boxConversion,2,RoundingMode.HALF_EVEN)));
-			BigDecimal vacancy = storage.getAvailableCapacity();	 
-			storage.setAvailableCapacity(vacancy);
-		}			
-		util.calculatePercentageVacant(dsline.isReceived(),storage);
-		esline.saveEx(get_TrxName());
+			uomFactors(dsline);
+		
+			MWM_EmptyStorage storage = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_WM_EmptyStorage_ID+"=?",get_TrxName())
+					.setParameters(esline.getWM_EmptyStorage_ID())
+					.first();
+			if (esline.isSOTrx()) { //OutBound confirmation
+				BigDecimal picked = esline.getQtyMovement();
+				BigDecimal picking = picked.divide(boxConversion,2,RoundingMode.HALF_EVEN);			
+				BigDecimal vacancy = storage.getAvailableCapacity().add(picking); 
+				storage.setAvailableCapacity(vacancy);
+				util.pickedEmptyStorageLine(wioline, esline);
+			}
+			else { 	//purchasing InBound
+				MProduct product = (MProduct)dsline.getM_Product();
+				if (product.getGuaranteeDays()>0)
+					esline.setDateEnd(TimeUtil.addDays(dsline.getUpdated(), product.getGuaranteeDays()));	
+				storage.setAvailableCapacity(storage.getAvailableCapacity().subtract(wioline.getQtyPicked().divide(boxConversion,2,RoundingMode.HALF_EVEN)));
+				BigDecimal vacancy = storage.getAvailableCapacity();	 
+				storage.setAvailableCapacity(vacancy);
+			}			
+			util.calculatePercentageVacant(dsline.isReceived(),storage);
+			esline.setWM_HandlingUnit_ID(wioline.getWM_HandlingUnit_ID());
+			esline.saveEx(get_TrxName());
 		//TODO IsActive = N when DeliverySchedule.DocStatus='CO' and IsSOTrx 
-		log.info("Processed InoutLine:"+wioline.toString()+" StorageLine:"+esline.toString());
-	}
-	log.fine("MWM_DeliveryScheduleLine changed: "+dsline.get_ID());
-}
+			log.info("Processed InoutLine:"+wioline.toString()+" StorageLine:"+esline.toString());
+		}
+		log.fine("MWM_DeliveryScheduleLine changed: "+dsline.get_ID());
+ 	}
 
 private BigDecimal uomFactors(MWM_DeliveryScheduleLine line) {
 BigDecimal qtyEntered = line.getQtyOrdered();//.multiply(new BigDecimal(product.getUnitsPerPack()));
@@ -588,7 +595,7 @@ MUOMConversion currentuomConversion = new Query(Env.getCtx(),MUOMConversion.Tabl
 .setParameters(line.getM_Product_ID(),line.getC_UOM_ID())
 .first();
 if (currentuomConversion!=null)
-currentUOM = currentuomConversion.getDivideRate();
+	currentUOM = currentuomConversion.getDivideRate();
 BigDecimal eachQty=qtyEntered.multiply(currentUOM);
 
 //Pack Factor calculation

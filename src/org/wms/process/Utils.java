@@ -159,7 +159,7 @@ public class Utils {
 		if (dsline.isReceived())
 			storline.setDateStart(dsline.getWM_DeliverySchedule().getDateDelivered());
 		else { 
-			if (dsline.getWM_DeliverySchedule().getDatePromised()==null)
+		/*	if (dsline.getWM_DeliverySchedule().getDatePromised()==null)
 				throw new AdempiereException("Set Gate/PromisedDate first");
 			if (dsline.getWM_DeliverySchedule().getDatePromised().after(Today))
 				storline.setDateStart(dsline.getWM_DeliverySchedule().getDatePromised());
@@ -168,7 +168,7 @@ public class Utils {
 			else
 				throw new AdempiereException("DSLine.NotReceived OR NOT FUTRE: NoDatePromised OR Order NoDatePromised");
 		//9Mac19 -  Future Forecast is when No DateStart if Not Received Delivery Schedule and No future Promise Date.
-			}
+		*/	} //red1 no longer new StorageLine touched except only by MWM_InOut Completion
 		
 		MProduct product = (MProduct)dsline.getM_Product();
 		if (product.getGuaranteeDays()>0)

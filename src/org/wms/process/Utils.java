@@ -183,7 +183,7 @@ public class Utils {
 	public MWM_EmptyStorageLine newEmptyStorageLine(MWM_DeliveryScheduleLine dsline, BigDecimal alloted, MWM_EmptyStorage empty, MWM_InOutLine inoutline) {
 		MWM_EmptyStorageLine storline = new MWM_EmptyStorageLine(Env.getCtx(),0,trxName);
 		storline.setWM_EmptyStorage_ID(empty.get_ID());
-		storline.setWM_InOutLine_ID(inoutline.getWM_InOutLine_ID());
+		storline.setWM_InOutLine_ID(inoutline.get_ID());
 		storline.setQtyMovement(alloted);
 		storline.setIsSOTrx(dsline.getWM_DeliverySchedule().isSOTrx());
 		if (dsline.isReceived())
@@ -226,35 +226,18 @@ public class Utils {
 	} 
 	
 	/**
-	 * Here it is finally picked, so the sub ESLine link is marked processed.
-	 * Check if QtyMovement=0, then Set ELINE IsActive=false during CompleteIt() of Shipment
-	 * @param eline
-	 * @param inoutline
-	 * @param newline
+	 * Here it is finally picked 
+	 * Check if QtyMovement=0, then Set DateEnd and IsActive=false  
+	 * @param oldine
+	 * @param picking 
 	 */
-	public void pickedEmptyStorageLine(MWM_InOutLine inoutline,MWM_EmptyStorageLine newline) {  
-		MWM_ESLine link = new Query(Env.getCtx(),MWM_ESLine.Table_Name,MWM_ESLine.COLUMNNAME_Value+"=?",trxName)
-				.setParameters(Integer.toString(newline.get_ID()))
-				.setOnlyActiveRecords(true)
-				.first();
-		if (link!=null){
-			if (link.isProcessed()){
-				log.info("ESLine link already processed ");
-				return;
-			}
-			MWM_EmptyStorageLine eline =  new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_WM_EmptyStorageLine_ID+"=?",trxName)
-					.setParameters(link.getWM_EmptyStorageLine_ID()).first();
-			MWM_EmptyStorageLine linkedline = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_WM_EmptyStorageLine_ID+"=?",trxName)
-					.setParameters(Integer.parseInt(link.getValue()))
-					.first();
-			linkedline.setDateEnd(inoutline.getUpdated());
-			linkedline.saveEx(trxName);	
-			eline.setQtyMovement(eline.getQtyMovement().subtract(linkedline.getQtyMovement()));
-			eline.saveEx(trxName);
-			link.setProcessed(true);
-			link.setIsActive(false);
-			link.saveEx(trxName);
+	public void pickedEmptyStorageLine(BigDecimal picking,MWM_EmptyStorageLine  oldline) {  
+		oldline.setQtyMovement(oldline.getQtyMovement().subtract(picking));
+		if (oldline.getQtyMovement().compareTo(Env.ZERO)==0) {
+			oldline.setIsActive(false);
+			oldline.setDateEnd(Today);
 		}
+		oldline.saveEx(trxName); 
 	}
 	
 	/**

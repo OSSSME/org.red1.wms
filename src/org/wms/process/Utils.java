@@ -141,7 +141,21 @@ public class Utils {
 		huh.setDateEnd(dsline.isReceived()?oline.getUpdated():dsline.getWM_DeliverySchedule().getDatePromised());	
 		huh.saveEx(trxName); 
 	}
-
+	/**
+	 * New way to calculate Available Capacity NOT during EmptyStorageLine creation
+	 * but prior, during MWM_InOutLine creation. 
+	 * Has to take into account open MWM_InOutLine that points to this Locator.EmptyStorage
+	 * @param empty
+	 * @return availableCapacity
+	 */
+	public BigDecimal getAvailableCapacity(MWM_EmptyStorage empty) {
+		BigDecimal availableCapacity = empty.getAvailableCapacity();
+		List<MWM_InOutLine> wiolines = new Query(Env.getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_M_Locator_ID+"=?",trxName)
+				.setParameters(empty.getM_Locator_ID())
+				.list();
+		return availableCapacity;
+	}
+	
 	/**
 	 * 
 	 * @param dsline

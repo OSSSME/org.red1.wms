@@ -1,6 +1,6 @@
-<extension id="org.my.process.DivideByPalletSize"
+<extension id="org.my.process.WM_SetType"
   point="org.adempiere.base.Process">
 	<process
-		class="org.my.process.DivideByPalletSize">
+		class="org.my.process.WM_SetType">
 	</process>
 </extension>

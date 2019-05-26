@@ -256,16 +256,16 @@ import org.wms.model.MWM_StorageType;
 			 
 		target.setAvailableCapacity(available.subtract(balanceFactor));	
 		target.saveEx(trxName);		
-		source.setAvailableCapacity(source.getAvailableCapacity().add(balanceFactor));
+		source.setAvailableCapacity(util.getAvailableCapacity(source).add(balanceFactor));
 		source.saveEx(trxName);
-		MWM_EmptyStorageLine eline = util.newEmptyStorageLine(dline, alloted, target, ioline);
+		//MWM_EmptyStorageLine eline = util.newEmptyStorageLine(dline, alloted, target, ioline);
 		balance = balance.subtract(alloted);
-		util.calculatePercentageVacant(dline.isReceived(), target);
-		util.calculatePercentageVacant(dline.isReceived(), source);//TODO Available Capacity
-		eline.saveEx(trxName);
+		//util.calculatePercentageVacant(dline.isReceived(), target);
+		//util.calculatePercentageVacant(dline.isReceived(), source);//TODO BE DONE DURING MWMInOut.COMPLETE
+		//eline.saveEx(trxName);
 		//update HU History
 		if (WM_HandlingUnit_ID>0) {
-			util.assignHandlingUnit(IsSameDistribution, ioline, eline, alloted);
+			util.assignHandlingUnit(IsSameDistribution, ioline,alloted);
 			//update old Handling Unit history 
 			MWM_HandlingUnitHistory ohuh = new Query(Env.getCtx(),MWM_HandlingUnitHistory.Table_Name,MWM_HandlingUnitHistory.COLUMNNAME_WM_HandlingUnit_ID+"=?",trxName)
 					.setParameters(line.getWM_HandlingUnit_ID())

@@ -47,7 +47,7 @@ public class Utils {
 	 * @param qty
 	 * @return WM_InOutLine
 	 */
-	public MWM_InOutLine assignHandlingUnit(boolean sameDistribution, MWM_InOutLine inoutline, MWM_EmptyStorageLine eline, BigDecimal qty) { 
+	public MWM_InOutLine assignHandlingUnit(boolean sameDistribution, MWM_InOutLine inoutline, BigDecimal qty) { 
 		 if (sameDistribution && same){			 
 		 }else  
 			getAvailableHandlingUnit();
@@ -77,14 +77,14 @@ public class Utils {
 		huh.setM_Product_ID(inoutline.getM_Product_ID());
 		huh.setDateStart(hu.getUpdated());
 		huh.saveEx(trxName);
-		if (inoutline.getWM_InOut().isSOTrx()) {
-			if (eline==null)
-				log.warning("Assign Handling Unit - No EmptyStorageLine yet. InOutLine details: "+inoutline.toString());
-			else {
+//		if (inoutline.getWM_InOut().isSOTrx()) { TODO Handled during MWMInOut.CompleteIt()
+//			if (eline==null)
+//				log.warning("Assign Handling Unit - No EmptyStorageLine yet. InOutLine details: "+inoutline.toString());
+//			else {
 //red1 			eline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
 //red1 			eline.saveEx(trxName);
-			}
-		}
+//			}
+//		}
 		inoutline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
 		inoutline.saveEx(trxName);
 		return inoutline;
@@ -152,7 +152,23 @@ public class Utils {
 		BigDecimal availableCapacity = empty.getAvailableCapacity();
 		List<MWM_InOutLine> wiolines = new Query(Env.getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_M_Locator_ID+"=?",trxName)
 				.setParameters(empty.getM_Locator_ID())
+				.setOnlyActiveRecords(true)
+				.setOrderBy(MWM_InOutLine.COLUMNNAME_WM_InOut_ID)
 				.list();
+		MWM_InOut wio = (MWM_InOut) wiolines.get(0).getWM_InOut();
+		int wioID = wio.get_ID();
+		for (MWM_InOutLine wioline:wiolines) {
+			if (wioID!=wioline.getWM_InOut_ID()) {
+				wio = (MWM_InOut) wioline.getWM_InOut();
+				wioID = wio.get_ID();
+			}
+			if (!wio.getDocStatus().equals(MWM_InOut.DOCSTATUS_InProgress))
+				continue;
+			if (wio.isSOTrx())//if outgoing Picking, then available shall increase
+				availableCapacity = availableCapacity.add(wioline.getQtyPicked());
+			else //if incoming Putaway, then available shall decrease
+				availableCapacity = availableCapacity.subtract(wioline.getQtyPicked());
+		}
 		return availableCapacity;
 	}
 	

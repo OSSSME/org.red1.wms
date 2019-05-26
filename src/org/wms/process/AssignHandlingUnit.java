@@ -75,7 +75,7 @@ import org.wms.model.MWM_InOutLine;
 			if (esline==null)
 				log.severe("NO StorageLine for InOutLine to AssignHandlingUnit to "+line.getM_Product().getName());
 			else {
-				util.assignHandlingUnit(IsSameDistribution, line, esline, line.getQtyPicked());
+				util.assignHandlingUnit(IsSameDistribution, line, line.getQtyPicked());
 				units++;
 			}
 		}

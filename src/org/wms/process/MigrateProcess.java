@@ -227,9 +227,9 @@ import org.wms.model.MWM_Migration;
 			//deduct Empty Available Storage -- calculate Percentage
 			eachQty = uomFactors(dline);
 			
-			BigDecimal available = empty.getAvailableCapacity().subtract(sline.getQtyMovement().divide(boxConversion,2,RoundingMode.HALF_EVEN));
-			empty.setAvailableCapacity(available);
-			utils.calculatePercentageVacant(dline.isReceived(), empty); //TODO Available Capacity
+			//BigDecimal available = empty.getAvailableCapacity().subtract(sline.getQtyMovement().divide(boxConversion,2,RoundingMode.HALF_EVEN));
+			//empty.setAvailableCapacity(available);
+			//utils.calculatePercentageVacant(dline.isReceived(), empty); //TODO Available Capacity
 			cnt++;
 			record.setIsActive(false);
 			record.saveEx(get_TrxName());

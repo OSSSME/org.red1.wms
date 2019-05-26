@@ -348,11 +348,11 @@ import org.wms.model.MWM_WarehousePick;
 		}  
 		MWM_InOutLine inoutline = util.newInOutLine(inout,dsline,alloted); 
 		setLocator(inoutline,locator_id); 
-		MWM_EmptyStorageLine eline = util.newEmptyStorageLine(dsline,alloted,empty,inoutline);
+		//MWM_EmptyStorageLine eline = util.newEmptyStorageLine(dsline,alloted,empty,inoutline);
 		if (isReceived)
-			inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline,eline,alloted); 
-		if (isReceived)
-			util.calculatePercentageVacant(dsline.isReceived(),empty);// 
+			inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline,alloted); 
+		//if (isReceived)
+			//util.calculatePercentageVacant(dsline.isReceived(),empty);// 
 		return balance;
 	}
 
@@ -477,7 +477,7 @@ import org.wms.model.MWM_WarehousePick;
 //red1				MWM_EmptyStorageLine newline = util.newEmptyStorageLine(line, picked, empty, inoutline);
 //				if (isReceived) {
 					//util.releaseHandlingUnit(eline);
-					inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline, null, picked);
+					inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline, picked);
 //				}//
 //red1				util.createESLinePicking(eline, newline);
 				

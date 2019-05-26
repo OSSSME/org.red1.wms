@@ -32,6 +32,7 @@ import org.compiere.model.MUOMConversion;
 import org.compiere.model.ModelValidationEngine;
 
 import org.compiere.model.ModelValidator;
+import org.compiere.model.PO;
 import org.compiere.model.Query;
 import org.compiere.print.ReportEngine;
 
@@ -73,13 +74,10 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 	private boolean			m_justPrepared = false;
 
 	private BigDecimal eachQty;
-
 	private BigDecimal currentUOM;
-
 	private BigDecimal boxConversion;
-
 	private BigDecimal packFactor;
-
+	Utils util = new Utils(get_TrxName());
 	
 	protected boolean beforeSave (boolean newRecord)
 	{
@@ -127,26 +125,24 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		MBPartner partner = (MBPartner) getC_BPartner();
 		if ((partner.isVendor() && partner.isCustomer()) || getName().endsWith("CONSIGNMENT")) {
 			//create Movement, and update WM_EmptyStorage/Lines
-			MMovement move = new Query(getCtx(),MMovement.Table_Name,MMovement.COLUMNNAME_Description+"Like '?%'",get_TrxName())
-			.setParameters(getName())
+			MWM_DeliverySchedule deliveryschedule = new Query(getCtx(),MWM_DeliverySchedule.Table_Name,MWM_DeliverySchedule.COLUMNNAME_WM_DeliverySchedule_ID+"=?",get_TrxName())
+			.setParameters(getWM_DeliverySchedule_ID())
 			.first();
-			
-			if (move==null)
-				System.out.println("NO CONSIGNMENT MOVE FOR:"+getName());
-			else {
-				if (!move.processIt(MMovement.DOCACTION_Complete)) {
+			if (deliveryschedule==null)
+				throw new AdempiereException("NO DeliverySchedule for:"+getName());
+			  
+			MMovement move = createConsignmentMovement(this);
+			if (!move.processIt(MMovement.DOCACTION_Complete)) {
 					throw new IllegalStateException("Movement Process Failed: " + move + " - " + move.getProcessMsg());
 				}
-			}
+		
 			return "Consignment Movement Processed: "+partner.getName();
 		}
 		
 		//Create Material Receipt process    
 		MInOut inout = null;
-		
 		List<MWM_InOutLine> lines = new Query(Env.getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?",get_TrxName())
 				.setParameters(this.get_ID()).list();
-		
 		//holder for separate M_InOut according to different C_Order
 		int c_Order_Holder = 0;
 		for (MWM_InOutLine wioline:lines){
@@ -155,10 +151,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 					.first();
 			if (del!=null && !del.isReceived())
 				throw new AdempiereException("DeliverySchedule Line still not Received"); //still not processed at DeliverySchedule level, so no Shipment/Receipt possible
-			
 			if (wioline.getM_InOutLine_ID()>0)
 				throw new AdempiereException("Already has Shipment/Receipt record!");//already done before
-				
 			if (del.getC_OrderLine().getC_Order_ID()!=c_Order_Holder){
 				if (inout!=null){
 					saveM_InOut(inout,lines);
@@ -168,7 +162,13 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				saveM_InOut(inout,lines);
 				c_Order_Holder = del.getC_OrderLine().getC_Order_ID();
 			}
-			processWMSStorage(wioline,del);
+			MWM_EmptyStorageLine esline = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_WM_InOutLine_ID+"=?",get_TrxName())
+				.setParameters(wioline.get_ID())
+				.first(); 					
+			if (esline==null)
+				throw new AdempiereException("WMDeliveryScheduleLine PO_After_Change. WMEmptyStorageLine Not in WMInOutLine of DeliveryScheduleLine"); 
+			
+			processWMSStorage(wioline,del,esline,util);
 			
 			MInOutLine ioline = new MInOutLine(inout);
 			ioline.setC_OrderLine_ID(wioline.getC_OrderLine_ID());
@@ -251,6 +251,33 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 
 		return DocAction.STATUS_InProgress;
 
+	}
+
+	private MMovement createConsignmentMovement(MWM_InOut wio) {
+		PO po = new Query(getCtx(),"MWM_Consignment",MWM_InOut.COLUMNNAME_WM_DeliverySchedule_ID+"=?",get_TrxName())
+				.setParameters(wio.get_ID())
+				.first();
+		if (po==null)
+			throw new AdempiereException("No Consignment Found");
+		MMovement move = new MMovement(getCtx(), 0, get_TrxName());
+		move.setDescription(wio.getName()+" CONSIGNMENT");
+		move.setC_BPartner_ID(wio.getC_BPartner_ID());
+		move.setC_Project_ID(po.get_ValueAsInt(MMovement.COLUMNNAME_C_Project_ID));
+		move.setC_Campaign_ID(po.get_ValueAsInt(MMovement.COLUMNNAME_C_Campaign_ID));
+		move.saveEx(get_TrxName());
+		//create Movement Lines
+		List<MWM_InOutLine>wiolines = new Query(getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?",get_TrxName())
+				.setParameters(wio.get_ID())
+				.list();
+		for (MWM_InOutLine wioline:wiolines) {
+			MWM_DeliveryScheduleLine del = (MWM_DeliveryScheduleLine) wioline.getWM_DeliveryScheduleLine();
+			//get WMEmptyStorage from WIOLine.MLocator
+			MWM_EmptyStorage empty = new Query(getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",get_TrxName())
+					.setParameters(wioline.getM_Locator_ID()).first();
+			MWM_EmptyStorageLine esline = util.newEmptyStorageLine(del, wioline.getQtyPicked(), empty, wioline);
+			processWMSStorage(wioline,del,esline,util);
+		}
+		return move;
 	}
 
 	private void saveM_InOut(MInOut inout,List<MWM_InOutLine> lines) {
@@ -447,61 +474,43 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 
  	public boolean reActivateIt() {
 		if (log.isLoggable(Level.INFO)) log.info(toString());
-
 		// Before reActivate
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_REACTIVATE);
-
 		if (m_processMsg != null)
 			return false;
-
  		// After reActivate
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_REACTIVATE);
-
 		if (m_processMsg != null)
 			return false;
-
  		setDocAction(DOCACTION_Complete);
-
 		setProcessed(false);
-
 		return true;
 
 	}
 
  	public String getSummary() {
-		// TODO Auto-generated method stub
 		return null;
-
 	}
 
  	public String getDocumentNo() {
 		return Msg.getElement(getCtx(), X_WM_InOut.COLUMNNAME_WM_InOut_ID) + " " + getDocumentNo();
-
  	}
 
  	public String getDocumentInfo() {
-		// TODO Auto-generated method stub
 		return null;
-
 	}
 
  	public File createPDF() {
 		try
 		{
 			File temp = File.createTempFile(get_TableName()+get_ID()+"_", ".pdf");
-
 			return createPDF (temp);
-
 		}
-
 		catch (Exception e)
 		{
 			log.severe("Could not create PDF - " + e.getMessage());
-
 		}
-
 		return null;
-
 	}
 
  	/**
@@ -512,57 +521,37 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 	public File createPDF (File file)
 	{
 		ReportEngine re = ReportEngine.get (getCtx(), ReportEngine.ORDER, getWM_InOut_ID());
-
 		if (re == null)
 			return null;
-
 		return re.getPDF(file);
-
 	}
 	//	createPDF
  	public String getProcessMsg() {
 		return m_processMsg;
-
 	}
 
  	public int getDoc_User_ID() {
-		// TODO Auto-generated method stub
 		return 0;
-
 	}
 
  	public int getC_Currency_ID() {
-		// TODO Auto-generated method stub
 		return 0;
-
 	}
 
  	public BigDecimal getApprovalAmt() {
-		// TODO Auto-generated method stub
 		return null;
-
 	}
  	/**
  	 * WM_EmptyStorage is processed here to affect Vacant Storage Qty and Percentage Available
  	 * @param iolineID
  	 * @param dsline
  	 */
- 	private void processWMSStorage(MWM_InOutLine wioline,MWM_DeliveryScheduleLine dsline) {
-
-		Utils util = new Utils(get_TrxName());
-	
+ 	private void processWMSStorage(MWM_InOutLine wioline,MWM_DeliveryScheduleLine dsline,MWM_EmptyStorageLine esline,Utils util) {
 		if (!dsline.isReceived())
 			throw new AdempiereException("DeliveryLine not Received. Complete its DeliverySchedule first.");
 		else {
 			if (wioline==null)
 				throw new AdempiereException("WMS InOutLine lost!");
-		eachQty=uomFactors(dsline);
-		
-		MWM_EmptyStorageLine esline = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_WM_InOutLine_ID+"=?",get_TrxName())
-			.setParameters(wioline.get_ID())
-			.first(); 					
-		if (esline==null)
-			throw new AdempiereException("WMDeliveryScheduleLine PO_After_Change. WMEmptyStorageLine Not in WMInOutLine of DeliveryScheduleLine"); 
 		
 		MWM_EmptyStorage storage = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_WM_EmptyStorage_ID+"=?",get_TrxName())
 			.setParameters(esline.getWM_EmptyStorage_ID())
@@ -582,7 +571,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			BigDecimal vacancy = storage.getAvailableCapacity();	 
 			storage.setAvailableCapacity(vacancy);
 		}			
-		util.calculatePercentageVacant(dsline.isReceived(),storage);//TODO Available Capacity
+		util.calculatePercentageVacant(dsline.isReceived(),storage);
 		esline.saveEx(get_TrxName());
 		//TODO IsActive = N when DeliverySchedule.DocStatus='CO' and IsSOTrx 
 		log.info("Processed InoutLine:"+wioline.toString()+" StorageLine:"+esline.toString());

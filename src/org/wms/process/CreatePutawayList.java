@@ -329,7 +329,7 @@ import org.wms.model.MWM_WarehousePick;
 		MProduct product = (MProduct) dsline.getM_Product();
 		BigDecimal PackFactor = new BigDecimal(product.getUnitsPerPack());
 		 
-		BigDecimal vacancy = empty.getAvailableCapacity().multiply(PackFactor);		
+		BigDecimal vacancy = util.getAvailableCapacity(empty).multiply(PackFactor);		
 		vacancy=vacancy.subtract(util.getFutureStorage(empty, dsline));
 		
 		if (balance.compareTo(vacancy)>=0 && IsSameLine==false){

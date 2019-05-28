@@ -452,9 +452,6 @@ import org.wms.model.MWM_WarehousePick;
 			if (hu==null && dline.isReceived())
 				continue; //next EmptyLine until not InProgress
 			
-			if (util.getAvailableCapacity(storage).compareTo(eachQty)<0)
-				continue;
-
 			//Locator EmptyLine Quantity has more than what you picking
 			if (eline.getQtyMovement().compareTo(eachQty)>=0){ 
 				eachQty = startPickingProcess(eachQty,inout,dline, eline);
@@ -465,6 +462,7 @@ import org.wms.model.MWM_WarehousePick;
 			}else if(!IsSameLine) { //if not SameLine 
 				eachQty = eachQty.subtract(startPickingProcess(eline.getQtyMovement(),inout,dline, eline));
 				pickings++;
+				return true;
 			}  
 		}
 		return false;

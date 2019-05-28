@@ -15,6 +15,7 @@ import java.util.List;
 
 import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.MProduct;
+import org.compiere.model.MUOMConversion;
 import org.compiere.model.Query;
 import org.compiere.process.ProcessInfoParameter;
 import org.compiere.process.SvrProcess;
@@ -59,6 +60,9 @@ import org.wms.model.MWM_WarehousePick;
 	private String trxName = "";
 	private boolean external = false;
 	MWM_DeliverySchedule externalDeliverySchedule  = null;
+	private Object packFactor=Env.ONE;
+	private BigDecimal boxConversion=Env.ONE;
+	private BigDecimal currentUOM=Env.ONE;
 	
 	public CreatePutawayList(){
 		
@@ -172,22 +176,22 @@ import org.wms.model.MWM_WarehousePick;
 	}
 
 	private void putawayProcess(MWM_InOut inout, List<MWM_DeliveryScheduleLine> lines) {
-		for (MWM_DeliveryScheduleLine line:lines){
+		for (MWM_DeliveryScheduleLine dline:lines){
 			
-			if (line.getWM_InOutLine_ID()>0)
+			if (dline.getWM_InOutLine_ID()>0)
 				continue;//already done
 			
-			if (!line.isReceived()){
+			if (!dline.isReceived()){
 				notReceived++;
 				isReceived=false;
 			} else
 				isReceived=true;
 			
 			//running balance in use thru-out here
-			BigDecimal balance =line.getQtyDelivered();				
+			BigDecimal balance =dline.getQtyDelivered();				
 			
 			//get Product from InOut Bound line
-			MProduct product = (MProduct) line.getM_Product();
+			MProduct product = (MProduct) dline.getM_Product();
 			
 			//If No Handling Unit required at this juncture, 
 			//then no M_Locator putAway also. Manual way.
@@ -215,7 +219,7 @@ import org.wms.model.MWM_WarehousePick;
 						continue;
 					//get next EmptyStorage, if fit, then break, otherwise if balance, then continue
 					int locator_id = preferred.getM_Locator_ID();
-					balance = startPutAwayProcess(inout,line,balance,locator_id);
+					balance = startPutAwayProcess(inout,dline,balance,locator_id);
 					if (balance.compareTo(Env.ZERO)>0)
 						continue;
 					else {
@@ -237,7 +241,6 @@ import org.wms.model.MWM_WarehousePick;
 							.setOrderBy(MWM_StorageType.COLUMNNAME_WM_Type_ID)
 							.list();				
 					for (MWM_StorageType stortype:stortypes){
-						
 						if (stortype!=null){
 							if (stortype.getM_Locator().getX().compareTo(X)>=0 || stortype.getM_Locator().getY().compareTo(Y)>=0  || stortype.getM_Locator().getZ().compareTo(Z)>=0 )
 								continue;
@@ -247,7 +250,7 @@ import org.wms.model.MWM_WarehousePick;
 							
 							//get next EmptyStorage, if fit, then break, otherwise if balance, then continue
 							int locator_id = stortype.getM_Locator_ID(); 
-							balance = startPutAwayProcess(inout,line,balance,locator_id);
+							balance = startPutAwayProcess(inout,dline,balance,locator_id);
 							if (balance.compareTo(Env.ZERO)>0)
 								continue;
 							else {
@@ -257,12 +260,11 @@ import org.wms.model.MWM_WarehousePick;
 						}	
 					}
 			 	}
-				
 			 if (done)
 					continue; //enough, i already putaway all.
 			//get non reserved empty storage
 			List<MWM_EmptyStorage> empties = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_IsFull+"=? AND "
-					+MWM_EmptyStorage.COLUMNNAME_IsFull+"=?",trxName)
+					+MWM_EmptyStorage.COLUMNNAME_IsBlocked+"=?",trxName)
 				.setParameters(false,false)
 				.setOrderBy(MWM_EmptyStorage.COLUMNNAME_M_Locator_ID)
 				.list();	
@@ -292,8 +294,9 @@ import org.wms.model.MWM_WarehousePick;
 					continue;
 			
 				//get next EmptyStorage, if fit, then break, otherwise if balance, then continue
-				int locator_id = empty.getM_Locator_ID();
-				balance = startPutAwayProcess(inout,line,balance,locator_id);
+				int locator_id = empty.getM_Locator_ID(); 
+				System.out.println("Locator "+empty.getM_Locator().getValue()+" has "+empty.getAvailableCapacity()+" for "+balance+" "+dline.getM_Product().getName());
+				balance = startPutAwayProcess(inout,dline,balance,locator_id);
 				if (balance.compareTo(Env.ZERO)>0)
 					continue;
 				else {
@@ -311,7 +314,7 @@ import org.wms.model.MWM_WarehousePick;
 	 * @param locator_id
 	 * @return balance of unallocated qty to empty storage
 	 */
-	private BigDecimal startPutAwayProcess(MWM_InOut inout, MWM_DeliveryScheduleLine dsline, BigDecimal balance, int locator_id) {
+	private BigDecimal startPutAwayProcess(MWM_InOut winout, MWM_DeliveryScheduleLine dsline, BigDecimal balance, int locator_id) {
 		MWM_EmptyStorage empty = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",trxName)
 				.setParameters(locator_id)
 				.first();
@@ -327,26 +330,26 @@ import org.wms.model.MWM_WarehousePick;
 		//check if its vacant capacity can handle the balance.
 		//pack factor is multiplied into VacantCapacity denominator.
 		MProduct product = (MProduct) dsline.getM_Product();
-		BigDecimal PackFactor = new BigDecimal(product.getUnitsPerPack());
+
+		BigDecimal eachQty = uomFactors(dsline);
 		 
-		BigDecimal vacancy = util.getAvailableCapacity(empty).multiply(PackFactor);		
-		vacancy=vacancy.subtract(util.getFutureStorage(empty, dsline));
+		BigDecimal vacancy = util.getAvailableCapacity(empty).multiply(currentUOM);		
 		
 		if (balance.compareTo(vacancy)>=0 && IsSameLine==false){
-			if (isReceived)
-				empty.setAvailableCapacity(Env.ZERO);
 			balance = balance.subtract(vacancy);	
 			alloted = vacancy;
 		} else {
 			vacancy = vacancy.subtract(balance);
 			if (vacancy.compareTo(Env.ZERO)<0)//available insufficient
 				return balance;
-			if (isReceived)
-				empty.setAvailableCapacity(vacancy.divide(PackFactor,2,RoundingMode.HALF_EVEN));
+		/*	if (isReceived) { -- red1 EmptyStorage is only updated during WMInOut.CompleteIt()
+				empty.setAvailableCapacity(vacancy.divide(currentUOM,2,RoundingMode.HALF_EVEN));
+				empty.saveEx(trxName);
+			}*/
 			alloted = balance;
 			balance = Env.ZERO;
 		}  
-		MWM_InOutLine inoutline = util.newInOutLine(inout,dsline,alloted); 
+		MWM_InOutLine inoutline = util.newInOutLine(winout,dsline,alloted); 
 		setLocator(inoutline,locator_id); 
 		//MWM_EmptyStorageLine eline = util.newEmptyStorageLine(dsline,alloted,empty,inoutline);
 		//if (isReceived)
@@ -388,15 +391,15 @@ import org.wms.model.MWM_WarehousePick;
 		}	
 	}
 
-	private boolean getPickingLocators(MWM_InOut inout,MWM_DeliveryScheduleLine line) {  
-		MProduct product = (MProduct)line.getM_Product();
+	private boolean getPickingLocators(MWM_InOut inout,MWM_DeliveryScheduleLine dline) {  
+		MProduct product = (MProduct)dline.getM_Product();
 		if (product==null) {
 			log.severe("Fatal: Suddenly Delivery Line has no Product!");
 			return false;
 		}
 		//check if there was WM_WarehousePick (for preselected pick during Sales Order)
-		if (line.getC_OrderLine_ID()>0){line.getM_Product().getName();
-			if  (orderLineWarehousePick(inout, line))
+		if (dline.getC_OrderLine_ID()>0){dline.getM_Product().getName();
+			if  (orderLineWarehousePick(inout, dline))
 				return true; 
 		}
 		
@@ -428,8 +431,9 @@ import org.wms.model.MWM_WarehousePick;
 			log.severe("Product has no Storage available to pick: "+product.getName());
 			return false;
 		}
-			
-		BigDecimal binPickQty = line.getQtyOrdered();//.multiply(new BigDecimal(product.getUnitsPerPack()));
+		
+		BigDecimal eachQty=uomFactors(dline);
+		
 		for (MWM_EmptyStorageLine eline:elines){
 			//if (eline.getWM_InOutLine().getM_InOutLine_ID()<1 && line.isReceived())
 			//	throw new AdempiereException("This Product Has No Shipment/Receipt record. Complete its WM Inout first before picking - "+product.getName()+" -> "+eline.getWM_InOutLine());
@@ -445,19 +449,21 @@ import org.wms.model.MWM_WarehousePick;
 			MWM_HandlingUnit hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_DocStatus+"=? AND "+MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=?",trxName)
 					.setParameters(MWM_HandlingUnit.DOCSTATUS_Completed,eline.getWM_HandlingUnit_ID())
 					.first();
-			if (hu==null && line.isReceived())
+			if (hu==null && dline.isReceived())
 				continue; //next EmptyLine until not InProgress
 			
-			//TODO Eline.QtyMovement is not pure (need to include sub ESLine Qty)
+			if (util.getAvailableCapacity(storage).compareTo(eachQty)<0)
+				continue;
+
 			//Locator EmptyLine Quantity has more than what you picking
-			if (eline.getQtyMovement().compareTo(binPickQty)>=0){ 
-				binPickQty = startPickingProcess(binPickQty,inout,line, eline);
+			if (eline.getQtyMovement().compareTo(eachQty)>=0){ 
+				eachQty = startPickingProcess(eachQty,inout,dline, eline);
 				pickings++;
 				return true;
 				
 			//Locator EmptyLine Quantity has less than what you picking	
 			}else if(!IsSameLine) { //if not SameLine 
-				binPickQty = binPickQty.subtract(startPickingProcess(eline.getQtyMovement(),inout,line, eline));
+				eachQty = eachQty.subtract(startPickingProcess(eline.getQtyMovement(),inout,dline, eline));
 				pickings++;
 			}  
 		}
@@ -474,21 +480,8 @@ import org.wms.model.MWM_WarehousePick;
 			if (WM_HandlingUnit_ID>0){
 				MWM_InOutLine inoutline = util.newInOutLine(inout,line,picked); 
 				setLocator(inoutline, eline.getWM_EmptyStorage().getM_Locator_ID());				
-//red1				MWM_EmptyStorageLine newline = util.newEmptyStorageLine(line, picked, empty, inoutline);
-//				if (isReceived) {
-					//util.releaseHandlingUnit(eline);
-					inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline, picked);
-//				}//
-//red1				util.createESLinePicking(eline, newline);
-				
-		/*		if (isReceived) {//As in WM_DeliveryScheduleLineDocEvent line 68
-					//deduct from eline and close off linked picking line
-					BigDecimal pickFactor = picked.divide(new BigDecimal(eline.getM_Product().getUnitsPerPack()),2,RoundingMode.HALF_EVEN);			
-					BigDecimal vacancy = empty.getAvailableCapacity().add(pickFactor);
-					vacancy = vacancy.subtract(util.getFutureStorage(empty, line));
-					empty.setAvailableCapacity(vacancy);
-//red1					util.pickedEmptyStorageLine(inoutline,newline);
-				}*/
+				util.setHandlingUnit(WM_HandlingUnit_ID); 
+				inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline, picked);
 				picked = Env.ZERO;//picking finished
 			}else { 
 				return picked;//go next EmptyLine until ExactFit
@@ -498,21 +491,14 @@ import org.wms.model.MWM_WarehousePick;
 		} else {
 			MWM_InOutLine inoutline = util.newInOutLine(inout,line,picked); 
 			setLocator(inoutline, eline.getWM_EmptyStorage().getM_Locator_ID());
-		if (isReceived){
-				//eline.setDateEnd(inoutline.getUpdated());
-				//eline.setQtyMovement(Env.ZERO);
+			if (isReceived){
 				if (WM_HandlingUnit_ID>0){
 					util.releaseHandlingUnit(eline);
 					util.setHandlingUnit(WM_HandlingUnit_ID); 
 					inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline, picked);
 				}
-			}// else
-				//eline.setDateEnd(line.getWM_DeliverySchedule().getDatePromised());
-			
-		//	eline.saveEx(trxName);
+			}
 		}
-		//if (isReceived)	
-		//	util.calculatePercentageVacant(line.isReceived(),empty);//empty.saved() there  
 		return picked;
 	}
 
@@ -542,5 +528,27 @@ import org.wms.model.MWM_WarehousePick;
 			}}}
 		return false;
 	}
+	private BigDecimal uomFactors(MWM_DeliveryScheduleLine line) {
+		BigDecimal qtyEntered = line.getQtyOrdered();//.multiply(new BigDecimal(product.getUnitsPerPack()));
 
+		//Current = current UOM Conversion Qty	
+		MUOMConversion currentuomConversion = new Query(Env.getCtx(),MUOMConversion.Table_Name,MUOMConversion.COLUMNNAME_M_Product_ID+"=? AND "
+				+MUOMConversion.COLUMNNAME_C_UOM_To_ID+"=?",null)
+				.setParameters(line.getM_Product_ID(),line.getC_UOM_ID())
+				.first();
+		if (currentuomConversion!=null)
+			currentUOM = currentuomConversion.getDivideRate();
+		BigDecimal eachQty=qtyEntered.multiply(currentUOM);
+
+		//Pack Factor calculation
+		MUOMConversion highestUOMConversion = new Query(Env.getCtx(),MUOMConversion.Table_Name,MUOMConversion.COLUMNNAME_M_Product_ID+"=?",null)
+				.setParameters(line.getM_Product_ID())
+				.setOrderBy(MUOMConversion.COLUMNNAME_DivideRate+" DESC")
+				.first(); 
+		if (highestUOMConversion!=null) {
+			boxConversion = highestUOMConversion.getDivideRate();
+			packFactor = boxConversion.multiply(highestUOMConversion.getDivideRate().divide(currentUOM,2,RoundingMode.HALF_EVEN));
+			}
+		return eachQty;
+		} 
 }

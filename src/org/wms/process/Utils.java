@@ -158,13 +158,13 @@ public class Utils {
 		if (wiolines==null || wiolines.isEmpty() )
 			return availableCapacity;
 		MWM_InOut wio = (MWM_InOut) wiolines.get(0).getWM_InOut();
-		int wioID = wio.get_ID();
+		int wioID = wio.get_ID();// keeping track of changing headers
 		for (MWM_InOutLine wioline:wiolines) {
 			if (wioID!=wioline.getWM_InOut_ID()) {
 				wio = (MWM_InOut) wioline.getWM_InOut();
 				wioID = wio.get_ID();
 			}
-			if (!wio.getDocStatus().equals(MWM_InOut.DOCSTATUS_InProgress))
+			if (wio.getDocStatus().equals(MWM_InOut.DOCSTATUS_Completed))
 				continue;
 			if (wio.isSOTrx())//if outgoing Picking, then available shall increase
 				availableCapacity = availableCapacity.add(wioline.getQtyPicked());

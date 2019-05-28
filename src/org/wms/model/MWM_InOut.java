@@ -177,22 +177,19 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			//populate back WM_InOutLine with M_InOutLine_ID
 			wioline.setM_InOutLine_ID(ioline.get_ID());ioline.getM_Locator();ioline.getM_Warehouse_ID();
 			wioline.saveEx(get_TrxName());
-			//if Sales' Shipment, then release the Handling Unit 
-			if (inout.isSOTrx()){
-				MWM_HandlingUnit hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=?",get_TrxName())
-						.setParameters(wioline.getWM_HandlingUnit_ID())
-						.first();
-				hu.setQtyMovement(Env.ZERO);
-				hu.setDocStatus(STATUS_Drafted);
-				hu.saveEx(get_TrxName());
+			//if Sales' Shipment, then release the Handling Unit <--deprecated
+			MWM_HandlingUnit hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=?",get_TrxName())
+					.setParameters(wioline.getWM_HandlingUnit_ID())
+					.first();
+			if (hu!=null) {
 				//deactivate HandlingUnit history
 				MWM_HandlingUnitHistory huh = new Query(Env.getCtx(),MWM_HandlingUnitHistory.Table_Name,MWM_HandlingUnitHistory.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "
 						+MWM_HandlingUnitHistory.COLUMNNAME_WM_InOutLine_ID+"=?",get_TrxName())
 						.setParameters(hu.get_ID(),wioline.get_ID())
 						.first();
 				if (huh==null){
-					log.severe("HandlingUnit has no history: "+wioline.getWM_HandlingUnit().getName());
-					continue;
+						log.severe("HandlingUnit has no history: "+wioline.getWM_HandlingUnit().getName());
+						continue;
 				}
 				if (huh.getDateEnd()==null){
 					log.warning("HandlingUnit history has no DateEnd during Receive of DeliverySchedule: "+wioline.getWM_HandlingUnit().getName());
@@ -201,6 +198,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				huh.setIsActive(false);
 				huh.saveEx(get_TrxName());
 			}
+			
 			//check if has previous BackOrder that is not complete (no QtyDelivered value) so disallow any new BackOrders 
 			//check if has previous WM_InOut (backorder case) and if QtyDelivered then error of premature process
 			MWM_DeliveryScheduleLine prevDsLine = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_C_OrderLine_ID+"=?"
@@ -226,12 +224,11 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			} 
 		}
 		if (inout!=null){
-			saveM_InOut(inout,lines);
-		//	if (inout.isSOTrx()){
-		//		Utils util = new Utils(get_TrxName());
-		//		util.closeOutbound(lines);
-		//	} //--red1 no longer using outbound EStorageLine anymore
-				
+			saveM_InOut(inout,lines);		
+			inout.setDescription(isSOTrx()?"Picking":"Putaway");
+			inout.setDocStatus(inout.DOCSTATUS_InProgress);
+			inout.setDocAction(inout.DOCACTION_Complete);
+			inout.processIt(DocAction.ACTION_Complete);
 		}
 	
  		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_PREPARE);

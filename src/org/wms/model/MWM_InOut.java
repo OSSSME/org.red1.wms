@@ -73,10 +73,6 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 
 	private boolean			m_justPrepared = false;
 
-	private BigDecimal eachQty=Env.ONE;
-	private BigDecimal currentUOM=Env.ONE;
-	private BigDecimal boxConversion=Env.ONE;
-	private BigDecimal packFactor=Env.ONE;
 	Utils util = new Utils(get_TrxName());
 	
 	protected boolean beforeSave (boolean newRecord)
@@ -226,8 +222,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		if (inout!=null){
 			saveM_InOut(inout,lines);		
 			inout.setDescription(isSOTrx()?"Picking":"Putaway");
-			inout.setDocStatus(inout.DOCSTATUS_InProgress);
-			inout.setDocAction(inout.DOCACTION_Complete);
+			inout.setDocStatus(this.DOCSTATUS_InProgress);
+			inout.setDocAction(this.DOCACTION_Complete);
 			inout.processIt(DocAction.ACTION_Complete);
 		}
 	
@@ -543,31 +539,27 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		else {
 			if (wioline==null)
 				throw new AdempiereException("WMS InOutLine lost!");
-			uomFactors(dsline); 
 			
 			MWM_EmptyStorage storage = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",get_TrxName())
 					.setParameters(wioline.getM_Locator_ID())
 					.first();
 	 
 			if (wioline.getWM_InOut().isSOTrx()) { //OutBound confirmation
-				BigDecimal picked = wioline.getQtyPicked();
-				BigDecimal picking = picked.divide(boxConversion,2,RoundingMode.HALF_EVEN);			
-				BigDecimal vacancy = storage.getAvailableCapacity().add(picking); 
+				BigDecimal picked = wioline.getQtyPicked(); 			
+				BigDecimal vacancy = storage.getAvailableCapacity().add(picked); 
 				storage.setAvailableCapacity(vacancy);
 				MWM_EmptyStorageLine oldESLine = new Query(getCtx(), MWM_EmptyStorageLine.Table_Name, MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "
 						+MWM_EmptyStorageLine.COLUMNNAME_WM_EmptyStorage_ID+"=?", get_TrxName())
 						.setParameters(wioline.getM_Product_ID(),storage.get_ID())
 						.first();
-				util.pickedEmptyStorageLine(picking, oldESLine);
+				util.pickedEmptyStorageLine(picked, oldESLine);
 			}
 			else { 	//purchasing InBound
 				MProduct product = (MProduct)dsline.getM_Product();
 				MWM_EmptyStorageLine newESLine = util.newEmptyStorageLine(dsline, wioline.getQtyPicked(), storage, wioline);
 				if (product.getGuaranteeDays()>0)
 					newESLine.setDateEnd(TimeUtil.addDays(dsline.getUpdated(), product.getGuaranteeDays()));	
-				storage.setAvailableCapacity(storage.getAvailableCapacity().subtract(wioline.getQtyPicked().divide(boxConversion,2,RoundingMode.HALF_EVEN)));
-				BigDecimal vacancy = storage.getAvailableCapacity();	 
-				storage.setAvailableCapacity(vacancy);
+				storage.setAvailableCapacity(storage.getAvailableCapacity().subtract(wioline.getQtyPicked()));
 				newESLine.setWM_HandlingUnit_ID(wioline.getWM_HandlingUnit_ID());
 				newESLine.saveEx(get_TrxName());
 			}			
@@ -576,29 +568,5 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			log.info("Processed InoutLine:"+wioline.toString()+" StorageLine:"+dsline.toString());
 		}
  	}
-
-private BigDecimal uomFactors(MWM_DeliveryScheduleLine line) {
-	BigDecimal qtyEntered = line.getQtyOrdered();//.multiply(new BigDecimal(product.getUnitsPerPack()));
-
-	//Current = current UOM Conversion Qty	
-	MUOMConversion currentuomConversion = new Query(Env.getCtx(),MUOMConversion.Table_Name,MUOMConversion.COLUMNNAME_M_Product_ID+"=? AND "
-			+MUOMConversion.COLUMNNAME_C_UOM_To_ID+"=?",null)
-			.setParameters(line.getM_Product_ID(),line.getC_UOM_ID())
-			.first();
-	if (currentuomConversion!=null)
-		currentUOM = currentuomConversion.getDivideRate();
-	BigDecimal eachQty=qtyEntered.multiply(currentUOM);
-
-	//Pack Factor calculation
-	MUOMConversion highestUOMConversion = new Query(Env.getCtx(),MUOMConversion.Table_Name,MUOMConversion.COLUMNNAME_M_Product_ID+"=?",null)
-			.setParameters(line.getM_Product_ID())
-			.setOrderBy(MUOMConversion.COLUMNNAME_DivideRate+" DESC")
-			.first(); 
-	if (highestUOMConversion!=null) {
-		boxConversion = highestUOMConversion.getDivideRate();
-		packFactor = boxConversion.multiply(highestUOMConversion.getDivideRate().divide(currentUOM,2,RoundingMode.HALF_EVEN));
-		}
-	return eachQty;
-	} 
 }
 

@@ -20,6 +20,7 @@ import org.compiere.model.Query;
 import org.compiere.process.ProcessInfoParameter;
 import org.compiere.process.SvrProcess;
 import org.compiere.util.Env;
+import org.compiere.util.Msg;
 import org.wms.model.MWM_DeliverySchedule;
 import org.wms.model.MWM_DeliveryScheduleLine;
 import org.wms.model.MWM_EmptyStorage;
@@ -143,36 +144,37 @@ import org.wms.model.MWM_WarehousePick;
 		util = new Utils(trxName);
 		util.setHandlingUnit(WM_HandlingUnit_ID);
 		
-		MWM_InOut inout = null;
+		MWM_InOut wio = null;
 		if (WM_InOut_ID>0) {
-			inout = new Query(Env.getCtx(), MWM_InOut.Table_Name, MWM_InOut.COLUMNNAME_WM_InOut_ID+"=?", trxName)
+			wio = new Query(Env.getCtx(), MWM_InOut.Table_Name, MWM_InOut.COLUMNNAME_WM_InOut_ID+"=?", trxName)
 					.setParameters(WM_InOut_ID)
 					.first();
 		} else {
-			inout = new MWM_InOut(Env.getCtx(),0,trxName);
-			inout.setC_BPartner_ID(lines.get(0).getWM_DeliverySchedule().getC_BPartner_ID());
-			inout.setWM_DeliverySchedule_ID(lines.get(0).getWM_DeliverySchedule_ID());
-			inout.setName(lines.get(0).getWM_DeliverySchedule().getName());
-			inout.setIsSOTrx(lines.get(0).getWM_DeliverySchedule().isSOTrx());
-			inout.setWM_Gate_ID(lines.get(0).getWM_DeliverySchedule().getWM_Gate_ID());
+			wio = new MWM_InOut(Env.getCtx(),0,trxName);
+			wio.setC_BPartner_ID(lines.get(0).getWM_DeliverySchedule().getC_BPartner_ID());
+			wio.setWM_DeliverySchedule_ID(lines.get(0).getWM_DeliverySchedule_ID());
+			wio.setName(lines.get(0).getWM_DeliverySchedule().getName());
+			wio.setIsSOTrx(lines.get(0).getWM_DeliverySchedule().isSOTrx());
+			wio.setWM_Gate_ID(lines.get(0).getWM_DeliverySchedule().getWM_Gate_ID());
 		}
-
-		inout.saveEx(trxName);
+		wio.saveEx(trxName);
 		putaways = 0;
-		pickings = 0;
+		pickings = 0; 
+		isSOTrx = wio.isSOTrx();
 		
-		isSOTrx = inout.isSOTrx();
+		addBufferLog(wio.get_ID(), wio.getUpdated(), null,
+				Msg.parseTranslation(getCtx(), "@WM_InOut_ID@ @Updated@"),
+				MWM_InOut.Table_ID, wio.get_ID());
 		
 		if (isSOTrx){
-			pickingProcess(inout,lines);
-			util.sortFinalList(inout);
+			pickingProcess(wio,lines);
+			util.sortFinalList(wio);
 			return "Successful Pickings: "+pickings+" (Future: "+notReceived+")";
 		} else{
-			putawayProcess(inout,lines);
-			util.sortFinalList(inout);
+			putawayProcess(wio,lines);
+			util.sortFinalList(wio);
 			return "Successful Putaways: "+putaways+" (Future: "+notReceived+")";
 		}
-		 
 	}
 
 	private void putawayProcess(MWM_InOut inout, List<MWM_DeliveryScheduleLine> lines) {

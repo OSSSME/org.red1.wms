@@ -117,6 +117,107 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_PREPARE);
 		if (m_processMsg != null)
 			return DocAction.STATUS_Invalid;
+	
+ 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_PREPARE);
+
+		if (m_processMsg != null)
+			return DocAction.STATUS_Invalid;
+
+ 		m_justPrepared = true;
+
+		if (!DOCACTION_Complete.equals(getDocAction()))
+			setDocAction(DOCACTION_Complete);
+
+		return DocAction.STATUS_InProgress;
+
+	}
+
+	private MMovement createConsignmentMovement(MWM_InOut wio) {
+		PO po = new Query(getCtx(),"MWM_Consignment",MWM_InOut.COLUMNNAME_WM_DeliverySchedule_ID+"=?",get_TrxName())
+				.setParameters(wio.get_ID())
+				.first();
+		if (po==null)
+			throw new AdempiereException("No Consignment Found");
+		MMovement move = new MMovement(getCtx(), 0, get_TrxName());
+		move.setDescription(wio.getName()+" CONSIGNMENT");
+		move.setC_BPartner_ID(wio.getC_BPartner_ID());
+		move.setC_Project_ID(po.get_ValueAsInt(MMovement.COLUMNNAME_C_Project_ID));
+		move.setC_Campaign_ID(po.get_ValueAsInt(MMovement.COLUMNNAME_C_Campaign_ID));
+		move.saveEx(get_TrxName());
+		//create Movement Lines
+		List<MWM_InOutLine>wiolines = new Query(getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?",get_TrxName())
+				.setParameters(wio.get_ID())
+				.list();
+		for (MWM_InOutLine wioline:wiolines) {
+			MWM_DeliveryScheduleLine del = (MWM_DeliveryScheduleLine) wioline.getWM_DeliveryScheduleLine();
+			//get WMEmptyStorage from WIOLine.MLocator
+			MWM_EmptyStorage empty = new Query(getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",get_TrxName())
+					.setParameters(wioline.getM_Locator_ID()).first();
+			processWMSStorage(wioline,del,util);
+		}
+		return move;
+	}
+
+	private void saveM_InOut(MInOut inout,List<MWM_InOutLine> lines) {
+		if (inout.getC_Order_ID()>0)
+			return;
+		MOrder order = (MOrder) lines.get(0).getC_OrderLine().getC_Order();
+		inout.setIsSOTrx(order.isSOTrx());
+		inout.setC_Order_ID(order.getC_Order_ID());
+		inout.setC_BPartner_ID(order.getC_BPartner_ID());
+		inout.setC_BPartner_Location_ID(order.getC_BPartner_Location_ID());
+		inout.setM_Warehouse_ID(order.getM_Warehouse_ID());
+		inout.setC_Project_ID(order.getC_Project_ID());
+		inout.setMovementDate(lines.get(0).getUpdated());
+		if (inout.isSOTrx())
+			inout.setMovementType(MInOut.MOVEMENTTYPE_CustomerShipment);
+		else
+			inout.setMovementType(MInOut.MOVEMENTTYPE_VendorReceipts);
+		inout.setAD_Org_ID(Env.getAD_Org_ID(Env.getCtx()));
+		inout.setDocAction(DOCACTION_Prepare);
+		inout.setC_DocType_ID();
+		inout.setDateOrdered(order.getDateOrdered());
+		inout.setDateReceived(lines.get(0).getWM_DeliveryScheduleLine().getWM_DeliverySchedule().getDateDelivered());
+		inout.setPOReference(order.getPOReference());
+		inout.saveEx(get_TrxName()); //save previous one before new one
+	}
+
+ 	public boolean approveIt() {
+		if (log.isLoggable(Level.INFO)) log.info("approveIt - " + toString());
+
+		setIsApproved(true);
+
+		return true;
+
+	}
+
+ 	public boolean rejectIt() {
+		if (log.isLoggable(Level.INFO)) log.info(toString());
+
+		setIsApproved(false);
+
+		return true;
+
+	}
+
+ 	public String completeIt() {
+		//	Just prepare
+		if (!m_justPrepared)
+		{
+			String status = prepareIt();
+
+			m_justPrepared = false;
+
+			if (!DocAction.STATUS_InProgress.equals(status))
+				return status;
+
+		}
+
+ 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_COMPLETE);
+
+		if (m_processMsg != null)
+			return DocAction.STATUS_Invalid;
+
 		
 		MBPartner partner = (MBPartner) getC_BPartner();
 		if ((partner.isVendor() && partner.isCustomer()) || getName().endsWith("CONSIGNMENT")) {
@@ -226,108 +327,6 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			inout.setDocAction(this.DOCACTION_Complete);
 			inout.processIt(DocAction.ACTION_Complete);
 		}
-	
- 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_PREPARE);
-
-		if (m_processMsg != null)
-			return DocAction.STATUS_Invalid;
-
- 		m_justPrepared = true;
-
-		if (!DOCACTION_Complete.equals(getDocAction()))
-			setDocAction(DOCACTION_Complete);
-
-		return DocAction.STATUS_InProgress;
-
-	}
-
-	private MMovement createConsignmentMovement(MWM_InOut wio) {
-		PO po = new Query(getCtx(),"MWM_Consignment",MWM_InOut.COLUMNNAME_WM_DeliverySchedule_ID+"=?",get_TrxName())
-				.setParameters(wio.get_ID())
-				.first();
-		if (po==null)
-			throw new AdempiereException("No Consignment Found");
-		MMovement move = new MMovement(getCtx(), 0, get_TrxName());
-		move.setDescription(wio.getName()+" CONSIGNMENT");
-		move.setC_BPartner_ID(wio.getC_BPartner_ID());
-		move.setC_Project_ID(po.get_ValueAsInt(MMovement.COLUMNNAME_C_Project_ID));
-		move.setC_Campaign_ID(po.get_ValueAsInt(MMovement.COLUMNNAME_C_Campaign_ID));
-		move.saveEx(get_TrxName());
-		//create Movement Lines
-		List<MWM_InOutLine>wiolines = new Query(getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?",get_TrxName())
-				.setParameters(wio.get_ID())
-				.list();
-		for (MWM_InOutLine wioline:wiolines) {
-			MWM_DeliveryScheduleLine del = (MWM_DeliveryScheduleLine) wioline.getWM_DeliveryScheduleLine();
-			//get WMEmptyStorage from WIOLine.MLocator
-			MWM_EmptyStorage empty = new Query(getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",get_TrxName())
-					.setParameters(wioline.getM_Locator_ID()).first();
-			processWMSStorage(wioline,del,util);
-		}
-		return move;
-	}
-
-	private void saveM_InOut(MInOut inout,List<MWM_InOutLine> lines) {
-		if (inout.getC_Order_ID()>0)
-			return;
-		MOrder order = (MOrder) lines.get(0).getC_OrderLine().getC_Order();
-		inout.setIsSOTrx(order.isSOTrx());
-		inout.setC_Order_ID(order.getC_Order_ID());
-		inout.setC_BPartner_ID(order.getC_BPartner_ID());
-		inout.setC_BPartner_Location_ID(order.getC_BPartner_Location_ID());
-		inout.setM_Warehouse_ID(order.getM_Warehouse_ID());
-		inout.setC_Project_ID(order.getC_Project_ID());
-		inout.setMovementDate(lines.get(0).getUpdated());
-		if (inout.isSOTrx())
-			inout.setMovementType(MInOut.MOVEMENTTYPE_CustomerShipment);
-		else
-			inout.setMovementType(MInOut.MOVEMENTTYPE_VendorReceipts);
-		inout.setAD_Org_ID(Env.getAD_Org_ID(Env.getCtx()));
-		inout.setDocAction(DOCACTION_Prepare);
-		inout.setC_DocType_ID();
-		inout.setDateOrdered(order.getDateOrdered());
-		inout.setDateReceived(lines.get(0).getWM_DeliveryScheduleLine().getWM_DeliverySchedule().getDateDelivered());
-		inout.setPOReference(order.getPOReference());
-		inout.saveEx(get_TrxName()); //save previous one before new one
-	}
-
- 	public boolean approveIt() {
-		if (log.isLoggable(Level.INFO)) log.info("approveIt - " + toString());
-
-		setIsApproved(true);
-
-		return true;
-
-	}
-
- 	public boolean rejectIt() {
-		if (log.isLoggable(Level.INFO)) log.info(toString());
-
-		setIsApproved(false);
-
-		return true;
-
-	}
-
- 	public String completeIt() {
-		//	Just prepare
-		if (!m_justPrepared)
-		{
-			String status = prepareIt();
-
-			m_justPrepared = false;
-
-			if (!DocAction.STATUS_InProgress.equals(status))
-				return status;
-
-		}
-
- 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_COMPLETE);
-
-		if (m_processMsg != null)
-			return DocAction.STATUS_Invalid;
-
-		
 		//	Implicit Approval
 		if (!isApproved())
 			approveIt(); 

@@ -484,7 +484,7 @@ import org.wms.model.MWM_WarehousePick;
 				inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline, picked);
 				picked = Env.ZERO;//picking finished
 			}else { 
-				return picked;//go next EmptyLine until ExactFit
+				throw new AdempiereException("Picking exceeds the last box by "+picked+". You can add/subtract, or use IsSameLine to look for base box qty.");
 			}
 			
 		//Locator EmptyLine Quantity has exactly same size what you picking	

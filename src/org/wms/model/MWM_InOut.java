@@ -335,6 +335,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 
 		StringBuilder info = new StringBuilder();
 		
+		info.append("@M_InOut_ID@ - "+(isSOTrx()?"Shipment ":"Receipt ")+inout.getLines().length+" lines");
+		
 		String valid = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_COMPLETE);
 
 		if (valid != null)

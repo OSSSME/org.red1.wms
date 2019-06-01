@@ -464,7 +464,6 @@ import org.wms.model.MWM_WarehousePick;
 			}else if(!IsSameLine) { //if not SameLine 
 				eachQty = eachQty.subtract(startPickingProcess(eline.getQtyMovement(),inout,dline, eline));
 				pickings++;
-				return true;
 			}  
 		}
 		return false;

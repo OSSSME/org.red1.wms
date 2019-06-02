@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.adempiere.exceptions.AdempiereException;
+import org.compiere.model.MMovement;
+import org.compiere.model.MMovementLine;
 import org.compiere.model.MProduct;
 import org.compiere.model.Query;
 import org.compiere.util.CLogger;
@@ -170,6 +172,30 @@ public class Utils {
 				availableCapacity = availableCapacity.add(wioline.getQtyPicked());
 			else //if incoming Putaway, then available shall decrease
 				availableCapacity = availableCapacity.subtract(wioline.getQtyPicked());
+		}
+		//get open MMovementLines from Replenishment
+		List<MMovementLine> movelines = new Query(Env.getCtx(),MMovementLine.Table_Name,MMovementLine.COLUMNNAME_M_Locator_ID+"=?",trxName)
+				.setParameters(empty.getM_Locator_ID())
+				.setOnlyActiveRecords(true)
+				.setOrderBy(MMovementLine.COLUMNNAME_M_MovementLine_ID)
+				.list();
+		if (movelines==null || movelines.isEmpty() )
+			return availableCapacity;
+		MMovement move = (MMovement) movelines.get(0).getM_Movement();
+		if (!move.getDescription().startsWith("Replenishment"))
+    		return availableCapacity;
+		int moveID = move.get_ID();// keeping track of changing headers
+		for (MMovementLine moveline:movelines) {
+			if (moveID!=moveline.getM_Movement_ID()) {
+				move = (MMovement) moveline.getM_Movement();
+				moveID = move.get_ID();
+			}
+			if (wio.getDocStatus().equals(MWM_InOut.DOCSTATUS_Completed))
+				continue;
+			if (wio.isSOTrx())//if outgoing Picking, then available shall increase
+				availableCapacity = availableCapacity.add(moveline.getMovementQty());
+			else //if incoming Putaway, then available shall decrease
+				availableCapacity = availableCapacity.subtract(moveline.getMovementQty());
 		}
 		return availableCapacity;
 	}

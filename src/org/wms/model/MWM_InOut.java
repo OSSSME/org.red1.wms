@@ -218,6 +218,11 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		if (m_processMsg != null)
 			return DocAction.STATUS_Invalid;
 
+		//do not process Replenish Movement generated WM InOut as it is directly Completed there
+		if (getName().startsWith("Replenish")){ 
+			setDocAction(DOCACTION_Close);
+			return "Replenishment";
+		}
 		
 		MBPartner partner = (MBPartner) getC_BPartner();
 		if ((partner.isVendor() && partner.isCustomer()) || getName().endsWith("CONSIGNMENT")) {
@@ -535,7 +540,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
  	 * @param dsline
  	 */
  	private void processWMSStorage(MWM_InOutLine wioline,MWM_DeliveryScheduleLine dsline,Utils util) {
-		if (!dsline.isReceived())
+		if (dsline!=null && !dsline.isReceived())
 			throw new AdempiereException("DeliveryLine not Received. Complete its DeliverySchedule first.");
 		else {
 			if (wioline==null)
@@ -544,7 +549,6 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			MWM_EmptyStorage storage = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",get_TrxName())
 					.setParameters(wioline.getM_Locator_ID())
 					.first();
-	 
 			if (wioline.getWM_InOut().isSOTrx()) { //OutBound confirmation
 				BigDecimal picked = wioline.getQtyPicked(); 			
 				BigDecimal vacancy = storage.getAvailableCapacity().add(picked); 
@@ -556,17 +560,20 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				util.pickedEmptyStorageLine(picked, oldESLine);
 			}
 			else { 	//purchasing InBound
-				MProduct product = (MProduct)dsline.getM_Product();
+				MProduct product = (MProduct)wioline.getM_Product();
 				MWM_EmptyStorageLine newESLine = util.newEmptyStorageLine(dsline, wioline.getQtyPicked(), storage, wioline);
 				if (product.getGuaranteeDays()>0)
-					newESLine.setDateEnd(TimeUtil.addDays(dsline.getUpdated(), product.getGuaranteeDays()));	
+					newESLine.setDateEnd(TimeUtil.addDays(wioline.getUpdated(), product.getGuaranteeDays()));	
 				storage.setAvailableCapacity(storage.getAvailableCapacity().subtract(wioline.getQtyPicked()));
 				newESLine.setWM_HandlingUnit_ID(wioline.getWM_HandlingUnit_ID());
 				newESLine.saveEx(get_TrxName());
-			}			
-			util.calculatePercentageVacant(dsline.isReceived(),storage);
+			}
+			if (dsline==null)
+				util.calculatePercentageVacant(true,storage);
+			else
+				util.calculatePercentageVacant(dsline.isReceived(),storage);
 		//TODO IsActive = N when DeliverySchedule.DocStatus='CO' and IsSOTrx 
-			log.info("Processed InoutLine:"+wioline.toString()+" StorageLine:"+dsline.toString());
+			log.info("Processed InoutLine:"+wioline.toString());
 		}
  	}
 }

@@ -142,6 +142,8 @@ import org.compiere.util.Env;
 		if (locator!=null){
 			whse.setM_ReserveLocator_ID(locator.get_ID());
 			whse.saveEx(get_TrxName());
+			locator.setIsDefault(true);
+			locator.saveEx(get_TrxName());
 		}
 		return cnt;
 	}

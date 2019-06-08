@@ -124,7 +124,7 @@ public class Utils {
 	 * @param oline
 	 * @param empty
 	 */
-	private void releaseHandlingUnitHistory(MWM_DeliveryScheduleLine dsline,MWM_InOutLine oline, MWM_EmptyStorageLine empty) {
+	private void releaseHandlingUnitHistory(MWM_InOutLine oline, MWM_EmptyStorageLine empty) {
 		MWM_HandlingUnit hu = (MWM_HandlingUnit) empty.getWM_HandlingUnit();
 		if (hu==null){
 			log.severe("HandlingUnit not found for EmptyLine at this Locator - "+empty.getWM_EmptyStorage().getM_Locator().getValue());
@@ -138,7 +138,7 @@ public class Utils {
 			log.severe("No Handling Unit to release (DateEnd Not null)");
 			return;
 		}
-		huh.setDateEnd(dsline.isReceived()?oline.getUpdated():dsline.getWM_DeliverySchedule().getDatePromised());	
+		huh.setDateEnd(empty.getUpdated());	
 		huh.saveEx(trxName); 
 	}
 	/**
@@ -187,27 +187,32 @@ public class Utils {
 		storline.setWM_EmptyStorage_ID(empty.get_ID());
 		storline.setWM_InOutLine_ID(inoutline.get_ID());
 		storline.setQtyMovement(alloted);
-		storline.setIsSOTrx(dsline.getWM_DeliverySchedule().isSOTrx());
-		if (dsline.isReceived())
-			storline.setDateStart(dsline.getWM_DeliverySchedule().getDateDelivered());
-		else { 
-			if (dsline.getWM_DeliverySchedule().getDatePromised()==null)
-				throw new AdempiereException("Set Gate/PromisedDate first");
-			if (dsline.getWM_DeliverySchedule().getDatePromised().after(Today))
-				storline.setDateStart(dsline.getWM_DeliverySchedule().getDatePromised());
-			else if (dsline.getC_OrderLine().getDatePromised().after(Today))
-				storline.setDateStart(dsline.getC_OrderLine().getDatePromised());
-			else
-				throw new AdempiereException("DSLine.NotReceived OR NOT FUTRE: NoDatePromised OR Order NoDatePromised");
-		//9Mac19 -  Future Forecast is when No DateStart if Not Received Delivery Schedule and No future Promise Date.
+		storline.setIsSOTrx(inoutline.getWM_InOut().isSOTrx());
+		if (dsline==null) {
+			
+		}else {
+			if (dsline.isReceived())
+				storline.setDateStart(dsline.getWM_DeliverySchedule().getDateDelivered());
+			else { 
+				if (dsline.getWM_DeliverySchedule().getDatePromised()==null)
+					throw new AdempiereException("Set Gate/PromisedDate first");
+				if (dsline.getWM_DeliverySchedule().getDatePromised().after(Today))
+					storline.setDateStart(dsline.getWM_DeliverySchedule().getDatePromised());
+				else if (dsline.getC_OrderLine().getDatePromised().after(Today))
+					storline.setDateStart(dsline.getC_OrderLine().getDatePromised());
+				else
+					throw new AdempiereException("DSLine.NotReceived OR NOT FUTRE: NoDatePromised OR Order NoDatePromised");
+			//9Mac19 -  Future Forecast is when No DateStart if Not Received Delivery Schedule and No future Promise Date.
 			}
-		
+		} 
 		MProduct product = (MProduct)dsline.getM_Product();
 		if (product.getGuaranteeDays()>0)
 			storline.setDateEnd(TimeUtil.addDays(storline.getUpdated(), product.getGuaranteeDays()));
 		
 		storline.setC_UOM_ID(inoutline.getC_UOM_ID());
 		storline.setM_Product_ID(inoutline.getM_Product_ID());
+		if (inoutline.getWM_HandlingUnit_ID()>0)
+			storline.setWM_HandlingUnit_ID(inoutline.getWM_HandlingUnit_ID());
 		storline.saveEx(trxName); 
 		return storline;
 	}
@@ -335,13 +340,12 @@ public class Utils {
 		if (lines==null)
 			throw new AdempiereException("Suddenly WM_InOutLine(s) disappear!");
 		for (MWM_InOutLine line:lines){
-			MWM_DeliveryScheduleLine dsline = (MWM_DeliveryScheduleLine) line.getWM_DeliveryScheduleLine();
 			MWM_EmptyStorageLine esline = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_WM_InOutLine_ID+"=?",trxName)
 					.setParameters(line.getWM_InOutLine_ID())
 					.first(); 
 			MWM_HandlingUnit hu = (MWM_HandlingUnit) line.getWM_HandlingUnit();
 			WM_HandlingUnit_ID = hu.get_ID(); 
-			releaseHandlingUnitHistory(dsline, line, esline);
+			releaseHandlingUnitHistory(line, esline);
 			releaseHandlingUnit(esline);
 		}
 	}

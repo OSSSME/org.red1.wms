@@ -58,7 +58,8 @@ import org.wms.model.MWM_HandlingUnit;
 		MWM_HandlingUnit lasthu = new Query(getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_Name+" Like '"+Prefix+"%'",get_TrxName())
 				.setOrderBy("Created DESC").first();
 		if (lasthu!=null) {
-			String lastnumber = lasthu.getName().substring(lasthu.getName().length()-6);
+			int x = lasthu.getName().length()-Prefix.length();
+			String lastnumber = lasthu.getName().substring(lasthu.getName().length()-x);
 			last = Integer.valueOf(lastnumber)+1;
 		}
 		for (int i=0;i<Counter;i++) {

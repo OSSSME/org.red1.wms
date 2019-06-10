@@ -61,7 +61,7 @@ import org.wms.model.MWM_WarehousePick;
 	private String trxName = "";
 	private boolean external = false;
 	MWM_DeliverySchedule externalDeliverySchedule  = null;
-	private Object packFactor=Env.ONE;
+	private BigDecimal packFactor=Env.ONE;
 	private BigDecimal boxConversion=Env.ONE;
 	private BigDecimal currentUOM=Env.ONE;
 	
@@ -297,7 +297,6 @@ import org.wms.model.MWM_WarehousePick;
 			
 				//get next EmptyStorage, if fit, then break, otherwise if balance, then continue
 				int locator_id = empty.getM_Locator_ID(); 
-				System.out.println("Locator "+empty.getM_Locator().getValue()+" has "+empty.getAvailableCapacity()+" for "+balance+" "+dline.getM_Product().getName());
 				balance = startPutAwayProcess(inout,dline,balance,locator_id);
 				if (balance.compareTo(Env.ZERO)>0)
 					continue;
@@ -311,8 +310,8 @@ import org.wms.model.MWM_WarehousePick;
 	}
 
 	/**
-	 * 
-	 * @param balance
+	 * Putaway in boxes (Highest UOM Factor), while still vacant 
+	 * @param balance returned in original UOM
 	 * @param locator_id
 	 * @return balance of unallocated qty to empty storage
 	 */
@@ -322,43 +321,48 @@ import org.wms.model.MWM_WarehousePick;
 				.first();
 		if (empty==null)
 			throw new AdempiereException("No Empty Storage set for locator id: "+locator_id);
-		
 		//if its full go back and look for next EmptyStorage
 		if (empty.isFull())
-			return balance;
-	
-		//allotted holds for underlying EmtpyStorageLine detail
-		BigDecimal alloted = balance;
-		//check if its vacant capacity can handle the balance.
-		//pack factor is multiplied into VacantCapacity denominator.
-		MProduct product = (MProduct) dsline.getM_Product();
-
-		BigDecimal eachQty = uomFactors(dsline);
-		 
-		BigDecimal vacancy = util.getAvailableCapacity(empty).multiply(currentUOM);		
-		
-		if (balance.compareTo(vacancy)>=0 && IsSameLine==false){
-			balance = balance.subtract(vacancy);	
-			alloted = vacancy;
-		} else {
-			vacancy = vacancy.subtract(balance);
-			if (vacancy.compareTo(Env.ZERO)<0)//available insufficient
-				return balance;
-		/*	if (isReceived) { -- red1 EmptyStorage is only updated during WMInOut.CompleteIt()
-				empty.setAvailableCapacity(vacancy.divide(currentUOM,2,RoundingMode.HALF_EVEN));
-				empty.saveEx(trxName);
-			}*/
-			alloted = balance;
-			balance = Env.ZERO;
-		}  
-		MWM_InOutLine inoutline = util.newInOutLine(winout,dsline,alloted); 
-		setLocator(inoutline,locator_id); 
-		//MWM_EmptyStorageLine eline = util.newEmptyStorageLine(dsline,alloted,empty,inoutline);
-		//if (isReceived)
-		inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline,alloted); 
-		//if (isReceived)
-			//util.calculatePercentageVacant(dsline.isReceived(),empty);// 
-		return balance;
+			return balance;  
+		BigDecimal alloting = uomFactors(dsline,balance);
+		BigDecimal vacancy = util.getAvailableCapacity(empty).multiply(boxConversion);	  
+		System.out.println("Locator "+empty.getM_Locator().getValue()+" has "+vacancy+" for "+alloting+" "+dsline.getM_Product().getName());
+		BigDecimal holder = Env.ZERO;
+		boolean fullyfilllocator=false;
+		if (alloting.compareTo(vacancy)>=0 && IsSameLine==false){
+			alloting = vacancy;
+			fullyfilllocator=true;
+		} 
+		//TODO PutawayLoop until Locator is full - Alloted limited to not exceed Box (HighestUOMSize)
+ 		while (alloting.compareTo(Env.ZERO)>0) {
+ 			BigDecimal bal = Env.ZERO;
+ 			if (alloting.compareTo(boxConversion)>=0)
+ 				bal=boxConversion;
+ 			else {
+ 				if (IsSameLine) {
+ 					System.out.println("SameLine Break. Not Putaway:"+bal+" "+dsline.getM_Product().getName());
+ 					log.warning("SameLine Break. Not Putaway:"+bal+" "+dsline.getM_Product().getName());
+ 					break;
+ 				}
+ 	 			bal=alloting;
+ 			}			
+ 			MWM_InOutLine inoutline = util.newInOutLine(winout,dsline,bal); 
+ 			setLocator(inoutline,locator_id); 
+ 	 		inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline,bal); 
+ 	 		alloting=alloting.subtract(bal);
+ 	 		holder=holder.add(bal);
+ 	 		if (alloting.compareTo(Env.ZERO)==0)
+ 	 			System.out.println("Locator fully took "+holder+" "+dsline.getM_Product().getName());
+ 	 		else
+ 	 		System.out.println("Same Locator "+empty.getM_Locator().getValue()+" to take remaining "+alloting+" "+dsline.getM_Product().getName());
+ 		}
+ 		if (fullyfilllocator) {
+ 			balance=balance.subtract(holder.divide(packFactor,2,RoundingMode.HALF_EVEN));
+ 			System.out.println("Locator "+empty.getM_Locator().getValue()+" fully filled by "+dsline.getM_Product().getName());
+ 		}
+ 		else
+ 			balance=Env.ZERO;
+ 		return balance;
 	}
 
 	private void setLocator(MWM_InOutLine line, int put_pick) { 
@@ -434,7 +438,7 @@ import org.wms.model.MWM_WarehousePick;
 			return false;
 		}
 		
-		BigDecimal eachQty=uomFactors(dline);
+		BigDecimal eachQty=uomFactors(dline,Env.ZERO);
 		
 		for (MWM_EmptyStorageLine eline:elines){
 			//if (eline.getWM_InOutLine().getM_InOutLine_ID()<1 && line.isReceived())
@@ -527,7 +531,7 @@ import org.wms.model.MWM_WarehousePick;
 			}}}
 		return false;
 	}
-	private BigDecimal uomFactors(MWM_DeliveryScheduleLine line) {
+	private BigDecimal uomFactors(MWM_DeliveryScheduleLine line, BigDecimal balance) {
 		BigDecimal qtyEntered = line.getQtyOrdered();//.multiply(new BigDecimal(product.getUnitsPerPack()));
 
 		//Current = current UOM Conversion Qty	
@@ -538,6 +542,8 @@ import org.wms.model.MWM_WarehousePick;
 		if (currentuomConversion!=null)
 			currentUOM = currentuomConversion.getDivideRate();
 		BigDecimal eachQty=qtyEntered.multiply(currentUOM);
+		if (balance.compareTo(Env.ZERO)>0)
+			eachQty=balance.multiply(currentUOM);
 
 		//Pack Factor calculation
 		MUOMConversion highestUOMConversion = new Query(Env.getCtx(),MUOMConversion.Table_Name,MUOMConversion.COLUMNNAME_M_Product_ID+"=?",null)
@@ -546,8 +552,14 @@ import org.wms.model.MWM_WarehousePick;
 				.first(); 
 		if (highestUOMConversion!=null) {
 			boxConversion = highestUOMConversion.getDivideRate();
-			packFactor = boxConversion.multiply(highestUOMConversion.getDivideRate().divide(currentUOM,2,RoundingMode.HALF_EVEN));
-			}
+			if (currentUOM==Env.ONE)
+				return eachQty;
+			if (currentuomConversion.getDivideRate().compareTo(highestUOMConversion.getDivideRate())!=0)//Plastic5 scenario
+				packFactor = boxConversion.divide(currentUOM,2,RoundingMode.HALF_EVEN);
+			else
+				packFactor = boxConversion;
+		}else
+			boxConversion=qtyEntered;//avoid non existent of box type, making each line a box by default
 		return eachQty;
 		} 
 }

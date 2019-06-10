@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.MProduct;
+import org.compiere.model.MUOMConversion;
 import org.compiere.model.Query;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
@@ -167,11 +168,20 @@ public class Utils {
 			if (wio.getDocStatus().equals(MWM_InOut.DOCSTATUS_Completed))
 				continue;
 			if (wio.isSOTrx())//if outgoing Picking, then available shall increase
-				availableCapacity = availableCapacity.add(wioline.getQtyPicked());
+				availableCapacity = availableCapacity.add(convertUOM(wioline.getM_Product_ID(),wioline.getQtyPicked()));
 			else //if incoming Putaway, then available shall decrease
-				availableCapacity = availableCapacity.subtract(wioline.getQtyPicked());
+				availableCapacity = availableCapacity.subtract(convertUOM(wioline.getM_Product_ID(),wioline.getQtyPicked()));
 		}
 		return availableCapacity;
+	}
+	
+	private BigDecimal convertUOM(int M_Product_ID,BigDecimal qty) { 
+		MUOMConversion highestUOMConversion = new Query(Env.getCtx(),MUOMConversion.Table_Name,MUOMConversion.COLUMNNAME_M_Product_ID+"=?",null)
+				.setParameters(M_Product_ID)
+				.setOrderBy(MUOMConversion.COLUMNNAME_DivideRate+" DESC")
+				.first();
+		BigDecimal converted = qty.divide(highestUOMConversion==null?qty:highestUOMConversion.getDivideRate(),2,RoundingMode.HALF_EVEN);
+		return converted;
 	}
 	
 	/**

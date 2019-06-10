@@ -550,7 +550,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			if (wioline==null)
 				throw new AdempiereException("WMS InOutLine lost!");
 			
-			BigDecimal eachQty=uomFactors(dsline, Env.ZERO);
+			BigDecimal eachQty=uomFactors(wioline, Env.ZERO);
 			
 			MWM_EmptyStorage storage = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",get_TrxName())
 					.setParameters(wioline.getM_Locator_ID())
@@ -583,8 +583,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		}
  	}
  	
-	private BigDecimal uomFactors(MWM_DeliveryScheduleLine line, BigDecimal balance) {
-		BigDecimal qtyEntered = line.getQtyOrdered();//.multiply(new BigDecimal(product.getUnitsPerPack()));
+	private BigDecimal uomFactors(MWM_InOutLine line, BigDecimal balance) {
+		BigDecimal picked = line.getQtyPicked();//.multiply(new BigDecimal(product.getUnitsPerPack()));
 
 		//Current = current UOM Conversion Qty	
 		MUOMConversion currentuomConversion = new Query(Env.getCtx(),MUOMConversion.Table_Name,MUOMConversion.COLUMNNAME_M_Product_ID+"=? AND "
@@ -593,7 +593,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				.first();
 		if (currentuomConversion!=null)
 			currentUOM = currentuomConversion.getDivideRate();
-		BigDecimal eachQty=qtyEntered.multiply(currentUOM);
+		BigDecimal eachQty=picked.multiply(currentUOM);
 		if (balance.compareTo(Env.ZERO)>0)
 			eachQty=balance.multiply(currentUOM);
 
@@ -611,7 +611,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			else
 				packFactor = boxConversion;
 		}else
-			boxConversion=qtyEntered;//avoid non existent of box type, making each line a box by default
+			boxConversion=picked;//avoid non existent of box type, making each line a box by default
 		return eachQty;
 		} 
 }

@@ -137,7 +137,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 	}
 
 	private MMovement createConsignmentMovement(MWM_InOut wio) {
-		PO po = new Query(getCtx(),"MWM_Consignment",MWM_InOut.COLUMNNAME_WM_DeliverySchedule_ID+"=?",get_TrxName())
+		PO po = new Query(getCtx(),"WM_Consignment",MWM_InOut.COLUMNNAME_WM_DeliverySchedule_ID+"=?",get_TrxName())
 				.setParameters(wio.get_ID())
 				.first();
 		if (po==null)
@@ -304,7 +304,6 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				huh.setIsActive(false);
 				huh.saveEx(get_TrxName());
 			}
-			
 			//check if has previous BackOrder that is not complete (no QtyDelivered value) so disallow any new BackOrders 
 			//check if has previous WM_InOut (backorder case) and if QtyDelivered then error of premature process
 			MWM_DeliveryScheduleLine prevDsLine = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_C_OrderLine_ID+"=?"

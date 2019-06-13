@@ -34,7 +34,7 @@ public class Utils {
 	private boolean same = false;
 	private Timestamp Today = new Timestamp (System.currentTimeMillis()); 
 	MWM_HandlingUnit hu = null;
-	
+	static int cnt=0;
 	CLogger			log = CLogger.getCLogger (getClass());
 	
 	public void setHandlingUnit(int unit){
@@ -197,6 +197,7 @@ public class Utils {
 		storline.setWM_EmptyStorage_ID(empty.get_ID());
 		storline.setWM_InOutLine_ID(inoutline.get_ID());
 		storline.setQtyMovement(alloted);
+		storline.setDateStart(inoutline.getUpdated());
 		storline.setIsSOTrx(inoutline.getWM_InOut().isSOTrx());
 		if (dsline==null) {
 			
@@ -215,15 +216,18 @@ public class Utils {
 			//9Mac19 -  Future Forecast is when No DateStart if Not Received Delivery Schedule and No future Promise Date.
 			}
 		} 
-		MProduct product = (MProduct)dsline.getM_Product();
+		MProduct product = (MProduct)inoutline.getM_Product();
 		if (product.getGuaranteeDays()>0)
-			storline.setDateEnd(TimeUtil.addDays(storline.getUpdated(), product.getGuaranteeDays()));
+			storline.setDateEnd(TimeUtil.addDays(storline.getCreated(), product.getGuaranteeDays()));
 		
 		storline.setC_UOM_ID(inoutline.getC_UOM_ID());
 		storline.setM_Product_ID(inoutline.getM_Product_ID());
 		if (inoutline.getWM_HandlingUnit_ID()>0)
 			storline.setWM_HandlingUnit_ID(inoutline.getWM_HandlingUnit_ID());
-		storline.saveEx(trxName); 
+		storline.saveEx(trxName);
+		cnt++;
+		System.out.println(cnt+". Created new EmptyStorageLine :"+storline.getQtyMovement()+ " "+storline.getM_Product().getValue()
+				+" at Locator "+empty.getM_Locator().getValue());
 		return storline;
 	}
 

@@ -225,7 +225,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		//do not process Replenish Movement generated WM InOut as it is directly Completed there
 		if (getName().startsWith("Replenish")){ 
 			setDocAction(DOCACTION_Close);
-			return "Replenishment";
+			return DocAction.STATUS_Completed;
 		}
 		
 		MBPartner partner = (MBPartner) getC_BPartner();
@@ -360,17 +360,10 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			return DocAction.STATUS_Invalid;
 
 		}
-
-
 		setProcessed(true);
-	
 		m_processMsg = info.toString();
-
-		//
 		setDocAction(DOCACTION_Close);
-
 		return DocAction.STATUS_Completed;
-
 	}
 
 	/**
@@ -380,93 +373,64 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 	public boolean isComplete()
 	 {
 	 	String ds = getDocStatus();
-
 	 	return DOCSTATUS_Completed.equals(ds) 
 	 		|| DOCSTATUS_Closed.equals(ds)
 	 		|| DOCSTATUS_Reversed.equals(ds);
-
 	 }
 	//	isComplete
 	
 	public boolean voidIt() {
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_VOID);
-
 		if (m_processMsg != null)
 			return false;
-
  		setProcessed(true);
-
 		setDocAction(DOCACTION_None);
-
 		return true;
-
 	}
 
  	public boolean closeIt() {
 		if (log.isLoggable(Level.INFO)) log.info("closeIt - " + toString());
-
 		// Before Close
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_CLOSE);
-
 		if (m_processMsg != null)
 			return false;
-
  		setProcessed(true);
-
 		setDocAction(DOCACTION_None);
-
 		// After Close
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_CLOSE);
-
 		if (m_processMsg != null)
 			return false;
-
 		return true;
-
 	}
 
   	public boolean reverseCorrectIt() {
 		if (log.isLoggable(Level.INFO)) log.info(toString());
-
 		// Before reverseCorrect
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_REVERSECORRECT);
-
 		if (m_processMsg != null)
 			return false;
-
  		// After reverseCorrect
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_REVERSECORRECT);
-
 		if (m_processMsg != null)
 			return false;
-
  		return voidIt();
-
 	}
 
  	public boolean reverseAccrualIt() {
 		if (log.isLoggable(Level.INFO)) log.info(toString());
-
 		// Before reverseAccrual
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_REVERSEACCRUAL);
-
 		if (m_processMsg != null)
 			return false;
-
  		// After reverseAccrual
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_REVERSEACCRUAL);
-
 		if (m_processMsg != null)
 			return false;
-
  		setProcessed(true);
-
 		setDocStatus(DOCSTATUS_Reversed);
 		//	 may come from void
 		setDocAction(DOCACTION_None);
-
 		return true;
-
 	}
 
  	public boolean reActivateIt() {
@@ -482,7 +446,6 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
  		setDocAction(DOCACTION_Complete);
 		setProcessed(false);
 		return true;
-
 	}
 
  	public String getSummary() {
@@ -549,9 +512,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		else {
 			if (wioline==null)
 				throw new AdempiereException("WMS InOutLine lost!");
-			
 			BigDecimal eachQty=uomFactors(wioline, Env.ZERO);
-			
 			MWM_EmptyStorage storage = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",get_TrxName())
 					.setParameters(wioline.getM_Locator_ID())
 					.first();

@@ -225,7 +225,7 @@ import org.wms.model.MWM_Migration;
 			sline.saveEx(get_TrxName());
 			
 			//deduct Empty Available Storage -- calculate Percentage
-			eachQty = uomFactors(dline);
+			eachQty = uomFactors(dline,dline.getQtyOrdered());
 			
 			//BigDecimal available = empty.getAvailableCapacity().subtract(sline.getQtyMovement().divide(boxConversion,2,RoundingMode.HALF_EVEN));
 			//empty.setAvailableCapacity(available);
@@ -317,7 +317,7 @@ import org.wms.model.MWM_Migration;
 		MOrder purchase = new MOrder(getCtx(), 0, get_TrxName());
 		purchase.setC_BPartner_ID(BPartnerID);
 		purchase.setDescription("PHANTOM PURCHASE TO BRING IN ALL OPENING STOCK");
-		purchase.setM_Warehouse_ID(Env.getContextAsInt(getCtx(), "#M_Warehouse_ID"));
+		purchase.setM_Warehouse_ID(M_Warehouse_ID);//Env.getContextAsInt(getCtx(), "#M_Warehouse_ID"
 		purchase.setM_PriceList_ID(pricelist.get_ID());
 		purchase.setIsSOTrx(false);
 		purchase.setAD_Org_ID(Env.getAD_Org_ID(getCtx()));
@@ -349,4 +349,35 @@ import org.wms.model.MWM_Migration;
 		}
 		return eachQty;
 	}
+	private BigDecimal uomFactors(MWM_DeliveryScheduleLine line, BigDecimal balance) {
+		BigDecimal qtyEntered = line.getQtyOrdered();//.multiply(new BigDecimal(product.getUnitsPerPack()));
+
+		//Current = current UOM Conversion Qty	
+		MUOMConversion currentuomConversion = new Query(Env.getCtx(),MUOMConversion.Table_Name,MUOMConversion.COLUMNNAME_M_Product_ID+"=? AND "
+				+MUOMConversion.COLUMNNAME_C_UOM_To_ID+"=?",null)
+				.setParameters(line.getM_Product_ID(),line.getC_UOM_ID())
+				.first();
+		if (currentuomConversion!=null)
+			currentUOM = currentuomConversion.getDivideRate();
+		BigDecimal eachQty=qtyEntered.multiply(currentUOM);
+		if (balance.compareTo(Env.ZERO)>0)
+			eachQty=balance.multiply(currentUOM);
+
+		//Pack Factor calculation
+		MUOMConversion highestUOMConversion = new Query(Env.getCtx(),MUOMConversion.Table_Name,MUOMConversion.COLUMNNAME_M_Product_ID+"=?",null)
+				.setParameters(line.getM_Product_ID())
+				.setOrderBy(MUOMConversion.COLUMNNAME_DivideRate+" DESC")
+				.first(); 
+		if (highestUOMConversion!=null) {
+			boxConversion = highestUOMConversion.getDivideRate();
+			if (currentUOM==Env.ONE)
+				return eachQty;
+			if (currentuomConversion.getDivideRate().compareTo(highestUOMConversion.getDivideRate())!=0)//Plastic5 scenario
+				packFactor = boxConversion.divide(currentUOM,2,RoundingMode.HALF_EVEN);
+			else
+				packFactor = boxConversion;
+		}else
+			boxConversion=qtyEntered;//avoid non existent of box type, making each line a box by default
+		return eachQty;
+		} 
 }

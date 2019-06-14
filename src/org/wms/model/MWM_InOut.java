@@ -229,7 +229,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		}
 		
 		MBPartner partner = (MBPartner) getC_BPartner();
-		if ((partner.isVendor() && partner.isCustomer()) || getName().endsWith("CONSIGNMENT")) {
+		if (getName().endsWith("CONSIGNMENT")) {
 			//create Movement, and update WM_EmptyStorage/Lines
 			MWM_DeliverySchedule deliveryschedule = new Query(getCtx(),MWM_DeliverySchedule.Table_Name,MWM_DeliverySchedule.COLUMNNAME_WM_DeliverySchedule_ID+"=?",get_TrxName())
 			.setParameters(getWM_DeliverySchedule_ID())

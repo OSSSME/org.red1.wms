@@ -15,8 +15,7 @@ import java.util.List;
 
 import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.MBPartner;
-import org.compiere.model.MDocType;
-import org.compiere.model.MInOut;
+import org.compiere.model.MDocType; 
 import org.compiere.model.MInvoice;
 import org.compiere.model.MInvoiceLine;
 import org.compiere.model.MOrder;
@@ -219,11 +218,6 @@ import org.wms.model.MWM_Migration;
 			
 			createHandlingUnitHistory(handlingunit, purchaseline, inoutline); 
 			
-			MWM_EmptyStorageLine sline = utils.newEmptyStorageLine(dline, purchaseline.getQtyOrdered(), empty, inoutline);
-			sline.setDateStart(purchaseline.getDatePromised());
-			sline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
-			sline.saveEx(get_TrxName());
-			
 			//deduct Empty Available Storage -- calculate Percentage
 			eachQty = uomFactors(dline,dline.getQtyOrdered());
 			
@@ -258,14 +252,6 @@ import org.wms.model.MWM_Migration;
 		List<MWM_InOutLine> ioline = new Query(getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?",get_TrxName())
 				.setParameters(wminout.get_ID())
 				.list();
-		InOut_ID = ioline.get(0).getM_InOutLine().getM_InOut_ID();
-		MInOut inout = new MInOut(getCtx(),InOut_ID,get_TrxName());
-		inout.setDescription("PHANTOM RECEIPT TO BRING IN ALL OPENING STOCK");
-		inout.setDocStatus(inout.DOCSTATUS_InProgress);
-		inout.setDocAction(inout.DOCACTION_Complete);
-		processStatus = inout.processIt(DocAction.ACTION_Complete);
-		inout.saveEx(get_TrxName());
-		
 		return "RUN AGAIN UNTIL LESS THAN A THOUSAND - Records processed "+cnt; 
 	}
 

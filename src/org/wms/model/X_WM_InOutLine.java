@@ -32,7 +32,7 @@ public class X_WM_InOutLine extends PO implements I_WM_InOutLine, I_Persistent
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20190311L;
+	private static final long serialVersionUID = 20190619L;
 
     /** Standard Constructor */
     public X_WM_InOutLine (Properties ctx, int WM_InOutLine_ID, String trxName)
@@ -256,6 +256,34 @@ public class X_WM_InOutLine extends PO implements I_WM_InOutLine, I_Persistent
 	public int getM_Locator_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_M_Locator_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.compiere.model.I_M_MovementLine getM_MovementLine() throws RuntimeException
+    {
+		return (org.compiere.model.I_M_MovementLine)MTable.get(getCtx(), org.compiere.model.I_M_MovementLine.Table_Name)
+			.getPO(getM_MovementLine_ID(), get_TrxName());	}
+
+	/** Set Move Line.
+		@param M_MovementLine_ID 
+		Inventory Move document Line
+	  */
+	public void setM_MovementLine_ID (int M_MovementLine_ID)
+	{
+		if (M_MovementLine_ID < 1) 
+			set_Value (COLUMNNAME_M_MovementLine_ID, null);
+		else 
+			set_Value (COLUMNNAME_M_MovementLine_ID, Integer.valueOf(M_MovementLine_ID));
+	}
+
+	/** Get Move Line.
+		@return Inventory Move document Line
+	  */
+	public int getM_MovementLine_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_M_MovementLine_ID);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();

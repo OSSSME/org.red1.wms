@@ -495,8 +495,9 @@ import org.wms.model.MWM_WarehousePick;
 		} else {
 			MWM_InOutLine inoutline = util.newInOutLine(inout,line,picked); 
 			setLocator(inoutline, eline.getWM_EmptyStorage().getM_Locator_ID());
+			inoutline.setWM_HandlingUnit_ID(eline.getWM_HandlingUnit_ID());
 			if (isReceived){
-				if (WM_HandlingUnit_ID>0){
+				if (WM_HandlingUnit_ID>0){ //Not logical as we do not know which box to pick from
 					util.releaseHandlingUnit(eline);
 					util.setHandlingUnit(WM_HandlingUnit_ID); 
 					inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline, picked);

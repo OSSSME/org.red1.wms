@@ -443,7 +443,8 @@ import org.wms.model.MWM_WarehousePick;
 		for (MWM_EmptyStorageLine eline:elines){
 			//if (eline.getWM_InOutLine().getM_InOutLine_ID()<1 && line.isReceived())
 			//	throw new AdempiereException("This Product Has No Shipment/Receipt record. Complete its WM Inout first before picking - "+product.getName()+" -> "+eline.getWM_InOutLine());
-			
+			if (M_Warehouse_ID>0 && eline.getWM_EmptyStorage().getM_Locator().getM_Warehouse_ID()!=M_Warehouse_ID)
+				continue;
 			//cannot take Blocked
 			MWM_EmptyStorage storage = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_WM_EmptyStorage_ID+"=?",trxName)
 					.setParameters(eline.getWM_EmptyStorage_ID())

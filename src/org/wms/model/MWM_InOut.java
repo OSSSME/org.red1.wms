@@ -514,7 +514,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			BigDecimal eachQty=uomFactors(wioline, Env.ZERO);
 			MWM_EmptyStorage storage = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",get_TrxName())
 					.setParameters(wioline.getM_Locator_ID())
-					.first();
+					.first();wioline.getM_Product().getValue();
 			if (wioline.getWM_InOut().isSOTrx()) { //OutBound confirmation
 				BigDecimal picked = wioline.getQtyPicked().divide(boxConversion,2,RoundingMode.HALF_EVEN); 			
 				BigDecimal vacancy = storage.getAvailableCapacity().add(picked); 
@@ -544,6 +544,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
  	}
  	
 	private BigDecimal uomFactors(MWM_InOutLine line, BigDecimal balance) {
+		boxConversion=Env.ONE;
 		BigDecimal picked = line.getQtyPicked();//.multiply(new BigDecimal(product.getUnitsPerPack()));
 
 		//Current = current UOM Conversion Qty	

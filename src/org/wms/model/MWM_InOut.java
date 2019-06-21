@@ -259,7 +259,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				throw new AdempiereException("DeliverySchedule Line still not Received"); //still not processed at DeliverySchedule level, so no Shipment/Receipt possible
 			if (wioline.getM_InOutLine_ID()>0)
 				throw new AdempiereException("Already has Shipment/Receipt record!");//already done before
-			if (del.getC_OrderLine().getC_Order_ID()!=c_Order_Holder){
+			if (del!=null && del.getC_OrderLine().getC_Order_ID()!=c_Order_Holder){
 				if (inout!=null){
 					saveM_InOut(inout,lines);
 				}

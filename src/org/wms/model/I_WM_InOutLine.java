@@ -32,7 +32,7 @@ public interface I_WM_InOutLine
     /** TableName=WM_InOutLine */
     public static final String Table_Name = "WM_InOutLine";
 
-    /** AD_Table_ID=1000016 */
+    /** AD_Table_ID=1000030 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -277,6 +277,17 @@ public interface I_WM_InOutLine
 	public int getWM_HandlingUnit_ID();
 
 	public I_WM_HandlingUnit getWM_HandlingUnit() throws RuntimeException;
+
+    /** Column name WM_HandlingUnitOld_ID */
+    public static final String COLUMNNAME_WM_HandlingUnitOld_ID = "WM_HandlingUnitOld_ID";
+
+	/** Set WM_HandlingUnitOld_ID	  */
+	public void setWM_HandlingUnitOld_ID (int WM_HandlingUnitOld_ID);
+
+	/** Get WM_HandlingUnitOld_ID	  */
+	public int getWM_HandlingUnitOld_ID();
+
+	public I_WM_HandlingUnit getWM_HandlingUnitOld() throws RuntimeException;
 
     /** Column name WM_InOut_ID */
     public static final String COLUMNNAME_WM_InOut_ID = "WM_InOut_ID";

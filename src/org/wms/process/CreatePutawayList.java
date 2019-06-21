@@ -485,7 +485,10 @@ import org.wms.model.MWM_WarehousePick;
 				MWM_InOutLine inoutline = util.newInOutLine(inout,line,picked); 
 				setLocator(inoutline, eline.getWM_EmptyStorage().getM_Locator_ID());				
 				util.setHandlingUnit(WM_HandlingUnit_ID); 
+				//still need to know the present HU ID for opening box and break out
+				inoutline.setWM_HandlingUnitOld_ID(eline.getWM_HandlingUnit_ID());
 				inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline, picked);
+				inoutline.saveEx(trxName);
 				picked = Env.ZERO;//picking finished
 			}else { 
 				throw new AdempiereException("Picking exceeds the last box by "+picked+". You can add/subtract, or use IsSameLine to look for base box qty.");

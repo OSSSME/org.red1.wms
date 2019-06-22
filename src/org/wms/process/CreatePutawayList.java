@@ -38,7 +38,7 @@ import org.wms.model.MWM_WarehousePick;
  * InBound and OutBound routines to locate according to best practice WMS rules
  * Please refer to http://red1.org/adempiere/ forum
  * @author red1
- * @version 0.9.2
+ * @version 2.0 beta
  */
 	public class CreatePutawayList extends SvrProcess {
 
@@ -161,7 +161,7 @@ import org.wms.model.MWM_WarehousePick;
 		putaways = 0;
 		pickings = 0; 
 		isSOTrx = wio.isSOTrx();
-		
+		//  					 FINISH DIALOG WITH PICK/PUTAWAY LIST LINK
 		addBufferLog(wio.get_ID(), wio.getUpdated(), null,
 				Msg.parseTranslation(getCtx(), "@WM_InOut_ID@ @Updated@"),
 				MWM_InOut.Table_ID, wio.get_ID());
@@ -179,16 +179,13 @@ import org.wms.model.MWM_WarehousePick;
 
 	private void putawayProcess(MWM_InOut inout, List<MWM_DeliveryScheduleLine> lines) {
 		for (MWM_DeliveryScheduleLine dline:lines){
-			
 			if (dline.getWM_InOutLine_ID()>0)
 				continue;//already done
-			
 			if (!dline.isReceived()){
 				notReceived++;
 				isReceived=false;
 			} else
-				isReceived=true;
-			
+				isReceived=true;			
 			//running balance in use thru-out here
 			BigDecimal balance =dline.getQtyDelivered();				
 			
@@ -203,7 +200,6 @@ import org.wms.model.MWM_WarehousePick;
 				//util.newInOutLine(inout,line,balance);
 				//continue;// avoid Locator and EmptyStorage
 			}
-
 			//check if defined in PreferredProduct...
 			List<MWM_PreferredProduct> preferreds = new Query(Env.getCtx(),MWM_PreferredProduct.Table_Name,MWM_PreferredProduct.COLUMNNAME_M_Product_ID+"=?" ,trxName)
 					.setParameters(product.get_ID())
@@ -232,7 +228,6 @@ import org.wms.model.MWM_WarehousePick;
 			} 
 			if (done)
 				continue; //done so go to next DeliveryScheduleLine. 
-			
 			//get ProductType = StorageType
 			MWM_ProductType prodtype = new Query(Env.getCtx(),MWM_ProductType.Table_Name,MWM_ProductType.COLUMNNAME_M_Product_ID+"=?",trxName)
 					.setParameters(product.get_ID())
@@ -249,7 +244,6 @@ import org.wms.model.MWM_WarehousePick;
 							if (M_Warehouse_ID>0)
 								if (stortype.getM_Locator().getM_Warehouse_ID()!=M_Warehouse_ID)
 									continue;
-							
 							//get next EmptyStorage, if fit, then break, otherwise if balance, then continue
 							int locator_id = stortype.getM_Locator_ID(); 
 							balance = startPutAwayProcess(inout,dline,balance,locator_id);
@@ -270,24 +264,20 @@ import org.wms.model.MWM_WarehousePick;
 				.setParameters(false,false)
 				.setOrderBy(MWM_EmptyStorage.COLUMNNAME_M_Locator_ID)
 				.list();	
-			
 			if (empties==null)
 				throw new AdempiereException("NO MORE EMPTY STORAGE");
-			
 			for (MWM_EmptyStorage empty:empties){
 				if (M_Warehouse_ID>0)
 					if (empty.getM_Locator().getM_Warehouse_ID()!=M_Warehouse_ID)
 						continue;
 				if (empty.getM_Locator().getX().compareTo(X)>=0 || empty.getM_Locator().getY().compareTo(Y)>=0  || empty.getM_Locator().getZ().compareTo(Z)>=0 )
 						continue;
-
 				//if has StorType then continue also
 				MWM_StorageType storagetype = new Query(Env.getCtx(),MWM_StorageType.Table_Name,MWM_StorageType.COLUMNNAME_M_Locator_ID+"=?",trxName)
 					.setParameters(empty.getM_Locator_ID())
 					.first();
 				if (storagetype!=null)
 					continue;
-			
 				//if has PreferredProduct then continue also
 				MWM_PreferredProduct preferred = new Query(Env.getCtx(),MWM_StorageType.Table_Name,MWM_StorageType.COLUMNNAME_M_Locator_ID+"=?",trxName)
 					.setParameters(empty.getM_Locator_ID())
@@ -333,7 +323,7 @@ import org.wms.model.MWM_WarehousePick;
 			alloting = vacancy;
 			fullyfilllocator=true;
 		} 
-		//TODO PutawayLoop until Locator is full - Alloted limited to not exceed Box (HighestUOMSize)
+		//PutawayLoop until Locator is full - Alloted limited to not exceed Box (HighestUOMSize)
  		while (alloting.compareTo(Env.ZERO)>0) {
  			BigDecimal bal = Env.ZERO;
  			if (alloting.compareTo(boxConversion)>=0)
@@ -373,16 +363,13 @@ import org.wms.model.MWM_WarehousePick;
 
 	private void pickingProcess(MWM_InOut inout, List<MWM_DeliveryScheduleLine> lines) {
 		for (MWM_DeliveryScheduleLine line:lines){
-			
 			if (line.getWM_InOutLine_ID()>0)
 				continue;//already done
-			
 			if (!line.isReceived()){
 				notReceived++;
 				isReceived=false;
 			} else
 				isReceived=true;
-			
 			//running balance in use thru-out here
 			BigDecimal balance =line.getQtyDelivered();			
 			
@@ -408,7 +395,6 @@ import org.wms.model.MWM_WarehousePick;
 			if  (orderLineWarehousePick(inout, dline))
 				return true; 
 		}
-		
 		//NOrmal (shortest), FIfo, or LIfo based on previous putaway date start order
 		List<MWM_EmptyStorageLine>elines = null;
 		if (RouteOrder.equals("NO")) {
@@ -432,12 +418,10 @@ import org.wms.model.MWM_WarehousePick;
 					.setOrderBy(product.getGuaranteeDays()>0?MWM_EmptyStorageLine.COLUMNNAME_DateStart:MWM_EmptyStorageLine.COLUMNNAME_DateStart+" DESC")
 					.list();
 		}
-	
 		if (elines==null){
 			log.severe("Product has no Storage available to pick: "+product.getName());
 			return false;
 		}
-		
 		BigDecimal eachQty=uomFactors(dline,Env.ZERO);
 		
 		for (MWM_EmptyStorageLine eline:elines){
@@ -474,9 +458,7 @@ import org.wms.model.MWM_WarehousePick;
 	}
 
 	private BigDecimal startPickingProcess(BigDecimal picked, MWM_InOut inout, MWM_DeliveryScheduleLine line,MWM_EmptyStorageLine eline) {
-		
 		MWM_EmptyStorage empty = (MWM_EmptyStorage) eline.getWM_EmptyStorage();
-		
 		//Locator EmptyLine Quantity has more than what you picking
 		if (eline.getQtyMovement().compareTo(picked)>0){
 			//if got handling unit, then assign the minor picked to new handling unit. Otherwise reject this reset
@@ -493,7 +475,6 @@ import org.wms.model.MWM_WarehousePick;
 				log.warning("Picking exceeds the last box by "+picked+". Finding other boxes.");
 				return picked;
 			}
-			
 		//Locator EmptyLine Quantity has exactly same size what you picking	
 		} else {
 			MWM_InOutLine inoutline = util.newInOutLine(inout,line,picked); 
@@ -537,7 +518,6 @@ import org.wms.model.MWM_WarehousePick;
 	}
 	private BigDecimal uomFactors(MWM_DeliveryScheduleLine line, BigDecimal balance) {
 		BigDecimal qtyEntered = line.getQtyOrdered();//.multiply(new BigDecimal(product.getUnitsPerPack()));
-
 		//Current = current UOM Conversion Qty	
 		MUOMConversion currentuomConversion = new Query(Env.getCtx(),MUOMConversion.Table_Name,MUOMConversion.COLUMNNAME_M_Product_ID+"=? AND "
 				+MUOMConversion.COLUMNNAME_C_UOM_To_ID+"=?",null)
@@ -548,7 +528,6 @@ import org.wms.model.MWM_WarehousePick;
 		BigDecimal eachQty=qtyEntered.multiply(currentUOM);
 		if (balance.compareTo(Env.ZERO)>0)
 			eachQty=balance.multiply(currentUOM);
-
 		//Pack Factor calculation
 		MUOMConversion highestUOMConversion = new Query(Env.getCtx(),MUOMConversion.Table_Name,MUOMConversion.COLUMNNAME_M_Product_ID+"=?",null)
 				.setParameters(line.getM_Product_ID())

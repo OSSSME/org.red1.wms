@@ -464,7 +464,6 @@ import org.wms.model.MWM_WarehousePick;
 				eachQty = startPickingProcess(eachQty,inout,dline, eline);
 				pickings++;
 				return true;
-				
 			//Locator EmptyLine Quantity has less than what you picking	
 			}else if(!IsSameLine) { //if not SameLine 
 				eachQty = eachQty.subtract(startPickingProcess(eline.getQtyMovement(),inout,dline, eline));
@@ -486,12 +485,13 @@ import org.wms.model.MWM_WarehousePick;
 				setLocator(inoutline, eline.getWM_EmptyStorage().getM_Locator_ID());				
 				util.setHandlingUnit(WM_HandlingUnit_ID); 
 				//still need to know the present HU ID for opening box and break out
-				inoutline.setWM_HandlingUnitOld_ID(eline.getWM_HandlingUnit_ID());
 				inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline, picked);
+				inoutline.setWM_HandlingUnitOld_ID(eline.getWM_HandlingUnit_ID());
 				inoutline.saveEx(trxName);
 				picked = Env.ZERO;//picking finished
 			}else { 
-				throw new AdempiereException("Picking exceeds the last box by "+picked+". You can add/subtract, or use IsSameLine to look for base box qty.");
+				log.warning("Picking exceeds the last box by "+picked+". Finding other boxes.");
+				return picked;
 			}
 			
 		//Locator EmptyLine Quantity has exactly same size what you picking	
@@ -502,9 +502,7 @@ import org.wms.model.MWM_WarehousePick;
 			inoutline.saveEx(trxName);
 			if (isReceived){
 				if (WM_HandlingUnit_ID>0){ //Not logical as we do not know which box to pick from
-					util.releaseHandlingUnit(eline);
-					util.setHandlingUnit(WM_HandlingUnit_ID); 
-					inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline, picked);
+					//DO NOTHING, only when breakup above
 				}
 			}
 		}

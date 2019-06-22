@@ -404,10 +404,8 @@ public class X_WM_InOutLine extends PO implements I_WM_InOutLine, I_Persistent
 	public I_WM_HandlingUnit getWM_HandlingUnitOld() throws RuntimeException
     {
 		return (I_WM_HandlingUnit)MTable.get(getCtx(), I_WM_HandlingUnit.Table_Name)
-			.getPO(getWM_HandlingUnit_ID(), get_TrxName());	}
+			.getPO(getWM_HandlingUnitOld_ID(), get_TrxName());	}
 
-	/** Set WM_HandlingUnitOld_ID.
-		@param WM_HandlingUnitOld_ID WM_HandlingUnitOld_ID	  */
 	public void setWM_HandlingUnitOld_ID (int WM_HandlingUnitOld_ID)
 	{
 		if (WM_HandlingUnitOld_ID < 1) 

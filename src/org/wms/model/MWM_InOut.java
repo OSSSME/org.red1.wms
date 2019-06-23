@@ -222,8 +222,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		if (m_processMsg != null)
 			return DocAction.STATUS_Invalid;
 
-		//do not process Replenish Movement generated WM InOut as it is directly Completed there
-		if (getName().startsWith("Replenish")){ 
+		//do not process Movement generated WM InOut as it is directly Completed there
+		if (getName().contains("Movement")){ 
 			setDocAction(DOCACTION_Close);
 			return DocAction.STATUS_Completed;
 		}

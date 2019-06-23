@@ -25,6 +25,7 @@ import org.compiere.model.MDocType;
 import org.compiere.model.MInOut;
 import org.compiere.model.MInOutLine;
 import org.compiere.model.MMovement;
+import org.compiere.model.MMovementLine;
 import org.compiere.model.MOrder;
 import org.compiere.model.MOrderLine;
 import org.compiere.model.MProduct;
@@ -115,7 +116,12 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		setDocAction(DOCACTION_Prepare);
 		return true;
 	}
- 
+	/**
+	 * Integrated to Mobile Scanner on Warehouse Floor
+	 * Any update of different Handling Unit or Qty or Locator to be reflected for
+	 * end processing onto EmptyStorageLine at CompleteIt() reoutine
+	 * 1. Remove linked EmptyStorageLine.WM_InOutLine_ID and update it to scanned
+	 */
 	public String prepareIt() {
 		if (log.isLoggable(Level.INFO)) log.info(toString());
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_PREPARE);
@@ -126,7 +132,23 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 
 		if (m_processMsg != null)
 			return DocAction.STATUS_Invalid;
-
+		
+		//go thru each WIOLine and check ESLine
+		List<MWM_InOutLine>wiolines=new Query(Env.getCtx(), MWM_InOutLine.Table_Name, MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?", get_TrxName())
+				.setParameters(get_ID())
+				.list();
+		for (MWM_InOutLine wioline:wiolines) {
+			MWM_EmptyStorageLine esline = new Query(Env.getCtx(), MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_WM_InOutLine_ID+"=?",get_TrxName())
+					.setParameters(wioline.get_ID())
+					.first();
+			if (esline==null) {//unassigned - find to assign first
+				throw new AdempiereException("Exception in WM InOutLine - no assigned EmptyStorageLine");
+			}
+			if (esline.getWM_HandlingUnit_ID()!=wioline.getWM_HandlingUnit_ID()) {
+				changeEmptyStorageLine(wioline,esline);
+			}
+		}
+		
  		m_justPrepared = true;
 
 		if (!DOCACTION_Complete.equals(getDocAction()))
@@ -134,6 +156,29 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 
 		return DocAction.STATUS_InProgress;
 
+	}
+	/**
+	 * Change to EmptyStorageLine picked by WMInOutLine as per HandlingUnit
+	 * Must not change Qty nor Locator - must be same Qty and Locator
+	 * @param wioline
+	 * @return
+	 */
+	private boolean changeEmptyStorageLine(MWM_InOutLine wioline, MWM_EmptyStorageLine eline) {
+		// find Eline with changed HU ID
+		MWM_EmptyStorageLine cline = new Query(getCtx(), MWM_EmptyStorageLine.Table_Name, MWM_EmptyStorageLine.COLUMNNAME_WM_HandlingUnit_ID+"=? ", get_TrxName())
+				.setParameters(wioline.getWM_HandlingUnit_ID())
+				.setOnlyActiveRecords(true)
+				.first();
+		if (cline==null)
+			throw new AdempiereException("Picked Item HandlingUnit is not found in EmptyStorage");
+		if (wioline.getQtyPicked().compareTo(cline.getQtyMovement())!=0)
+			throw new AdempiereException("Not same qty in changed HandlingUnit");
+		if (wioline.getM_Locator_ID()!=cline.getWM_EmptyStorage().getM_Locator_ID())
+			throw new AdempiereException("Not same Locator in changed HandlingUnit");
+		cline.setWM_InOutLine_ID(wioline.get_ID());
+		cline.saveEx(get_TrxName());
+		log.info("Picking Changed HandlingUnit "+eline.getWM_HandlingUnit().getName()+" to "+wioline.getWM_HandlingUnit().getName());
+		return true;
 	}
 
 	private MMovement createConsignmentMovement(MWM_InOut wio) {

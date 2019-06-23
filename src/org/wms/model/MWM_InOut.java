@@ -169,8 +169,12 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				.setParameters(wioline.getWM_HandlingUnit_ID())
 				.setOnlyActiveRecords(true)
 				.first();
-		if (cline==null)
-			throw new AdempiereException("Picked Item HandlingUnit is not found in EmptyStorage");
+		if (cline==null) {
+			if (wioline.getWM_InOut().isSOTrx())
+				throw new AdempiereException("Picked Item HandlingUnit is not found in EmptyStorage");
+			else
+				return true;
+		}
 		if (wioline.getQtyPicked().compareTo(cline.getQtyMovement())!=0)
 			throw new AdempiereException("Not same qty in changed HandlingUnit");
 		if (wioline.getM_Locator_ID()!=cline.getWM_EmptyStorage().getM_Locator_ID())

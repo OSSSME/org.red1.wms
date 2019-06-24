@@ -470,6 +470,8 @@ import org.wms.model.MWM_WarehousePick;
 				inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline, picked);
 				inoutline.setWM_HandlingUnitOld_ID(eline.getWM_HandlingUnit_ID());
 				inoutline.saveEx(trxName);
+				eline.setWM_InOutLine_ID(inoutline.get_ID());
+				eline.saveEx(trxName);
 				picked = Env.ZERO;//picking finished
 			}else { 
 				log.warning("Picking exceeds the last box by "+picked+". Finding other boxes.");
@@ -481,6 +483,8 @@ import org.wms.model.MWM_WarehousePick;
 			setLocator(inoutline, eline.getWM_EmptyStorage().getM_Locator_ID());
 			inoutline.setWM_HandlingUnit_ID(eline.getWM_HandlingUnit_ID());
 			inoutline.saveEx(trxName);
+			eline.setWM_InOutLine_ID(inoutline.get_ID());
+			eline.saveEx(trxName);
 			if (isReceived){
 				if (WM_HandlingUnit_ID>0){ //Not logical as we do not know which box to pick from
 					//DO NOTHING, only when breakup above

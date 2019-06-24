@@ -11,6 +11,8 @@ package org.wms.model;
 import java.sql.ResultSet;
 import java.util.Properties;
 
+import org.compiere.model.Query;
+
 public class MWM_EmptyStorageLine extends X_WM_EmptyStorageLine{
 
 	private static final long serialVersionUID = -1L;
@@ -21,5 +23,19 @@ public class MWM_EmptyStorageLine extends X_WM_EmptyStorageLine{
 
 	public MWM_EmptyStorageLine(Properties ctx, ResultSet rs, String trxName) {
 		super(ctx, rs, trxName);
+	}
+	
+	public boolean isWMInOutLineProcessed() {
+		MWM_InOutLine ioline = (MWM_InOutLine) getWM_InOutLine();
+		if (ioline==null)
+			return true;
+		MWM_InOut inout = new Query(getCtx(), MWM_InOut.Table_Name, MWM_InOut.COLUMNNAME_WM_InOut_ID+"=?", get_TrxName())
+				.setParameters(ioline.getWM_InOut_ID())
+				.setOnlyActiveRecords(true)
+				.first();
+		if (inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Completed)||inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Closed))
+			return true;
+		else 
+			return false;
 	}
 }

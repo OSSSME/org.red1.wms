@@ -24,12 +24,14 @@ import org.compiere.model.MBPartner;
 import org.compiere.model.MDocType;
 import org.compiere.model.MInOut;
 import org.compiere.model.MInOutLine;
+import org.compiere.model.MLocator;
 import org.compiere.model.MMovement;
 import org.compiere.model.MMovementLine;
 import org.compiere.model.MOrder;
 import org.compiere.model.MOrderLine;
 import org.compiere.model.MProduct;
 import org.compiere.model.MUOMConversion;
+import org.compiere.model.MWarehouse;
 import org.compiere.model.ModelValidationEngine;
 
 import org.compiere.model.ModelValidator;
@@ -123,6 +125,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 	 * 1. Remove linked EmptyStorageLine.WM_InOutLine_ID and update it to scanned
 	 */
 	public String prepareIt() {
+		if (!isSOTrx()) //putaway changes only at Locator TODO
+			return DocAction.STATUS_InProgress;
 		if (log.isLoggable(Level.INFO)) log.info(toString());
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_PREPARE);
 		if (m_processMsg != null)
@@ -179,6 +183,9 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			throw new AdempiereException("Not same qty in changed HandlingUnit");
 		if (wioline.getM_Locator_ID()!=cline.getWM_EmptyStorage().getM_Locator_ID())
 			throw new AdempiereException("Not same Locator in changed HandlingUnit");
+ 
+		if (eline.isWMInOutLineProcessed()) 
+			throw new AdempiereException("This StorageLine has pending Pick/Put record NOT CLOSED NOR COMPLETE");
 		cline.setWM_InOutLine_ID(wioline.get_ID());
 		cline.saveEx(get_TrxName());
 		log.info("Picking Changed HandlingUnit "+eline.getWM_HandlingUnit().getName()+" to "+wioline.getWM_HandlingUnit().getName());
@@ -191,11 +198,21 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				.first();
 		if (po==null)
 			throw new AdempiereException("No Consignment Found");
+		
+		int WHID = po.get_ValueAsInt(MWarehouse.COLUMNNAME_M_Warehouse_ID);
+		MLocator locator = new Query(getCtx(), MLocator.Table_Name, MLocator.COLUMNNAME_M_Warehouse_ID+"=? AND "
+				+MLocator.COLUMNNAME_IsDefault+"=?", get_TrxName())
+				.setParameters(WHID,"Y")
+				.first();
+		if (locator==null)
+			throw new AdempiereException("No Default Locator for Consignment to send to.");
+		
 		MMovement move = new MMovement(getCtx(), 0, get_TrxName());
 		move.setDescription(wio.getName()+" CONSIGNMENT");
 		move.setC_BPartner_ID(wio.getC_BPartner_ID());
 		move.setC_Project_ID(po.get_ValueAsInt(MMovement.COLUMNNAME_C_Project_ID));
 		move.setC_Campaign_ID(po.get_ValueAsInt(MMovement.COLUMNNAME_C_Campaign_ID));
+		move.setSalesRep_ID(po.get_ValueAsInt(MMovement.COLUMNNAME_SalesRep_ID));
 		move.saveEx(get_TrxName());
 		//create Movement Lines
 		List<MWM_InOutLine>wiolines = new Query(getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?",get_TrxName())
@@ -207,7 +224,16 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			MWM_EmptyStorage empty = new Query(getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",get_TrxName())
 					.setParameters(wioline.getM_Locator_ID()).first();
 			processWMSStorage(wioline,del,util);
+			MMovementLine moveline = new MMovementLine(move);
+			moveline.setM_Product_ID(wioline.getM_Product_ID());
+			moveline.setMovementQty(wioline.getQtyPicked());
+			moveline.setM_Locator_ID(wioline.getM_Locator_ID());
+			moveline.setM_LocatorTo_ID(locator.get_ID());
+			moveline.setM_AttributeSetInstance_ID(wioline.getM_AttributeSetInstance_ID());
+			moveline.saveEx(get_TrxName());
 		}
+		po.set_ValueOfColumn(MMovement.COLUMNNAME_M_Movement_ID, move.get_ID());
+		po.saveEx(get_TrxName());
 		return move;
 	}
 
@@ -273,12 +299,15 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 
 		//do not process Movement generated WM InOut as it is directly Completed there
 		if (getName().contains("Movement")){ 
+			//TODO Movement closure of InOutLines to ESLines -- move such routines to here.
+			//later we refactor that all operations are by core flow and WMS are loosely coupled mobile floor control
+			
 			setDocAction(DOCACTION_Close);
 			return DocAction.STATUS_Completed;
 		}
 		
 		MBPartner partner = (MBPartner) getC_BPartner();
-		if (getName().endsWith("CONSIGNMENT")) {
+		if (getName().contains("CONSIGNMENT")) {
 			//create Movement, and update WM_EmptyStorage/Lines
 			MWM_DeliverySchedule deliveryschedule = new Query(getCtx(),MWM_DeliverySchedule.Table_Name,MWM_DeliverySchedule.COLUMNNAME_WM_DeliverySchedule_ID+"=?",get_TrxName())
 			.setParameters(getWM_DeliverySchedule_ID())
@@ -287,11 +316,12 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				throw new AdempiereException("NO DeliverySchedule for:"+getName());
 			  
 			MMovement move = createConsignmentMovement(this);
+			move.setDocStatus(MMovement.DOCSTATUS_InProgress);
 			if (!move.processIt(MMovement.DOCACTION_Complete)) {
 					throw new IllegalStateException("Movement Process Failed: " + move + " - " + move.getProcessMsg());
 				}
-		
-			return "Consignment Movement Processed: "+partner.getName();
+			setDocAction(DOCACTION_Close);
+			return DocAction.STATUS_Completed;
 		}
 		
 		//Create Material Receipt process    
@@ -568,11 +598,13 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				BigDecimal picked = wioline.getQtyPicked().divide(boxConversion,2,RoundingMode.HALF_EVEN); 			
 				BigDecimal vacancy = storage.getAvailableCapacity().add(picked); 
 				storage.setAvailableCapacity(vacancy);
-				MWM_EmptyStorageLine oldESLine = new Query(getCtx(), MWM_EmptyStorageLine.Table_Name, MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "
-						+MWM_EmptyStorageLine.COLUMNNAME_WM_EmptyStorage_ID+"=?", get_TrxName())
-						.setParameters(wioline.getM_Product_ID(),storage.get_ID())
+				MWM_EmptyStorageLine esline = new Query(getCtx(), MWM_EmptyStorageLine.Table_Name, MWM_EmptyStorageLine.COLUMNNAME_WM_InOutLine_ID+"=?", get_TrxName())
+						.setParameters(wioline.get_ID())
 						.first();
-				util.pickedEmptyStorageLine(picked, oldESLine);
+				if (esline.getWM_EmptyStorage_ID()!=storage.get_ID()||esline.getM_Product_ID()!=wioline.getM_Product_ID())
+					throw new AdempiereException("EmptyStorageLine not same Product and Locator as Pick/Put Line");
+					
+				util.pickedEmptyStorageLine(picked, esline);
 			}
 			else { 	//purchasing InBound
 				MProduct product = (MProduct)wioline.getM_Product();

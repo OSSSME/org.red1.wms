@@ -125,8 +125,6 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 	 * 1. Remove linked EmptyStorageLine.WM_InOutLine_ID and update it to scanned
 	 */
 	public String prepareIt() {
-		if (!isSOTrx()) //putaway changes only at Locator TODO
-			return DocAction.STATUS_InProgress;
 		if (log.isLoggable(Level.INFO)) log.info(toString());
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_PREPARE);
 		if (m_processMsg != null)
@@ -145,8 +143,12 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			MWM_EmptyStorageLine esline = new Query(Env.getCtx(), MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_WM_InOutLine_ID+"=?",get_TrxName())
 					.setParameters(wioline.get_ID())
 					.first();
-			if (esline==null) {//unassigned - find to assign first
-				throw new AdempiereException("Exception in WM InOutLine - no assigned EmptyStorageLine");
+			if (esline==null) { 
+				if (isSOTrx()) 
+					throw new AdempiereException("Exception in WM InOutLine - no assigned EmptyStorageLine");
+				else { //putaway unassigned, create new ESLine
+					
+				}
 			}
 			if (esline.getWM_HandlingUnit_ID()!=wioline.getWM_HandlingUnit_ID()) {
 				changeEmptyStorageLine(wioline,esline);
@@ -227,8 +229,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			MMovementLine moveline = new MMovementLine(move);
 			moveline.setM_Product_ID(wioline.getM_Product_ID());
 			moveline.setMovementQty(wioline.getQtyPicked());
-			moveline.setM_Locator_ID(wioline.getM_Locator_ID());
-			moveline.setM_LocatorTo_ID(locator.get_ID());
+			moveline.setM_Locator_ID(isSOTrx()?wioline.getM_Locator_ID():locator.get_ID());
+			moveline.setM_LocatorTo_ID(isSOTrx()?locator.get_ID():wioline.getM_Locator_ID());
 			moveline.setM_AttributeSetInstance_ID(wioline.getM_AttributeSetInstance_ID());
 			moveline.saveEx(get_TrxName());
 		}

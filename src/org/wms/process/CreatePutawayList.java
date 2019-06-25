@@ -381,6 +381,8 @@ import org.wms.model.MWM_WarehousePick;
 			//if Handling Unit is set, then assign while creating WM_InOuts. EmptyLocators also assigned. Can be cleared and reassigned in next Info-Window
 			if (!getPickingLocators(inout,line))
 				log.warning("Check Log for any SEVERE messages. Could not finish picking: "+line.getQtyOrdered()+" "+line.getM_Product().getName());
+			else
+				System.out.println("Success picked "+line.getQtyOrdered()+" of "+line.getM_Product().getValue());
 		}	
 	}
 
@@ -445,14 +447,15 @@ import org.wms.model.MWM_WarehousePick;
 			
 			//Locator EmptyLine Quantity has more than what you picking
 			if (eline.getQtyMovement().compareTo(eachQty)>=0){ 
-				eachQty = startPickingProcess(eachQty,inout,dline, eline);
-				pickings++;
-				return true;
+				eachQty = eachQty.subtract(startPickingProcess(eachQty,inout,dline, eline));
+				if (eachQty.compareTo(Env.ZERO)==0)
+					return true;
 			//Locator EmptyLine Quantity has less than what you picking	
 			}else if(!IsSameLine) { //if not SameLine 
 				eachQty = eachQty.subtract(startPickingProcess(eline.getQtyMovement(),inout,dline, eline));
-				pickings++;
-			}  
+				if (eachQty.compareTo(Env.ZERO)==0)
+					return true;
+				}  
 		}
 		return false;
 	}
@@ -472,10 +475,11 @@ import org.wms.model.MWM_WarehousePick;
 				inoutline.saveEx(trxName);
 				eline.setWM_InOutLine_ID(inoutline.get_ID());
 				eline.saveEx(trxName);
-				picked = Env.ZERO;//picking finished
-			}else { 
-				log.warning("Picking exceeds the last box by "+picked+". Finding other boxes.");
+				pickings++;
 				return picked;
+			}else { 
+				System.out.println("Picking exceeds the last line by "+picked+". Finding other storage for "+eline.getM_Product().getValue());
+				return Env.ZERO;
 			}
 		//Locator EmptyLine Quantity has exactly same size what you picking	
 		} else {
@@ -485,13 +489,14 @@ import org.wms.model.MWM_WarehousePick;
 			inoutline.saveEx(trxName);
 			eline.setWM_InOutLine_ID(inoutline.get_ID());
 			eline.saveEx(trxName);
+			pickings++;
 			if (isReceived){
 				if (WM_HandlingUnit_ID>0){ //Not logical as we do not know which box to pick from
 					//DO NOTHING, only when breakup above
 				}
 			}
+			return picked;
 		}
-		return picked;
 	}
 
 	private boolean orderLineWarehousePick(MWM_InOut inout, MWM_DeliveryScheduleLine line) {

@@ -146,11 +146,12 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			if (esline==null) { 
 				if (isSOTrx()) 
 					throw new AdempiereException("Exception in WM InOutLine - no assigned EmptyStorageLine");
-				else { //putaway unassigned, create new ESLine
-					
+				else { 
+					return DocAction.STATUS_InProgress; // putaway unassigned, create new ESLine happens in CompleteIt()
 				}
 			}
-			if (esline.getWM_HandlingUnit_ID()!=wioline.getWM_HandlingUnit_ID()) {
+			if ((wioline.getWM_HandlingUnitOld_ID()>0) &&
+					(esline.getWM_HandlingUnit_ID()!=wioline.getWM_HandlingUnitOld_ID())) {
 				changeEmptyStorageLine(wioline,esline);
 			}
 		}
@@ -177,7 +178,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				.first();
 		if (cline==null) {
 			if (wioline.getWM_InOut().isSOTrx())
-				throw new AdempiereException("Picked Item HandlingUnit is not found in EmptyStorage");
+				throw new AdempiereException("Changed Item HandlingUnit is not found in EmptyStorage");
 			else
 				return true;
 		}
@@ -615,6 +616,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 					newESLine.setDateEnd(TimeUtil.addDays(wioline.getUpdated(), product.getGuaranteeDays()));	
 				storage.setAvailableCapacity(storage.getAvailableCapacity().subtract(wioline.getQtyPicked().divide(boxConversion,2,RoundingMode.HALF_EVEN)));
 				newESLine.setWM_HandlingUnit_ID(wioline.getWM_HandlingUnit_ID());
+				newESLine.setWM_InOutLine_ID(wioline.get_ID());
 				newESLine.saveEx(get_TrxName());
 			}
 			if (dsline==null)

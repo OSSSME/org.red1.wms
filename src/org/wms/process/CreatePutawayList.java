@@ -128,7 +128,7 @@ import org.wms.model.MWM_WarehousePick;
 	protected String doIt() {
 		String whereClause = "EXISTS (SELECT T_Selection_ID FROM T_Selection WHERE T_Selection.AD_PInstance_ID=? AND T_Selection.T_Selection_ID=WM_DeliveryScheduleLine.WM_DeliveryScheduleLine_ID)";
 		List<MWM_DeliveryScheduleLine> lines = null;
-		
+		M_Warehouse_ID = Env.getContextAsInt(getCtx(), "#M_Warehouse_ID");
 		if (external){
 			lines = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_WM_DeliverySchedule_ID+"=?",trxName)
 					.setParameters(externalDeliverySchedule.get_ID()).list();			

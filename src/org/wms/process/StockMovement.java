@@ -64,6 +64,7 @@ import org.wms.model.MWM_StorageType;
 	private int M_Warehouse_ID = 0;
 	private boolean IsPutaway;
 	private boolean IsPicking;
+	MMovement move = null;
 	
 	protected void prepare() {
 		ProcessInfoParameter[] para = getParameter();
@@ -210,7 +211,6 @@ import org.wms.model.MWM_StorageType;
 	 */
 	private void createMovementSet(MWM_EmptyStorageLine line) {
 		//check if core M_InOut exist, then create a Material Movement record. 
-		MMovement move = null;
 		String name = "Stock Movement To "+target.getM_Locator().getValue();
 		if (movement==false){
 			move = new MMovement(getCtx(),0,trxName);

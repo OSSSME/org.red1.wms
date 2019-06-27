@@ -616,8 +616,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			BigDecimal eachQty=uomFactors(wioline, Env.ZERO);
 			MWM_EmptyStorage storage = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",get_TrxName())
 					.setParameters(wioline.getM_Locator_ID())
-					.first();wioline.getM_Product().getValue();
-			if (wioline.getWM_InOut().isSOTrx()) { //OutBound confirmation
+					.first();
+			if (wioline.getWM_InOut().isSOTrx()) { //Picking OutBound Sales 
 				BigDecimal picked = wioline.getQtyPicked().divide(boxConversion,2,RoundingMode.HALF_EVEN); 			
 				BigDecimal vacancy = storage.getAvailableCapacity().add(picked); 
 				storage.setAvailableCapacity(vacancy);
@@ -627,9 +627,9 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				if (esline.getWM_EmptyStorage_ID()!=storage.get_ID()||esline.getM_Product_ID()!=wioline.getM_Product_ID())
 					throw new AdempiereException("EmptyStorageLine not same Product and Locator as Pick/Put Line");
 					
-				util.pickedEmptyStorageLine(picked, esline);
+				util.pickedEmptyStorageLine(eachQty, esline);
 			}
-			else { 	//purchasing InBound
+			else { 	//Putaway InBound Purchases
 				MProduct product = (MProduct)wioline.getM_Product();
 				MWM_EmptyStorageLine newESLine = util.newEmptyStorageLine(dsline, wioline.getQtyPicked(), storage, wioline);
 				if (product.getGuaranteeDays()>0)

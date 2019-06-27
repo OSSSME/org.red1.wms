@@ -135,7 +135,8 @@ import org.wms.model.MWM_WarehousePick;
 		}else {
 			lines = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,whereClause,trxName)
 					.setParameters(getAD_PInstance_ID())
-					.list();				
+					.list();	
+			System.out.println(lines.size()+" no of lines for Putaway/Picking creation.");
 		}
 	
 		if (lines==null || lines.isEmpty())
@@ -526,6 +527,7 @@ import org.wms.model.MWM_WarehousePick;
 		return false;
 	}
 	private BigDecimal uomFactors(MWM_DeliveryScheduleLine line, BigDecimal balance) {
+		currentUOM=Env.ONE;
 		BigDecimal qtyEntered = line.getQtyOrdered();//.multiply(new BigDecimal(product.getUnitsPerPack()));
 		//Current = current UOM Conversion Qty	
 		MUOMConversion currentuomConversion = new Query(Env.getCtx(),MUOMConversion.Table_Name,MUOMConversion.COLUMNNAME_M_Product_ID+"=? AND "

@@ -76,7 +76,6 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 
 	private boolean			m_justPrepared = false;
 
-	Utils util = new Utils(get_TrxName());
 
 	private BigDecimal packFactor=Env.ONE;
 	private BigDecimal boxConversion=Env.ONE;
@@ -191,11 +190,20 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			throw new AdempiereException("This StorageLine has pending Pick/Put record NOT CLOSED NOR COMPLETE");
 		cline.setWM_InOutLine_ID(wioline.get_ID());
 		cline.saveEx(get_TrxName());
-		log.info("Picking Changed HandlingUnit "+eline.getWM_HandlingUnit().getName()+" to "+wioline.getWM_HandlingUnit().getName());
+		System.out.println("Picking Changed HandlingUnit "+eline.getWM_HandlingUnit().getName()+" to "+wioline.getWM_HandlingUnit().getName());
 		return true;
 	}
 
+	/**
+	 * TODO refactor 1. Create Movement first at Consignment - CreateMovement and 
+	 * WM_DocTypeEvent - Prepare Movement shall create WMInOuts, not other way round.
+	 * Complete WMInOut happens in this class, to effect WM_EmptyStorage
+	 * Movement shall then just Complete when here DocStatus=Complete
+	 * @param wio
+	 * @return
+	 */
 	private MMovement createConsignmentMovement(MWM_InOut wio) {
+		Utils util = new Utils(get_TrxName());
 		PO po = new Query(getCtx(),"WM_Consignment",MWM_InOut.COLUMNNAME_WM_DeliverySchedule_ID+"=?",get_TrxName())
 				.setParameters(wio.get_ID())
 				.first();
@@ -299,18 +307,26 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 
 		if (m_processMsg != null)
 			return DocAction.STATUS_Invalid;
-
-		//do not process Movement generated WM InOut as it is directly Completed there
-		if (getName().contains("Movement")){ 
-			//TODO Movement closure of InOutLines to ESLines -- move such routines to here.
-			//later we refactor that all operations are by core flow and WMS are loosely coupled mobile floor control
-			
-			setDocAction(DOCACTION_Close);
-			return DocAction.STATUS_Completed;
-		}
 		
 		MBPartner partner = (MBPartner) getC_BPartner();
+		
+		//Handling Stock Movements
+		if (getName().startsWith("Stock Movement")||getName().startsWith("Inventory Replenishment")) {
+			Utils util= new Utils(get_TrxName());
+			
+			 List<MWM_InOutLine>wiolines=new Query(getCtx(), MWM_InOutLine.Table_Name, MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?",get_TrxName())
+					 .setParameters(get_ID())
+					 .list();
+			 if (wiolines.isEmpty())
+				 throw new AdempiereException("No WM InOut Lines for "+getName());
+			 for (MWM_InOutLine wioline:wiolines) {
+				 processWMSStorage(wioline, null, util);
+			 }
+			setDocAction(DOCACTION_Close);
+			return DocAction.STATUS_Completed;
+		} 
 		if (getName().contains("CONSIGNMENT")) {
+			//TODO refactor for Consignment here also as above Movement
 			//create Movement, and update WM_EmptyStorage/Lines
 			MWM_DeliverySchedule deliveryschedule = new Query(getCtx(),MWM_DeliverySchedule.Table_Name,MWM_DeliverySchedule.COLUMNNAME_WM_DeliverySchedule_ID+"=?",get_TrxName())
 			.setParameters(getWM_DeliverySchedule_ID())
@@ -326,7 +342,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			setDocAction(DOCACTION_Close);
 			return DocAction.STATUS_Completed;
 		}
-		
+
+		Utils util = new Utils(get_TrxName());
 		//Create Material Receipt process    
 		MInOut inout = null;
 		List<MWM_InOutLine> lines = new Query(Env.getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?",get_TrxName())
@@ -334,6 +351,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		//holder for separate M_InOut according to different C_Order
 		int c_Order_Holder = 0;
 		for (MWM_InOutLine wioline:lines){
+			
 			MWM_DeliveryScheduleLine del = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_WM_DeliveryScheduleLine_ID+"=?",get_TrxName())
 					.setParameters(wioline.getWM_DeliveryScheduleLine_ID())
 					.first();
@@ -350,7 +368,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				saveM_InOut(inout,lines);
 				c_Order_Holder = del.getC_OrderLine().getC_Order_ID();
 			}
-
+			if (inout==null)
+				inout = new MInOut(Env.getCtx(),0,get_TrxName());
 			processWMSStorage(wioline,del,util);
 			
 			MInOutLine ioline = new MInOutLine(inout);
@@ -358,6 +377,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			ioline.setM_Product_ID(wioline.getM_Product_ID());
 			ioline.setM_AttributeSetInstance_ID(wioline.getM_AttributeSetInstance_ID());
 			ioline.setC_UOM_ID(wioline.getC_UOM_ID());
+			ioline.setM_Warehouse_ID(wioline.getM_Locator().getM_Warehouse_ID());
 			ioline.setM_Locator_ID(wioline.getM_Locator_ID());
 			ioline.setQtyEntered(wioline.getQtyPicked());
 			ioline.setMovementQty(wioline.getQtyPicked());

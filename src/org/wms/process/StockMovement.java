@@ -57,7 +57,7 @@ import org.wms.model.MWM_StorageType;
 	private int done=0;
 	private boolean IsSameDistribution=false;
 	private boolean IsSameLine=false;
-	private boolean movement; 
+	private boolean movement=false; 
 	Timestamp now = new Timestamp (System.currentTimeMillis()); 
 	private String trxName = "";
 	private MBPartner partner = null;
@@ -184,12 +184,8 @@ import org.wms.model.MWM_StorageType;
 	}
 
 	private void checkParams() {
-		if (WM_HandlingUnit_ID>0)
-			throw new AdempiereException("No Handling Unit required. Movement will be exact box line(s to specified Locator");
-		if (QtyMovement.add(Percent).compareTo(Env.ZERO)>0)
-			throw new AdempiereException("Deprecated usage by advacnced Replenishment Movement");
 		if (WM_Type_ID>0)
-			throw new AdempiereException("Deprecated usage by advacnced Replenishment Movement");
+			throw new AdempiereException("Type use is temporariy deprecated by advanced Replenishment Movement");
 	}
 
 	private List<MWM_EmptyStorageLine> selectionFromInfoWindow() {
@@ -207,7 +203,6 @@ import org.wms.model.MWM_StorageType;
 	 * 	related WM InOut set without DeliverySchedule
 	 *	moveline.setM_Locator_ID(ioline.getM_Locator_ID());
 	 *	moveline.setM_LocatorTo_ID(M_Locator_ID);
-
 	 */
 	private void createMovementSet(MWM_EmptyStorageLine line) {
 		//check if core M_InOut exist, then create a Material Movement record. 
@@ -226,7 +221,10 @@ import org.wms.model.MWM_StorageType;
 		//create each Movement Line
 		MMovementLine moveline = new MMovementLine(move);
 		moveline.setM_Product_ID(line.getM_Product_ID());
-		moveline.setMovementQty(line.getQtyMovement());
+		if (QtyMovement.compareTo(Env.ZERO)>0)
+			moveline.setMovementQty(QtyMovement.compareTo(line.getQtyMovement())<0?QtyMovement:line.getQtyMovement());
+		else 
+			moveline.setMovementQty(line.getQtyMovement());
 		moveline.setM_Locator_ID(line.getWM_EmptyStorage().getM_Locator_ID());
 		moveline.setM_LocatorTo_ID(M_Locator_ID);
 		moveline.saveEx(trxName);

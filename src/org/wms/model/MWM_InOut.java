@@ -24,8 +24,7 @@ import org.compiere.model.MBPartner;
 import org.compiere.model.MDocType;
 import org.compiere.model.MInOut;
 import org.compiere.model.MInOutLine;
-import org.compiere.model.MLocator;
-import org.compiere.model.MMovement;
+import org.compiere.model.MLocator; 
 import org.compiere.model.MMovementLine;
 import org.compiere.model.MOrder;
 import org.compiere.model.MOrderLine;
@@ -194,59 +193,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		return true;
 	}
 
-	/**
-	 * TODO refactor 1. Create Movement first at Consignment - CreateMovement and 
-	 * WM_DocTypeEvent - Prepare Movement shall create WMInOuts, not other way round.
-	 * Complete WMInOut happens in this class, to effect WM_EmptyStorage
-	 * Movement shall then just Complete when here DocStatus=Complete
-	 * @param wio
-	 * @return
-	 */
-	private MMovement createConsignmentMovement(MWM_InOut wio) {
-		Utils util = new Utils(get_TrxName());
-		PO po = new Query(getCtx(),"WM_Consignment",MWM_InOut.COLUMNNAME_WM_DeliverySchedule_ID+"=?",get_TrxName())
-				.setParameters(wio.get_ID())
-				.first();
-		if (po==null)
-			throw new AdempiereException("No Consignment Found");
-		
-		int WHID = po.get_ValueAsInt(MWarehouse.COLUMNNAME_M_Warehouse_ID);
-		MLocator locator = new Query(getCtx(), MLocator.Table_Name, MLocator.COLUMNNAME_M_Warehouse_ID+"=? AND "
-				+MLocator.COLUMNNAME_IsDefault+"=?", get_TrxName())
-				.setParameters(WHID,"Y")
-				.first();
-		if (locator==null)
-			throw new AdempiereException("No Default Locator for Consignment to send to.");
-		
-		MMovement move = new MMovement(getCtx(), 0, get_TrxName());
-		move.setDescription(wio.getName()+" CONSIGNMENT");
-		move.setC_BPartner_ID(wio.getC_BPartner_ID());
-		move.setC_Project_ID(po.get_ValueAsInt(MMovement.COLUMNNAME_C_Project_ID));
-		move.setC_Campaign_ID(po.get_ValueAsInt(MMovement.COLUMNNAME_C_Campaign_ID));
-		move.setSalesRep_ID(po.get_ValueAsInt(MMovement.COLUMNNAME_SalesRep_ID));
-		move.saveEx(get_TrxName());
-		//create Movement Lines
-		List<MWM_InOutLine>wiolines = new Query(getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?",get_TrxName())
-				.setParameters(wio.get_ID())
-				.list();
-		for (MWM_InOutLine wioline:wiolines) {
-			MWM_DeliveryScheduleLine del = (MWM_DeliveryScheduleLine) wioline.getWM_DeliveryScheduleLine();
-			//get WMEmptyStorage from WIOLine.MLocator
-			MWM_EmptyStorage empty = new Query(getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",get_TrxName())
-					.setParameters(wioline.getM_Locator_ID()).first();
-			processWMSStorage(wioline,del,util);
-			MMovementLine moveline = new MMovementLine(move);
-			moveline.setM_Product_ID(wioline.getM_Product_ID());
-			moveline.setMovementQty(wioline.getQtyPicked());
-			moveline.setM_Locator_ID(isSOTrx()?wioline.getM_Locator_ID():locator.get_ID());
-			moveline.setM_LocatorTo_ID(isSOTrx()?locator.get_ID():wioline.getM_Locator_ID());
-			moveline.setM_AttributeSetInstance_ID(wioline.getM_AttributeSetInstance_ID());
-			moveline.saveEx(get_TrxName());
-		}
-		po.set_ValueOfColumn(MMovement.COLUMNNAME_M_Movement_ID, move.get_ID());
-		po.saveEx(get_TrxName());
-		return move;
-	}
+ 
 
 	private void saveM_InOut(MInOut inout,List<MWM_InOutLine> lines) {
 		if (inout.getC_Order_ID()>0)
@@ -311,7 +258,9 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		MBPartner partner = (MBPartner) getC_BPartner();
 		
 		//Handling Stock Movements
-		if (getName().startsWith("Stock Movement")||getName().startsWith("Inventory Replenishment")) {
+		if (getName().startsWith("Stock Movement")
+				||getName().startsWith("Inventory Replenishment")
+				||getName().startsWith("Consignment")) {
 			Utils util= new Utils(get_TrxName());
 			
 			 List<MWM_InOutLine>wiolines=new Query(getCtx(), MWM_InOutLine.Table_Name, MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?",get_TrxName())
@@ -325,24 +274,6 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			setDocAction(DOCACTION_Close);
 			return DocAction.STATUS_Completed;
 		} 
-		if (getName().contains("CONSIGNMENT")) {
-			//TODO refactor for Consignment here also as above Movement
-			//create Movement, and update WM_EmptyStorage/Lines
-			MWM_DeliverySchedule deliveryschedule = new Query(getCtx(),MWM_DeliverySchedule.Table_Name,MWM_DeliverySchedule.COLUMNNAME_WM_DeliverySchedule_ID+"=?",get_TrxName())
-			.setParameters(getWM_DeliverySchedule_ID())
-			.first();
-			if (deliveryschedule==null)
-				throw new AdempiereException("NO DeliverySchedule for:"+getName());
-			  
-			MMovement move = createConsignmentMovement(this);
-			move.setDocStatus(MMovement.DOCSTATUS_InProgress);
-			if (!move.processIt(MMovement.DOCACTION_Complete)) {
-					throw new IllegalStateException("Movement Process Failed: " + move + " - " + move.getProcessMsg());
-				}
-			setDocAction(DOCACTION_Close);
-			return DocAction.STATUS_Completed;
-		}
-
 		Utils util = new Utils(get_TrxName());
 		//Create Material Receipt process    
 		MInOut inout = null;
@@ -617,6 +548,14 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			MWM_EmptyStorage storage = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",get_TrxName())
 					.setParameters(wioline.getM_Locator_ID())
 					.first();
+			if (storage==null && getName().startsWith("Consignment")) {
+				//create EmptyStorage for Consignee 
+				MWM_EmptyStorage empty = new MWM_EmptyStorage(getCtx(), 0, get_TrxName());
+				empty.setM_Locator_ID(wioline.getM_Locator_ID());
+				empty.setVacantCapacity(Env.ONEHUNDRED);
+				empty.saveEx(get_TrxName());
+				System.out.println("Creating EmptyStorage for Consignee at Locator: "+wioline.getM_Locator().getValue());
+			}
 			if (wioline.getWM_InOut().isSOTrx()) { //Picking OutBound Sales 
 				BigDecimal picked = wioline.getQtyPicked().divide(boxConversion,2,RoundingMode.HALF_EVEN); 			
 				BigDecimal vacancy = storage.getAvailableCapacity().add(picked); 
@@ -636,7 +575,6 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 					newESLine.setDateEnd(TimeUtil.addDays(wioline.getUpdated(), product.getGuaranteeDays()));	
 				storage.setAvailableCapacity(storage.getAvailableCapacity().subtract(wioline.getQtyPicked().divide(boxConversion,2,RoundingMode.HALF_EVEN)));
 				newESLine.setWM_HandlingUnit_ID(wioline.getWM_HandlingUnit_ID());
-				newESLine.setWM_InOutLine_ID(wioline.get_ID());
 				newESLine.saveEx(get_TrxName());
 			}
 			if (dsline==null)

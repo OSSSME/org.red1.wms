@@ -254,6 +254,7 @@ public class Utils {
 	 */
 	public void pickedEmptyStorageLine(BigDecimal picking,MWM_EmptyStorageLine  oldline) {  
 		oldline.setQtyMovement(oldline.getQtyMovement().subtract(picking));
+		oldline.setWM_InOutLine_ID(0);//no longer need reference. Free for others to take on.
 		if (oldline.getQtyMovement().compareTo(Env.ZERO)==0) {
 			oldline.setIsActive(false);
 			oldline.setDateEnd(Today);
@@ -362,5 +363,22 @@ public class Utils {
 			releaseHandlingUnitHistory(line, esline);
 			releaseHandlingUnit(esline);
 		}
+	} 
+	public List<MWM_EmptyStorageLine> removeOtherWarehouse(int whFrom, List<MWM_EmptyStorageLine> elines) {
+		 for (int i=0; i<elines.size();i++) {
+			if (elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Warehouse_ID()!=whFrom)
+				elines.remove(i);
+			else
+			if (elines.get(i).getQtyMovement().compareTo(Env.ZERO)==0)
+				elines.remove(i); 
+		 }
+		return elines;
+	}
+	public List<MWM_EmptyStorageLine> removeBiggerBoxSize(List<MWM_EmptyStorageLine> elines,BigDecimal boxConversion) {
+		for (int i=0; i<elines.size();i++) { 
+			if (elines.get(i).getQtyMovement().compareTo(boxConversion)>0)
+				elines.remove(i);
+		}
+		return elines;
 	}
 }

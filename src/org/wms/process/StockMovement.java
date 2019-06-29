@@ -155,7 +155,11 @@ import org.wms.model.MWM_StorageType;
 	}
 
 	private void mainRoutine(MWM_EmptyStorageLine line) {  
-			createMovementSet(line);		
+		//TODO check available space at target locator
+		Utils util = new Utils(trxName);
+		if (util.getAvailableCapacity(target).compareTo(line.getQtyMovement())<0)
+			throw new AdempiereException("Not enough space in Locator. Choose another Locator.");
+		createMovementSet(line);		
 	}
 
 	private void setTargetToLocator() {		
@@ -181,6 +185,10 @@ import org.wms.model.MWM_StorageType;
 		}
 		if (target==null)
 			throw new AdempiereException("No EmptyStorage for Locator:"+target.getM_Locator().getValue());
+		if (target.isBlocked())
+			throw new  AdempiereException("Locator is Blocked. Unblock first.");
+		if (target.isFull())
+			throw new AdempiereException("Locator is Full. Select another Locator.");
 	}
 
 	private void checkParams() {

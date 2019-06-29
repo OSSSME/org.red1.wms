@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.adempiere.exceptions.AdempiereException;
+import org.compiere.model.MMovement;
+import org.compiere.model.MMovementLine;
 import org.compiere.model.MProduct;
 import org.compiere.model.MUOMConversion;
 import org.compiere.model.Query;
@@ -145,7 +147,8 @@ public class Utils {
 	/**
 	 * New way to calculate Available Capacity NOT during EmptyStorageLine creation
 	 * but prior, during MWM_InOutLine creation. 
-	 * Has to take into account open MWM_InOutLine that points to this Locator.EmptyStorage
+	 * Has to take into account open MWM_InOutLine's picks and puts that points to this Locator.EmptyStorage
+	 * Movements will result in InOuts thus open Movements are excluded.
 	 * @param empty
 	 * @return availableCapacity
 	 */
@@ -167,11 +170,12 @@ public class Utils {
 			}
 			if (wio.getDocStatus().equals(MWM_InOut.DOCSTATUS_Completed))
 				continue;
+			BigDecimal convertedQty = convertUOM(wioline.getM_Product_ID(),wioline.getQtyPicked());
 			if (wio.isSOTrx())//if outgoing Picking, then available shall increase
-				availableCapacity = availableCapacity.add(convertUOM(wioline.getM_Product_ID(),wioline.getQtyPicked()));
+				availableCapacity = availableCapacity.add(convertedQty);
 			else //if incoming Putaway, then available shall decrease
-				availableCapacity = availableCapacity.subtract(convertUOM(wioline.getM_Product_ID(),wioline.getQtyPicked()));
-		}
+				availableCapacity = availableCapacity.subtract(convertedQty);
+		} 
 		return availableCapacity;
 	}
 	

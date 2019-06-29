@@ -157,8 +157,9 @@ import org.wms.model.MWM_StorageType;
 	private void mainRoutine(MWM_EmptyStorageLine line) {  
 		//TODO check available space at target locator
 		Utils util = new Utils(trxName);
-		if (util.getAvailableCapacity(target).compareTo(line.getQtyMovement())<0)
-			throw new AdempiereException("Not enough space in Locator. Choose another Locator.");
+		BigDecimal capacity = util.getAvailableCapacity(target);
+		if (capacity.compareTo(line.getQtyMovement())<0)
+			System.out.println("Line Qty of "+line.getQtyMovement()+" exceeds Locator vacant "+capacity);
 		createMovementSet(line);		
 	}
 

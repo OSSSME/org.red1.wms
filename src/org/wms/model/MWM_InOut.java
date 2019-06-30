@@ -554,6 +554,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				empty.setM_Locator_ID(wioline.getM_Locator_ID());
 				empty.setVacantCapacity(Env.ONEHUNDRED);
 				empty.saveEx(get_TrxName());
+				storage=empty;
 				System.out.println("Creating EmptyStorage for Consignee at Locator: "+wioline.getM_Locator().getValue());
 			}
 			if (wioline.getWM_InOut().isSOTrx()) { //Picking OutBound Sales 

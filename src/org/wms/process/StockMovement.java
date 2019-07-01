@@ -40,6 +40,7 @@ import org.wms.model.MWM_StorageType;
 	/**
 	 * THIS ROUTINE IS DEPRECATED BY REPLENISH MOVEMENT WHICH HAS INTELLIGENT ZONING 
 	 * This Stock Movement merely takes the selection and move lock stock barrel to a specified locator
+	 * without consideration of capacity (resolves thru manual decision) 
 	 * No Delivery Schedule. No use of fresh Handling Units.
 	 * Only Movement header done in draft mode and linked for user to open,
 	 * Prepare shall create automatically Picking/Putaway lists for mobile scanner to pick up
@@ -140,6 +141,8 @@ import org.wms.model.MWM_StorageType;
 				throw new AdempiereException("Create Standard BPartner first");
 		}
 		for (MWM_EmptyStorageLine line:selection){ 
+			if (!line.isActive())
+				continue;
 			//Product
 			product = (MProduct) line.getM_Product();
 			//source Storage
@@ -155,12 +158,8 @@ import org.wms.model.MWM_StorageType;
 	}
 
 	private void mainRoutine(MWM_EmptyStorageLine line) {  
-		//TODO check available space at target locator
-		Utils util = new Utils(trxName);
-		BigDecimal capacity = util.getAvailableCapacity(target);
-		if (capacity.compareTo(line.getQtyMovement())<0)
-			System.out.println("Line Qty of "+line.getQtyMovement()+" exceeds Locator vacant "+capacity);
-		createMovementSet(line);		
+		//Force movement - no need to check Capacity. Solve elsewhere by user. 
+ 		createMovementSet(line);		
 	}
 
 	private void setTargetToLocator() {		
@@ -184,8 +183,15 @@ import org.wms.model.MWM_StorageType;
 		target = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",trxName)
 				.setParameters(M_Locator_ID).first();
 		}
-		if (target==null)
-			throw new AdempiereException("No EmptyStorage for Locator:"+target.getM_Locator().getValue());
+		if (target==null ) {
+			//create EmptyStorage for Consignee 
+			MWM_EmptyStorage empty = new MWM_EmptyStorage(getCtx(), 0, get_TrxName());
+			empty.setM_Locator_ID(M_Locator_ID);
+			empty.setVacantCapacity(Env.ONEHUNDRED);
+			empty.saveEx(get_TrxName());
+			target=empty;
+			System.out.println("Creating EmptyStorage for Consignee at Locator: "+empty.getM_Locator().getValue());
+		}
 		if (target.isBlocked())
 			throw new  AdempiereException("Locator is Blocked. Unblock first.");
 		if (target.isFull())
@@ -237,6 +243,7 @@ import org.wms.model.MWM_StorageType;
 		moveline.setM_Locator_ID(line.getWM_EmptyStorage().getM_Locator_ID());
 		moveline.setM_LocatorTo_ID(M_Locator_ID);
 		moveline.saveEx(trxName);
+		System.out.println("MovementLine created "+line.getQtyMovement()+" "+line.getM_Product().getValue()+" at "+target.getM_Locator().getValue());
 	}
   
 }

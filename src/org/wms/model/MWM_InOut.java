@@ -192,9 +192,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		System.out.println("Picking Changed HandlingUnit "+eline.getWM_HandlingUnit().getName()+" to "+wioline.getWM_HandlingUnit().getName());
 		return true;
 	}
-
- 
-
+	
 	private void saveM_InOut(MInOut inout,List<MWM_InOutLine> lines) {
 		if (inout.getC_Order_ID()>0)
 			return;
@@ -242,21 +240,14 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		if (!m_justPrepared)
 		{
 			String status = prepareIt();
-
 			m_justPrepared = false;
-
 			if (!DocAction.STATUS_InProgress.equals(status))
 				return status;
-
 		}
-
  		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_BEFORE_COMPLETE);
-
 		if (m_processMsg != null)
 			return DocAction.STATUS_Invalid;
-		
 		MBPartner partner = (MBPartner) getC_BPartner();
-		
 		//Handling Stock Movements
 		if (getName().startsWith("Stock Movement")
 				||getName().startsWith("Inventory Replenishment")
@@ -384,13 +375,9 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		{
 			if (info.length() > 0)
 				info.append(" - ");
-
 			info.append(valid);
-
 			m_processMsg = info.toString();
-
 			return DocAction.STATUS_Invalid;
-
 		}
 		setProcessed(true);
 		m_processMsg = info.toString();

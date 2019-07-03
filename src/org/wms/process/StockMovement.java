@@ -164,7 +164,10 @@ import org.wms.model.MWM_StorageType;
 
 	private void setTargetToLocator() {		
 		//search by Warehouse
-		if (M_Warehouse_ID>0) {
+		if (M_Locator_ID>0) {
+			target = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",trxName)
+					.setParameters(M_Locator_ID).first();
+		} else if (M_Warehouse_ID>0) {
 			MWarehouse warehouse = MWarehouse.get(getCtx(), M_Warehouse_ID);
 			partner = new Query(Env.getCtx(),MBPartner.Table_Name,MBPartner.COLUMNNAME_Name+"=?",trxName)
 					.setParameters(warehouse.getName())
@@ -179,10 +182,7 @@ import org.wms.model.MWM_StorageType;
 			target = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",trxName)
 					.setParameters(locator.get_ID()).first();
 			M_Locator_ID = target.getM_Locator_ID();
-		} else {
-		target = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",trxName)
-				.setParameters(M_Locator_ID).first();
-		}
+		} 
 		if (target==null ) {
 			//create EmptyStorage for Consignee 
 			MWM_EmptyStorage empty = new MWM_EmptyStorage(getCtx(), 0, get_TrxName());

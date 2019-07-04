@@ -17,6 +17,7 @@ import java.util.Properties;
 
 import java.util.logging.Level;
 
+import org.wms.component.WM_EmptyStorageLineDocEvent;
 import org.wms.model.X_WM_InOut;
 import org.wms.process.Utils;
 import org.adempiere.exceptions.AdempiereException;
@@ -145,13 +146,15 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				if (isSOTrx()) 
 					throw new AdempiereException("Exception in WM InOutLine - no assigned EmptyStorageLine");
 				else { 
-					return DocAction.STATUS_InProgress; // putaway unassigned, create new ESLine happens in CompleteIt()
+					; //OK. Note that putaway is still unassigned, as create new ESLine happens during CompleteIt()
 				}
 			}
 			if ((wioline.getWM_HandlingUnitOld_ID()>0) &&
 					(esline.getWM_HandlingUnit_ID()!=wioline.getWM_HandlingUnitOld_ID())) {
 				changeEmptyStorageLine(wioline,esline);
 			}
+			if (wioline.getM_LocatorOld_ID()>0)
+				changeLocator(wioline);
 		}
 		
  		m_justPrepared = true;
@@ -162,6 +165,29 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		return DocAction.STATUS_InProgress;
 
 	}
+	/**
+	 * During Putaway only, allow force over capacity.
+	 * Update originating Movement document
+	 * No ESLine to handle (as it is handled during WMInOut.CompleteIt()
+	 * @param wioline
+	 * @param esline
+	 */
+	private void changeLocator(MWM_InOutLine wioline) {
+		 if (wioline.getM_Locator_ID()==wioline.getM_LocatorOld_ID()) {
+			 log.warning("Locator changed to same!");
+			 return;
+		 }
+		 MMovementLine movedline = new MMovementLine(getCtx(), wioline.getM_MovementLine_ID(), get_TrxName());
+		 if (movedline==null)
+			 throw new AdempiereException("Change Locator - Putaway Line lost its orignating MovementLine :"+wioline.getQtyPicked()+" "+wioline.getM_Product().getValue());
+		 
+		 //9 Item Putaway Locator changed from [old locator] to [new locator]
+		 System.out.println(wioline.getQtyPicked()+" "+wioline.getM_Product().getValue()+" Putaway Locator changed from "+movedline.getM_LocatorTo().getValue()+" to "+wioline.getM_Locator().getValue());
+		 
+		 movedline.setM_LocatorTo_ID(wioline.getM_Locator_ID());
+		 movedline.saveEx(get_TrxName());
+	}
+
 	/**
 	 * Change to EmptyStorageLine picked by WMInOutLine as per HandlingUnit
 	 * Must not change Qty nor Locator - must be same Qty and Locator

@@ -32,7 +32,7 @@ public class X_WM_InOutLine extends PO implements I_WM_InOutLine, I_Persistent
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20190621L;
+	private static final long serialVersionUID = 20190704L;
 
     /** Standard Constructor */
     public X_WM_InOutLine (Properties ctx, int WM_InOutLine_ID, String trxName)
@@ -261,6 +261,31 @@ public class X_WM_InOutLine extends PO implements I_WM_InOutLine, I_Persistent
 		return ii.intValue();
 	}
 
+	public I_M_Locator getM_LocatorOld() throws RuntimeException
+    {
+		return (I_M_Locator)MTable.get(getCtx(), I_M_Locator.Table_Name)
+			.getPO(getM_LocatorOld_ID(), get_TrxName());	}
+
+	/** Set M_LocatorOld_ID.
+		@param M_LocatorOld_ID M_LocatorOld_ID	  */
+	public void setM_LocatorOld_ID (int M_LocatorOld_ID)
+	{
+		if (M_LocatorOld_ID < 1) 
+			set_Value (COLUMNNAME_M_LocatorOld_ID, null);
+		else 
+			set_Value (COLUMNNAME_M_LocatorOld_ID, Integer.valueOf(M_LocatorOld_ID));
+	}
+
+	/** Get M_LocatorOld_ID.
+		@return M_LocatorOld_ID	  */
+	public int getM_LocatorOld_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_M_LocatorOld_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
 	public org.compiere.model.I_M_MovementLine getM_MovementLine() throws RuntimeException
     {
 		return (org.compiere.model.I_M_MovementLine)MTable.get(getCtx(), org.compiere.model.I_M_MovementLine.Table_Name)
@@ -406,6 +431,8 @@ public class X_WM_InOutLine extends PO implements I_WM_InOutLine, I_Persistent
 		return (I_WM_HandlingUnit)MTable.get(getCtx(), I_WM_HandlingUnit.Table_Name)
 			.getPO(getWM_HandlingUnitOld_ID(), get_TrxName());	}
 
+	/** Set WM_HandlingUnitOld_ID.
+		@param WM_HandlingUnitOld_ID WM_HandlingUnitOld_ID	  */
 	public void setWM_HandlingUnitOld_ID (int WM_HandlingUnitOld_ID)
 	{
 		if (WM_HandlingUnitOld_ID < 1) 

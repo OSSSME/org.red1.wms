@@ -32,7 +32,7 @@ public interface I_WM_InOutLine
     /** TableName=WM_InOutLine */
     public static final String Table_Name = "WM_InOutLine";
 
-    /** AD_Table_ID=1000030 */
+    /** AD_Table_ID=1000035 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -191,6 +191,17 @@ public interface I_WM_InOutLine
 	public int getM_Locator_ID();
 
 	public I_M_Locator getM_Locator() throws RuntimeException;
+
+    /** Column name M_LocatorOld_ID */
+    public static final String COLUMNNAME_M_LocatorOld_ID = "M_LocatorOld_ID";
+
+	/** Set M_LocatorOld_ID	  */
+	public void setM_LocatorOld_ID (int M_LocatorOld_ID);
+
+	/** Get M_LocatorOld_ID	  */
+	public int getM_LocatorOld_ID();
+
+	public I_M_Locator getM_LocatorOld() throws RuntimeException;
 
     /** Column name M_MovementLine_ID */
     public static final String COLUMNNAME_M_MovementLine_ID = "M_MovementLine_ID";

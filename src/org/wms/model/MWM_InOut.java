@@ -294,103 +294,103 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			 for (MWM_InOutLine wioline:wiolines) {
 				 processWMSStorage(wioline, null, util);
 			 }
-			setDocAction(DOCACTION_Close);
-			return DocAction.STATUS_Completed;
-		} 
-		Utils util = new Utils(get_TrxName());
-		//Create Material Receipt process    
-		MInOut inout = null;
-		List<MWM_InOutLine> lines = new Query(Env.getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?",get_TrxName())
-				.setParameters(this.get_ID()).list();
-		//holder for separate M_InOut according to different C_Order
-		int c_Order_Holder = 0;
-		for (MWM_InOutLine wioline:lines){
-			
-			MWM_DeliveryScheduleLine del = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_WM_DeliveryScheduleLine_ID+"=?",get_TrxName())
-					.setParameters(wioline.getWM_DeliveryScheduleLine_ID())
-					.first();
-			if (del!=null && !del.isReceived())
-				throw new AdempiereException("DeliverySchedule Line still not Received"); //still not processed at DeliverySchedule level, so no Shipment/Receipt possible
-			if (wioline.getM_InOutLine_ID()>0)
-				throw new AdempiereException("Already has Shipment/Receipt record!");//already done before
-			if (del!=null && del.getC_OrderLine().getC_Order_ID()!=c_Order_Holder){
-				if (inout!=null){
+		} else {
+			Utils util = new Utils(get_TrxName());
+			//Create Material Receipt process    
+			MInOut inout = null;
+			List<MWM_InOutLine> lines = new Query(Env.getCtx(),MWM_InOutLine.Table_Name,MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?",get_TrxName())
+					.setParameters(this.get_ID()).list();
+			//holder for separate M_InOut according to different C_Order
+			int c_Order_Holder = 0;
+			for (MWM_InOutLine wioline:lines){
+				
+				MWM_DeliveryScheduleLine del = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_WM_DeliveryScheduleLine_ID+"=?",get_TrxName())
+						.setParameters(wioline.getWM_DeliveryScheduleLine_ID())
+						.first();
+				if (del!=null && !del.isReceived())
+					throw new AdempiereException("DeliverySchedule Line still not Received"); //still not processed at DeliverySchedule level, so no Shipment/Receipt possible
+				if (wioline.getM_InOutLine_ID()>0)
+					throw new AdempiereException("Already has Shipment/Receipt record!");//already done before
+				if (del!=null && del.getC_OrderLine().getC_Order_ID()!=c_Order_Holder){
+					if (inout!=null){
+						saveM_InOut(inout,lines);
+					}
+					//create new MInOut  as C_Order_ID has changed
+					inout = new MInOut(Env.getCtx(),0,get_TrxName());
 					saveM_InOut(inout,lines);
+					c_Order_Holder = del.getC_OrderLine().getC_Order_ID();
 				}
-				//create new MInOut  as C_Order_ID has changed
-				inout = new MInOut(Env.getCtx(),0,get_TrxName());
-				saveM_InOut(inout,lines);
-				c_Order_Holder = del.getC_OrderLine().getC_Order_ID();
-			}
-			if (inout==null)
-				inout = new MInOut(Env.getCtx(),0,get_TrxName());
-			processWMSStorage(wioline,del,util);
-			
-			MInOutLine ioline = new MInOutLine(inout);
-			ioline.setC_OrderLine_ID(wioline.getC_OrderLine_ID());
-			ioline.setM_Product_ID(wioline.getM_Product_ID());
-			ioline.setM_AttributeSetInstance_ID(wioline.getM_AttributeSetInstance_ID());
-			ioline.setC_UOM_ID(wioline.getC_UOM_ID());
-			ioline.setM_Warehouse_ID(wioline.getM_Locator().getM_Warehouse_ID());
-			ioline.setM_Locator_ID(wioline.getM_Locator_ID());
-			ioline.setQtyEntered(wioline.getQtyPicked());
-			ioline.setMovementQty(wioline.getQtyPicked());
-			ioline.saveEx(get_TrxName());		
-			//populate back WM_InOutLine with M_InOutLine_ID
-			wioline.setM_InOutLine_ID(ioline.get_ID());ioline.getM_Locator();ioline.getM_Warehouse_ID();
-			wioline.saveEx(get_TrxName());
-			//if Sales' Shipment, then release the Handling Unit <--deprecated
-			MWM_HandlingUnit hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=?",get_TrxName())
-					.setParameters(wioline.getWM_HandlingUnit_ID())
-					.first();
-			if (hu!=null) {
-				//deactivate HandlingUnit history
-				MWM_HandlingUnitHistory huh = new Query(Env.getCtx(),MWM_HandlingUnitHistory.Table_Name,MWM_HandlingUnitHistory.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "
-						+MWM_HandlingUnitHistory.COLUMNNAME_WM_InOutLine_ID+"=?",get_TrxName())
-						.setParameters(hu.get_ID(),wioline.get_ID())
+				if (inout==null)
+					inout = new MInOut(Env.getCtx(),0,get_TrxName());
+				processWMSStorage(wioline,del,util);
+				
+				MInOutLine ioline = new MInOutLine(inout);
+				ioline.setC_OrderLine_ID(wioline.getC_OrderLine_ID());
+				ioline.setM_Product_ID(wioline.getM_Product_ID());
+				ioline.setM_AttributeSetInstance_ID(wioline.getM_AttributeSetInstance_ID());
+				ioline.setC_UOM_ID(wioline.getC_UOM_ID());
+				ioline.setM_Warehouse_ID(wioline.getM_Locator().getM_Warehouse_ID());
+				ioline.setM_Locator_ID(wioline.getM_Locator_ID());
+				ioline.setQtyEntered(wioline.getQtyPicked());
+				ioline.setMovementQty(wioline.getQtyPicked());
+				ioline.saveEx(get_TrxName());		
+				//populate back WM_InOutLine with M_InOutLine_ID
+				wioline.setM_InOutLine_ID(ioline.get_ID());ioline.getM_Locator();ioline.getM_Warehouse_ID();
+				wioline.saveEx(get_TrxName());
+				//if Sales' Shipment, then release the Handling Unit <--deprecated
+				MWM_HandlingUnit hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=?",get_TrxName())
+						.setParameters(wioline.getWM_HandlingUnit_ID())
 						.first();
-				if (huh==null){
-						log.severe("HandlingUnit has no history: "+wioline.getWM_HandlingUnit().getName());
-						continue;
+				if (hu!=null) {
+					//deactivate HandlingUnit history
+					MWM_HandlingUnitHistory huh = new Query(Env.getCtx(),MWM_HandlingUnitHistory.Table_Name,MWM_HandlingUnitHistory.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "
+							+MWM_HandlingUnitHistory.COLUMNNAME_WM_InOutLine_ID+"=?",get_TrxName())
+							.setParameters(hu.get_ID(),wioline.get_ID())
+							.first();
+					if (huh==null){
+							log.severe("HandlingUnit has no history: "+wioline.getWM_HandlingUnit().getName());
+							continue;
+					}
+					if (huh.getDateEnd()==null){
+						log.warning("HandlingUnit history has no DateEnd during Receive of DeliverySchedule: "+wioline.getWM_HandlingUnit().getName());
+						huh.setDateEnd(hu.getUpdated());
+					}
+					huh.setIsActive(false);
+					huh.saveEx(get_TrxName());
 				}
-				if (huh.getDateEnd()==null){
-					log.warning("HandlingUnit history has no DateEnd during Receive of DeliverySchedule: "+wioline.getWM_HandlingUnit().getName());
-					huh.setDateEnd(hu.getUpdated());
-				}
-				huh.setIsActive(false);
-				huh.saveEx(get_TrxName());
-			}
-			//check if has previous BackOrder that is not complete (no QtyDelivered value) so disallow any new BackOrders 
-			//check if has previous WM_InOut (backorder case) and if QtyDelivered then error of premature process
-			MWM_DeliveryScheduleLine prevDsLine = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_C_OrderLine_ID+"=?"
-					+ " AND "+MWM_DeliveryScheduleLine.COLUMNNAME_IsBackOrder+"=? "
-							+ "AND "+MWM_DeliveryScheduleLine.COLUMNNAME_Received+"=?"
-									+ " AND "+MWM_DeliveryScheduleLine.COLUMNNAME_Created+"<?",get_TrxName())
-					.setParameters(del.getC_OrderLine_ID(),"Y","Y",del.getCreated())
-					.setOrderBy(COLUMNNAME_Created+ " DESC")
-					.first(); 
- 			
-			//check if old backorder needs to reset
-			//get C_Orderline, check if Delivered=Ordered
-			MOrderLine orderline = new Query(Env.getCtx(),MOrderLine.Table_Name,MOrderLine.COLUMNNAME_C_OrderLine_ID+"=?",get_TrxName())
-						.setParameters(del.getC_OrderLine_ID())
-						.first();
-			if (orderline!=null){
-				//the prev DS Line backorder has to be updated by this new DS Line
-				if (prevDsLine!=null){
-					prevDsLine.setQtyDelivered(prevDsLine.getQtyDelivered().add(del.getQtyOrdered()));
-					if (prevDsLine.getQtyDelivered().compareTo(prevDsLine.getQtyOrdered())==0) 
-						prevDsLine.saveEx(get_TrxName());
+				//check if has previous BackOrder that is not complete (no QtyDelivered value) so disallow any new BackOrders 
+				//check if has previous WM_InOut (backorder case) and if QtyDelivered then error of premature process
+				MWM_DeliveryScheduleLine prevDsLine = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_C_OrderLine_ID+"=?"
+						+ " AND "+MWM_DeliveryScheduleLine.COLUMNNAME_IsBackOrder+"=? "
+								+ "AND "+MWM_DeliveryScheduleLine.COLUMNNAME_Received+"=?"
+										+ " AND "+MWM_DeliveryScheduleLine.COLUMNNAME_Created+"<?",get_TrxName())
+						.setParameters(del.getC_OrderLine_ID(),"Y","Y",del.getCreated())
+						.setOrderBy(COLUMNNAME_Created+ " DESC")
+						.first(); 
+	 			
+				//check if old backorder needs to reset
+				//get C_Orderline, check if Delivered=Ordered
+				MOrderLine orderline = new Query(Env.getCtx(),MOrderLine.Table_Name,MOrderLine.COLUMNNAME_C_OrderLine_ID+"=?",get_TrxName())
+							.setParameters(del.getC_OrderLine_ID())
+							.first();
+				if (orderline!=null){
+					//the prev DS Line backorder has to be updated by this new DS Line
+					if (prevDsLine!=null){
+						prevDsLine.setQtyDelivered(prevDsLine.getQtyDelivered().add(del.getQtyOrdered()));
+						if (prevDsLine.getQtyDelivered().compareTo(prevDsLine.getQtyOrdered())==0) 
+							prevDsLine.saveEx(get_TrxName());
+					} 
 				} 
-			} 
+			}
+			if (inout!=null){
+				saveM_InOut(inout,lines);		
+				inout.setDescription(isSOTrx()?"Picking":"Putaway");
+				inout.setDocStatus(this.DOCSTATUS_InProgress);
+				inout.setDocAction(this.DOCACTION_Complete);
+				inout.processIt(DocAction.ACTION_Complete);
+			}
 		}
-		if (inout!=null){
-			saveM_InOut(inout,lines);		
-			inout.setDescription(isSOTrx()?"Picking":"Putaway");
-			inout.setDocStatus(this.DOCSTATUS_InProgress);
-			inout.setDocAction(this.DOCACTION_Complete);
-			inout.processIt(DocAction.ACTION_Complete);
-		}
+		
 		//	Implicit Approval
 		if (!isApproved())
 			approveIt(); 
@@ -398,9 +398,6 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		if (log.isLoggable(Level.INFO)) log.info(toString());
 
 		StringBuilder info = new StringBuilder();
-		
-		info.append("@M_InOut_ID@ - "+(isSOTrx()?"Shipment ":"Receipt ")+inout.getLines().length+" lines");
-		
 		String valid = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_COMPLETE);
 
 		if (valid != null)

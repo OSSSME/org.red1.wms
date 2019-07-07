@@ -296,7 +296,7 @@ import org.wms.model.MWM_WarehousePick;
 				}
 			} 
 			if (balance.compareTo(Env.ZERO)>0)
-				log.warning("NO Storage Found for "+product.getName());
+				log.warning("NO Storage Found for "+balance+" "+product.getName());
 		}
 	}
 
@@ -313,8 +313,10 @@ import org.wms.model.MWM_WarehousePick;
 		if (empty==null)
 			throw new AdempiereException("No Empty Storage set for locator id: "+locator_id);
 		//if its full go back and look for next EmptyStorage
-		if (empty.isFull())
+		if (empty.isFull()) {
+			log.warning("Storage Full at "+empty.getM_Locator().getValue());
 			return balance;  
+		}
 		BigDecimal alloting = uomFactors(dsline,balance);
 		BigDecimal vacancy = util.getAvailableCapacity(empty).multiply(boxConversion);	  
 		System.out.println("Locator "+empty.getM_Locator().getValue()+" has "+vacancy+" for "+alloting+" "+dsline.getM_Product().getName());

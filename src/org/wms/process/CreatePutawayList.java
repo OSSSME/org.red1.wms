@@ -314,7 +314,7 @@ import org.wms.model.MWM_WarehousePick;
 			throw new AdempiereException("No Empty Storage set for locator id: "+locator_id);
 		//if its full go back and look for next EmptyStorage
 		if (empty.isFull()) {
-			log.warning("Storage Full at "+empty.getM_Locator().getValue());
+			log.warning("Storage Full at "+empty.getM_Locator().getValue()+" for "+balance+" "+dsline.getM_Product().getValue());
 			return balance;  
 		}
 		BigDecimal alloting = uomFactors(dsline,balance);

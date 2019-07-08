@@ -12,9 +12,7 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.util.Properties;
 import org.compiere.model.ModelValidator;
-import java.util.logging.Level;
-
-import org.compiere.model.MLocator;
+import java.util.logging.Level; 
 import org.compiere.model.ModelValidationEngine;
 import org.compiere.print.ReportEngine;
 import org.compiere.process.DocAction;
@@ -47,25 +45,21 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 	protected boolean beforeSave (boolean newRecord)
 	{
 		return super.beforeSave(newRecord);
-	}
-
+	} 
 
 	protected boolean beforeDelete() {	 
 		return super.beforeDelete();
-	}
-
+	} 
 
 	protected boolean afterSave (boolean newRecord, boolean success)
 	{
 		return super.afterSave(newRecord, success);
-	}
-
- 
+	} 
+	
 	protected boolean afterDelete(boolean success) {		 
 		return super.afterDelete(success);
-	}
-
- 
+	} 
+	
 	public boolean processIt(String processAction) throws Exception {
  		DocumentEngine engine = new DocumentEngine (this, getDocStatus());
 		return engine.processIt (processAction, getDocAction());
@@ -82,10 +76,8 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 		return DocAction.STATUS_InProgress; 
 	}
 
- 	public boolean approveIt() {
- 
-		setDocStatus(DOCSTATUS_Approved);
- 
+ 	public boolean approveIt() { 
+		setDocStatus(DOCSTATUS_Approved); 
 		return true;
  	}
  
@@ -94,49 +86,35 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
  		if (m_processMsg != null)
 			return docstatus;
    		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_COMPLETE);
-
-		if (m_processMsg != null)
+ 		if (m_processMsg != null)
 			return docstatus; 
  		return DocAction.STATUS_Completed; 
 	}
-
-	
+ 	
  	public boolean voidIt() {
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_VOID);
-
-		if (m_processMsg != null)
+ 		if (m_processMsg != null)
 			return false;
- 
-		setDocStatus(DOCSTATUS_Voided);
-
-		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_VOID);
-
-		if (m_processMsg != null)
+  		setDocStatus(DOCSTATUS_Voided);
+ 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_VOID);
+ 		if (m_processMsg != null)
 			return false;
- 
-		return true; 
+  		return true; 
 	}
 
  	public boolean closeIt() {
 		if (log.isLoggable(Level.INFO)) log.info("closeIt - " + toString());
-
-		// Before Close
+ 	// Before Close
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_CLOSE);
-
-		if (m_processMsg != null)
+ 		if (m_processMsg != null)
 			return false;
- 
-		setDocStatus(DOCSTATUS_Closed);
-
-		// After Close
+ 		setDocStatus(DOCSTATUS_Closed);
+ 		// After Close
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_CLOSE);
-
-		if (m_processMsg != null)
+ 		if (m_processMsg != null)
 			return false;
-
-		return true;
-
-	}
+ 		return true;
+ 	}
 
 	public static MWM_HandlingUnit get (Properties ctx, int WM_HandlingUnit_ID, String trxName)
 	{
@@ -157,106 +135,73 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 
 	/**	Cache						*/
 	protected volatile static CCache<Integer,MWM_HandlingUnit> s_cache; 
-	
-	
+	 	
   	public boolean reverseCorrectIt() {
 		if (log.isLoggable(Level.INFO)) log.info(toString());
-
-		// Before reverseCorrect
+ 	// Before reverseCorrect
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_REVERSECORRECT);
-
-		if (m_processMsg != null)
+ 		if (m_processMsg != null)
 			return false;
-
-		setDocStatus(DOCSTATUS_Reversed);
-
+ 		setDocStatus(DOCSTATUS_Reversed);
  		// After reverseCorrect
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_REVERSECORRECT);
-
-		if (m_processMsg != null)
+ 		if (m_processMsg != null)
 			return false;
-
  		return true;
-
-	}
+ 	}
 
  	public boolean reverseAccrualIt() {
 		if (log.isLoggable(Level.INFO)) log.info(toString());
-
 		// Before reverseAccrual
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_REVERSEACCRUAL);
-
 		if (m_processMsg != null)
 			return false;
-
  		// After reverseAccrual
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_REVERSEACCRUAL);
-
 		if (m_processMsg != null)
 			return false;
- 
-		return true;
-
+ 		return true;
 	}
 
  	public boolean reActivateIt() {
 		if (log.isLoggable(Level.INFO)) log.info(toString());
-
 		// Before reActivate
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_REACTIVATE);
-
 		if (m_processMsg != null)
 			return false;
-
- 		// After reActivate
+		// After reActivate
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_REACTIVATE);
-
 		if (m_processMsg != null)
 			return false;
- 
-		return true;
-
+ 		return true;
 	}
-
 
  	public String getSummary() {
 		// TODO Auto-generated method stub
 		return null;
-
 	}
-
 
  	public String getDocumentNo() {
 		return Msg.getElement(getCtx(), X_WM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID) + " " + getDocumentNo();
-
  	}
-
 
  	public String getDocumentInfo() {
 		// TODO Auto-generated method stub
 		return null;
-
 	}
-
 
  	public File createPDF() {
 		try
 		{
 			File temp = File.createTempFile(get_TableName()+get_ID()+"_", ".pdf");
-
 			return createPDF (temp);
-
 		}
-
 
 		catch (Exception e)
 		{
 			log.severe("Could not create PDF - " + e.getMessage());
-
 		}
-
 		return null;
-
 	}
 
 
@@ -268,39 +213,29 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 	public File createPDF (File file)
 	{
 		ReportEngine re = ReportEngine.get (getCtx(), ReportEngine.ORDER, getWM_HandlingUnit_ID());
-
 		if (re == null)
 			return null;
-
 		return re.getPDF(file);
-
 	}
 
 	//	createPDF
  	public String getProcessMsg() {
 		return m_processMsg;
-
 	}
-
 
  	public int getDoc_User_ID() {
 		// TODO Auto-generated method stub
 		return 0;
-
 	}
-
 
  	public int getC_Currency_ID() {
 		// TODO Auto-generated method stub
 		return 0;
-
 	}
-
 
  	public BigDecimal getApprovalAmt() {
 		// TODO Auto-generated method stub
 		return null;
-
 	}
 
 	@Override
@@ -320,9 +255,6 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 		// TODO Auto-generated method stub
 		return false;
 	}
- 
-
- 
 }
 
 

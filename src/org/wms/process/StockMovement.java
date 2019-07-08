@@ -144,7 +144,7 @@ import org.wms.model.MWM_StorageType;
 			if (!line.isActive())
 				continue;
 			//Product
-			product = (MProduct) line.getM_Product();
+			product = MProduct.get(getCtx(), line.getM_Product_ID());
 			//source Storage
 			source = (MWM_EmptyStorage)line.getWM_EmptyStorage(); 
 			//goto target to fit available pack Qty

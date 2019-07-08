@@ -115,8 +115,7 @@ public class Utils {
 	 * QtyMovement = ZERO
 	 */
 	public void releaseHandlingUnit(MWM_EmptyStorageLine line) { 
-		MWM_HandlingUnit hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=?",trxName)
-				.setParameters(line.getWM_HandlingUnit_ID()).first();
+		MWM_HandlingUnit hu =  MWM_HandlingUnit.get(Env.getCtx(), line.getWM_HandlingUnit_ID(), trxName);
 		hu.setQtyMovement(Env.ZERO);
 		hu.setDocStatus(X_WM_HandlingUnit.DOCSTATUS_Drafted);
 		hu.saveEx(trxName);
@@ -220,7 +219,7 @@ public class Utils {
 			//9Mac19 -  Future Forecast is when No DateStart if Not Received Delivery Schedule and No future Promise Date.
 			}
 		} 
-		MProduct product = (MProduct)inoutline.getM_Product();
+		MProduct product = MProduct.get(Env.getCtx(),inoutline.getM_Product_ID());
 		if (product.getGuaranteeDays()>0)
 			storline.setDateEnd(TimeUtil.addDays(storline.getCreated(), product.getGuaranteeDays()));
 		

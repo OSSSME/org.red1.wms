@@ -13,23 +13,24 @@ import java.sql.ResultSet;
 import java.util.Properties;
 import org.compiere.model.ModelValidator;
 import java.util.logging.Level;
+
+import org.compiere.model.MLocator;
 import org.compiere.model.ModelValidationEngine;
 import org.compiere.print.ReportEngine;
 import org.compiere.process.DocAction;
 import org.compiere.process.DocumentEngine;
+import org.compiere.util.CCache;
 import org.compiere.util.Msg;
 
 public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 	public MWM_HandlingUnit(Properties ctx, int id, String trxName) {
 		super(ctx, id, trxName);
-
-
 		if (id==0){
 			setDocStatus(DOCSTATUS_Drafted);
 			setDocAction (DOCACTION_Prepare);
-			setProcessed(false);
+			setProcessed(false);  
 		}
-		docstatus = getDocStatus();
+		docstatus = getDocStatus();		
 	}
 
 	public MWM_HandlingUnit(Properties ctx, ResultSet rs, String trxName) {
@@ -137,6 +138,27 @@ public class MWM_HandlingUnit extends X_WM_HandlingUnit implements DocAction {
 
 	}
 
+	public static MWM_HandlingUnit get (Properties ctx, int WM_HandlingUnit_ID, String trxName)
+	{
+		if (s_cache == null)
+			s_cache	= new CCache<Integer,MWM_HandlingUnit>(Table_Name, 20);
+		Integer key = Integer.valueOf(WM_HandlingUnit_ID);
+		MWM_HandlingUnit retValue = (MWM_HandlingUnit) s_cache.get (key);
+		if (retValue != null){
+			System.out.println("Cache get "+retValue);
+			return retValue;
+		}
+		retValue = new MWM_HandlingUnit (ctx, WM_HandlingUnit_ID, trxName);
+		if (retValue.get_ID()!=0) {
+			s_cache.put(key,retValue);
+		}
+		return retValue;
+	} //	get
+
+	/**	Cache						*/
+	protected volatile static CCache<Integer,MWM_HandlingUnit> s_cache; 
+	
+	
   	public boolean reverseCorrectIt() {
 		if (log.isLoggable(Level.INFO)) log.info(toString());
 

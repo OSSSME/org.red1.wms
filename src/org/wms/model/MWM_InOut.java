@@ -338,9 +338,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				wioline.setM_InOutLine_ID(ioline.get_ID());ioline.getM_Locator();ioline.getM_Warehouse_ID();
 				wioline.saveEx(get_TrxName());
 				//if Sales' Shipment, then release the Handling Unit <--deprecated
-				MWM_HandlingUnit hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=?",get_TrxName())
-						.setParameters(wioline.getWM_HandlingUnit_ID())
-						.first();
+				MWM_HandlingUnit hu = MWM_HandlingUnit.get(getCtx(), wioline.getWM_HandlingUnit_ID(), get_TrxName());
 				if (hu!=null) {
 					//deactivate HandlingUnit history
 					MWM_HandlingUnitHistory huh = new Query(Env.getCtx(),MWM_HandlingUnitHistory.Table_Name,MWM_HandlingUnitHistory.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "
@@ -586,7 +584,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				util.pickedEmptyStorageLine(eachQty, esline);
 			}
 			else { 	//Putaway InBound Purchases
-				MProduct product = (MProduct)wioline.getM_Product();
+				MProduct product = MProduct.get(getCtx(), wioline.getM_Product_ID());
 				MWM_EmptyStorageLine newESLine = util.newEmptyStorageLine(dsline, wioline.getQtyPicked(), storage, wioline);
 				if (product.getGuaranteeDays()>0)
 					newESLine.setDateEnd(TimeUtil.addDays(wioline.getUpdated(), product.getGuaranteeDays()));	

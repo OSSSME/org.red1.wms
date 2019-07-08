@@ -180,8 +180,10 @@ import org.wms.model.MWM_WarehousePick;
 
 	private void putawayProcess(MWM_InOut inout, List<MWM_DeliveryScheduleLine> lines) {
 		for (MWM_DeliveryScheduleLine dline:lines){
-			if (dline.getWM_InOutLine_ID()>0)
+			if (dline.getWM_InOutLine_ID()>0) {
+				System.out.println("DSLine has WM Line:"+dline.getWM_InOutLine().getWM_InOut().getName());
 				continue;//already done
+			}
 			if (!dline.isReceived()){
 				notReceived++;
 				isReceived=false;
@@ -191,7 +193,7 @@ import org.wms.model.MWM_WarehousePick;
 			BigDecimal balance =dline.getQtyDelivered();				
 			
 			//get Product from InOut Bound line
-			MProduct product = (MProduct) dline.getM_Product();
+			MProduct product = MProduct.get(getCtx(), dline.getM_Product_ID());
 			
 			//If No Handling Unit required at this juncture, 
 			//then no M_Locator putAway also. Manual way.
@@ -390,7 +392,7 @@ import org.wms.model.MWM_WarehousePick;
 	}
 
 	private boolean getPickingLocators(MWM_InOut inout,MWM_DeliveryScheduleLine dline) {  
-		MProduct product = (MProduct)dline.getM_Product();
+		MProduct product = MProduct.get(getCtx(), dline.getM_Product_ID());
 		if (product==null) {
 			log.severe("Fatal: Suddenly Delivery Line has no Product!");
 			return false;
@@ -435,16 +437,21 @@ import org.wms.model.MWM_WarehousePick;
 			if (M_Warehouse_ID>0 && eline.getWM_EmptyStorage().getM_Locator().getM_Warehouse_ID()!=M_Warehouse_ID)
 				continue;
 			//cannot take Blocked
-			MWM_EmptyStorage storage = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_WM_EmptyStorage_ID+"=?",trxName)
+			/**MWM_EmptyStorage storage = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_WM_EmptyStorage_ID+"=?",trxName)
 					.setParameters(eline.getWM_EmptyStorage_ID())
-					.first();
+					.first();**/ 
+			MWM_EmptyStorage storage = MWM_EmptyStorage.get(getCtx(), eline.getWM_EmptyStorage_ID(), trxName);
 			if (storage.isBlocked())
 				continue;
 			
 			//take those that are Complete DocStatus (Putaway) or no HandlingUnit
-			MWM_HandlingUnit hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_DocStatus+"=? AND "+MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=?",trxName)
+			/**MWM_HandlingUnit hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_DocStatus+"=? AND "+MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=?",trxName)
 					.setParameters(MWM_HandlingUnit.DOCSTATUS_Completed,eline.getWM_HandlingUnit_ID())
-					.first();
+					.first();**/
+			MWM_HandlingUnit hu = MWM_HandlingUnit.get(getCtx(), eline.getWM_HandlingUnit_ID(),trxName);
+			if (hu != null && !hu.getDocStatus().equals(MWM_HandlingUnit.DOCSTATUS_Completed))
+				continue;
+
 			if (hu==null && dline.isReceived())
 				continue; //next EmptyLine until not InProgress
 			
@@ -464,7 +471,7 @@ import org.wms.model.MWM_WarehousePick;
 	}
 
 	private BigDecimal startPickingProcess(BigDecimal picked, MWM_InOut inout, MWM_DeliveryScheduleLine line,MWM_EmptyStorageLine eline) {
-		MWM_EmptyStorage empty = (MWM_EmptyStorage) eline.getWM_EmptyStorage();
+		MWM_EmptyStorage empty = MWM_EmptyStorage.get(getCtx(), eline.getWM_EmptyStorage_ID(),trxName);
 		//Locator EmptyLine Quantity has more than what you picking
 		if (eline.getQtyMovement().compareTo(picked)>0){
 			//if got handling unit, then assign the minor picked to new handling unit. Otherwise reject this reset

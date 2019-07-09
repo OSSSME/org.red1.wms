@@ -148,7 +148,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 					; //OK. Note that putaway is still unassigned, as create new ESLine happens during CompleteIt()
 				}
 			}
-			if ((wioline.getWM_HandlingUnitOld_ID()>0) &&
+			if ((esline!=null && wioline.getWM_HandlingUnitOld_ID()>0) &&
 					(esline.getWM_HandlingUnit_ID()!=wioline.getWM_HandlingUnitOld_ID())) {
 				changeEmptyStorageLine(wioline,esline);
 			}

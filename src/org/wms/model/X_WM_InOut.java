@@ -25,14 +25,14 @@ import org.compiere.util.Env;
 
 /** Generated Model for WM_InOut
  *  @author iDempiere (generated) 
- *  @version Release 4.1 - $Id$ */
+ *  @version Release 6.2 - $Id$ */
 public class X_WM_InOut extends PO implements I_WM_InOut, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170517L;
+	private static final long serialVersionUID = 20190712L;
 
     /** Standard Constructor */
     public X_WM_InOut (Properties ctx, int WM_InOut_ID, String trxName)
@@ -283,6 +283,34 @@ public class X_WM_InOut extends PO implements I_WM_InOut, I_Persistent
 			return "Y".equals(oo);
 		}
 		return false;
+	}
+
+	public org.compiere.model.I_M_Movement getM_Movement() throws RuntimeException
+    {
+		return (org.compiere.model.I_M_Movement)MTable.get(getCtx(), org.compiere.model.I_M_Movement.Table_Name)
+			.getPO(getM_Movement_ID(), get_TrxName());	}
+
+	/** Set Inventory Move.
+		@param M_Movement_ID 
+		Movement of Inventory
+	  */
+	public void setM_Movement_ID (int M_Movement_ID)
+	{
+		if (M_Movement_ID < 1) 
+			set_Value (COLUMNNAME_M_Movement_ID, null);
+		else 
+			set_Value (COLUMNNAME_M_Movement_ID, Integer.valueOf(M_Movement_ID));
+	}
+
+	/** Get Inventory Move.
+		@return Movement of Inventory
+	  */
+	public int getM_Movement_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_M_Movement_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
 	}
 
 	/** Set Name.

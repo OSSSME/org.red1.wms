@@ -23,7 +23,7 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Interface for WM_InOut
  *  @author iDempiere (generated) 
- *  @version Release 4.1
+ *  @version Release 6.2
  */
 @SuppressWarnings("all")
 public interface I_WM_InOut 
@@ -32,7 +32,7 @@ public interface I_WM_InOut
     /** TableName=WM_InOut */
     public static final String Table_Name = "WM_InOut";
 
-    /** AD_Table_ID=1000014 */
+    /** AD_Table_ID=1000036 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -187,6 +187,21 @@ public interface I_WM_InOut
 	  * This is a Sales Transaction
 	  */
 	public boolean isSOTrx();
+
+    /** Column name M_Movement_ID */
+    public static final String COLUMNNAME_M_Movement_ID = "M_Movement_ID";
+
+	/** Set Inventory Move.
+	  * Movement of Inventory
+	  */
+	public void setM_Movement_ID (int M_Movement_ID);
+
+	/** Get Inventory Move.
+	  * Movement of Inventory
+	  */
+	public int getM_Movement_ID();
+
+	public org.compiere.model.I_M_Movement getM_Movement() throws RuntimeException;
 
     /** Column name Name */
     public static final String COLUMNNAME_Name = "Name";

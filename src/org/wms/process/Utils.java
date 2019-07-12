@@ -374,6 +374,9 @@ public class Utils {
 			else
 			if (elines.get(i).getQtyMovement().compareTo(Env.ZERO)==0)
 				elines.remove(i); 
+			else 
+			if (elines.get(i).getWM_EmptyStorage().isBlocked())
+				elines.remove(i);
 		 }
 		return elines;
 	}

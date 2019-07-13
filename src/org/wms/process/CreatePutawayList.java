@@ -158,6 +158,7 @@ import org.wms.model.MWM_WarehousePick;
 			wio.setIsSOTrx(lines.get(0).getWM_DeliverySchedule().isSOTrx());
 			wio.setWM_Gate_ID(lines.get(0).getWM_DeliverySchedule().getWM_Gate_ID());
 		}
+		wio.setC_Order_ID(lines.get(0).getWM_DeliverySchedule().getC_Order_ID());
 		wio.saveEx(trxName);
 		putaways = 0;
 		pickings = 0; 

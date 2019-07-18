@@ -189,7 +189,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 
 	/**
 	 * Change to EmptyStorageLine picked by WMInOutLine as per HandlingUnit
-	 * Must not change Qty nor Locator - must be same Qty and Locator
+	 * Can change Qty (breakup) but not Locator
 	 * @param wioline
 	 * @return
 	 */
@@ -208,16 +208,14 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			else
 				return true;
 		}
-		if (wioline.getQtyPicked().compareTo(cline.getQtyMovement())!=0) {//TODO broken up box?
-			if (wioline.getQtyPicked().compareTo(cline.getQtyMovement())>0)
-				throw new AdempiereException("Higher qty in changed HandlingUnit");
-		}
 		//not allow change locator during picking but allow during putaway
 		if (wioline.getWM_InOut().isSOTrx() && wioline.getM_Locator_ID()!=cline.getWM_EmptyStorage().getM_Locator_ID())
 			throw new AdempiereException("Not same Locator in changed HandlingUnit");
- 
 		if (eline.isWMInOutLineProcessed()) 
 			throw new AdempiereException("This StorageLine has pending Pick/Put record NOT CLOSED NOR COMPLETE");
+		
+		if (wioline.getQtyPicked().compareTo(cline.getQtyMovement())>0)  
+			throw new AdempiereException("Picking line is more than Storage box/line");
 		cline.setWM_InOutLine_ID(wioline.get_ID());
 		cline.saveEx(get_TrxName());
 		System.out.println("Picking Changed HandlingUnit "+eline.getWM_HandlingUnit().getName()+" to "+wioline.getWM_HandlingUnit().getName());

@@ -16,6 +16,7 @@ import java.util.List;
 import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.MProduct;
 import org.compiere.model.MUOMConversion;
+import org.compiere.model.MWarehouse;
 import org.compiere.model.Query;
 import org.compiere.process.ProcessInfoParameter;
 import org.compiere.process.SvrProcess;
@@ -64,7 +65,7 @@ import org.wms.model.MWM_WarehousePick;
 	private BigDecimal packFactor=Env.ONE;
 	private BigDecimal boxConversion=Env.ONE;
 	private BigDecimal currentUOM=Env.ONE;
-	
+	private MWarehouse wh = null;
 	public CreatePutawayList(){
 		
 	}
@@ -128,7 +129,10 @@ import org.wms.model.MWM_WarehousePick;
 	protected String doIt() {
 		String whereClause = "EXISTS (SELECT T_Selection_ID FROM T_Selection WHERE T_Selection.AD_PInstance_ID=? AND T_Selection.T_Selection_ID=WM_DeliveryScheduleLine.WM_DeliveryScheduleLine_ID)";
 		List<MWM_DeliveryScheduleLine> lines = null;
-		M_Warehouse_ID = Env.getContextAsInt(getCtx(), "#M_Warehouse_ID");
+		if (M_Warehouse_ID==0) {
+			M_Warehouse_ID = Env.getContextAsInt(getCtx(), "#M_Warehouse_ID");
+			wh = new MWarehouse(getCtx(), M_Warehouse_ID, trxName);
+		}
 		if (external){
 			lines = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_WM_DeliverySchedule_ID+"=?",trxName)
 					.setParameters(externalDeliverySchedule.get_ID()).list();			
@@ -386,7 +390,7 @@ import org.wms.model.MWM_WarehousePick;
 			}
 			//if Handling Unit is set, then assign while creating WM_InOuts. EmptyLocators also assigned. Can be cleared and reassigned in next Info-Window
 			if (!getPickingLocators(inout,line))
-				log.warning("Check Log for any SEVERE messages. Could not finish picking: "+line.getQtyOrdered()+" "+line.getM_Product().getName());
+				throw new AdempiereException("Pick Failed. Check if you at right Warehouse "+wh.getName());
 			else
 				System.out.println("Success picked "+line.getQtyOrdered()+" of "+line.getM_Product().getValue());
 		}	

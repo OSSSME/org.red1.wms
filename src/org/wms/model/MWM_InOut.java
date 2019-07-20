@@ -383,6 +383,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				inout.setDocStatus(this.DOCSTATUS_InProgress);
 				inout.setDocAction(this.DOCACTION_Complete);
 				inout.processIt(DocAction.ACTION_Complete);
+				inout.saveEx(get_TrxName());
 			}
 		}
 		

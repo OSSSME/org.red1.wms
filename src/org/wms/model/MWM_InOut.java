@@ -25,6 +25,7 @@ import org.compiere.model.MBPartner;
 import org.compiere.model.MDocType;
 import org.compiere.model.MInOut;
 import org.compiere.model.MInOutLine;
+import org.compiere.model.MMovement;
 import org.compiere.model.MMovementLine;
 import org.compiere.model.MOrder;
 import org.compiere.model.MOrderLine;
@@ -281,6 +282,21 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		if (getName().startsWith("Stock Movement")
 				||getName().startsWith("Inventory Replenishment")
 				||getName().startsWith("Consignment")) {
+			//check if Picking is done first before Putaway
+			 if (!isSOTrx()) {
+				 //get Picking
+				 MWM_InOut pick = new Query(getCtx(), MWM_InOut.Table_Name, MWM_InOut.COLUMNNAME_Name+"=? AND "
+						 +MWM_InOut.COLUMNNAME_IsSOTrx+"=?",get_TrxName())
+						 .setParameters(getName(),true)
+						 .first();
+				 if (pick==null)  
+					 log.warning("Picking not found during Putaway of "+getName());
+				 else {
+					 if (!pick.getDocStatus().equals(MWM_InOut.DOCSTATUS_Completed)) {
+						 throw new AdempiereException("Complete Picking first :"+getName());
+					 }
+				 }  
+			 }
 			Utils util= new Utils(get_TrxName());
 			
 			 List<MWM_InOutLine>wiolines=new Query(getCtx(), MWM_InOutLine.Table_Name, MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?",get_TrxName())
@@ -291,6 +307,16 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			 for (MWM_InOutLine wioline:wiolines) {
 				 processWMSStorage(wioline, null, util);
 			 }
+			 //complete associated Movement AND Picking if Putaway is done first
+			 if (!isSOTrx()) {
+				 MMovement move = (MMovement) getM_Movement();	
+				 if (move!=null) { 
+					 move.setDocAction(this.DOCACTION_Complete);
+					 move.processIt(DocAction.ACTION_Complete);
+					 move.saveEx(get_TrxName()); }
+				 	System.out.println("Movement also completed: "+move.getDescription());
+				 }
+			 log.warning("Movement not found to auto complete :"+getName());
 		} else {
 			Utils util = new Utils(get_TrxName());
 			//Create Material Receipt process    

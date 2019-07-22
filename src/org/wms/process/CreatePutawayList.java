@@ -14,6 +14,7 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import org.adempiere.exceptions.AdempiereException;
+import org.compiere.model.MDocType;
 import org.compiere.model.MProduct;
 import org.compiere.model.MUOMConversion;
 import org.compiere.model.MWarehouse;
@@ -487,6 +488,7 @@ import org.wms.model.MWM_WarehousePick;
 				//still need to know the present HU ID for opening box and break out
 				inoutline = util.assignHandlingUnit(IsSameDistribution,inoutline, picked);
 				inoutline.setWM_HandlingUnitOld_ID(eline.getWM_HandlingUnit_ID());
+				inoutline.setC_DocType_ID(inout.isSOTrx()?MDocType.getDocType(MDocType.DOCBASETYPE_SalesOrder):MDocType.getDocType(MDocType.DOCBASETYPE_PurchaseOrder));
 				inoutline.saveEx(trxName);
 				eline.setWM_InOutLine_ID(inoutline.get_ID());
 				eline.saveEx(trxName);
@@ -501,6 +503,7 @@ import org.wms.model.MWM_WarehousePick;
 			MWM_InOutLine inoutline = util.newInOutLine(inout,line,picked); 
 			setLocator(inoutline, eline.getWM_EmptyStorage().getM_Locator_ID());
 			inoutline.setWM_HandlingUnit_ID(eline.getWM_HandlingUnit_ID());
+			inoutline.setC_DocType_ID(inout.isSOTrx()?MDocType.getDocType(MDocType.DOCBASETYPE_SalesOrder):MDocType.getDocType(MDocType.DOCBASETYPE_PurchaseOrder));
 			inoutline.saveEx(trxName);
 			eline.setWM_InOutLine_ID(inoutline.get_ID());
 			eline.saveEx(trxName);

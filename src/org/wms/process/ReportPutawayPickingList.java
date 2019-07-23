@@ -57,7 +57,7 @@ import org.compiere.process.SvrProcess;
 
 			log.info("Selected line ID = "+a);
 
-		String insert="INSERT INTO ReportPutawayPickingList (WM_InOutLine_ID,WM_InOut_ID,Sequence,WM_DeliverySchedule_ID,WM_Gate_ID,QtyPicked,Value,WM_HandlingUnit_ID,IsSOTrx,X,Y,Z,M_Warehouse_ID,M_Product_ID,C_UOM_ID,M_InOutLine_ID,AD_Client_ID,AD_Org_ID,Created,CreatedBy,IsActive,Updated,UpdatedBy, ReportPutawayPickingList_ID) SELECT a.WM_InOutLine_ID,a.WM_InOut_ID,a.Sequence,b.WM_DeliverySchedule_ID,b.WM_Gate_ID,a.QtyPicked,m.Value,a.WM_HandlingUnit_ID,b.IsSOTrx,m.X,m.Y,m.Z,m.M_Warehouse_ID,a.M_Product_ID,a.C_UOM_ID,a.M_InOutLine_ID,a.AD_Client_ID,a.AD_Org_ID,a.Created,a.CreatedBy,a.IsActive,a.Updated,a.UpdatedBy, nextIDFunc(?, 'N') FROM WM_InOutLine a " 
+		String insert="INSERT INTO ReportPutawayPickingList (WM_HandlingUnitOld_ID,WM_InOutLine_ID,WM_InOut_ID,Sequence,WM_DeliverySchedule_ID,WM_Gate_ID,QtyPicked,Value,WM_HandlingUnit_ID,IsSOTrx,X,Y,Z,M_Warehouse_ID,M_Product_ID,C_UOM_ID,M_InOutLine_ID,AD_Client_ID,AD_Org_ID,Created,CreatedBy,IsActive,Updated,UpdatedBy, ReportPutawayPickingList_ID) SELECT a.WM_HandlingUnitOld_ID,a.WM_InOutLine_ID,a.WM_InOut_ID,a.Sequence,b.WM_DeliverySchedule_ID,b.WM_Gate_ID,a.QtyPicked,m.Value,a.WM_HandlingUnit_ID,b.IsSOTrx,m.X,m.Y,m.Z,m.M_Warehouse_ID,a.M_Product_ID,a.C_UOM_ID,a.M_InOutLine_ID,a.AD_Client_ID,a.AD_Org_ID,a.Created,a.CreatedBy,a.IsActive,a.Updated,a.UpdatedBy, nextIDFunc(?, 'N') FROM WM_InOutLine a " 
 +"INNER JOIN WM_InOut b ON (b.WM_InOut_ID=a.WM_InOut_ID) INNER JOIN M_Locator m ON (m.M_Locator_ID=a.M_Locator_ID) LEFT JOIN M_InOutLine o ON (o.M_InOutLine_ID=a.M_InOutLine_ID)"
 		+"  "
 		+"  WHERE WM_InOutLine_ID ="+line.get_ID();

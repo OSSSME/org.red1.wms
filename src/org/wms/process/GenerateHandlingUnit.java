@@ -81,7 +81,7 @@ import org.wms.model.MWM_HandlingUnit;
 		hu = new MWM_HandlingUnit(getCtx(), 0, get_TrxName());
 		hu.setCapacity(new BigDecimal(Capacity));
 		hu.setDocStatus(MWM_HandlingUnit.DOCSTATUS_Drafted); 
-		hu.setName(Prefix+String.format("%0"+zeros+"d", serial));
+		hu.setName(name);
 		hu.setQtyMovement(Env.ZERO);
 		hu.saveEx(get_TrxName());
 		name = hu.getName();

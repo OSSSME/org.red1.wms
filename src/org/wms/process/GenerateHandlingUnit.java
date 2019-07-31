@@ -72,7 +72,13 @@ import org.wms.model.MWM_HandlingUnit;
 	}
 
 	private void createHandlingUnit(int zeros,int serial) { 
-		MWM_HandlingUnit hu = new MWM_HandlingUnit(getCtx(), 0, get_TrxName());
+		String name = Prefix+String.format("%0"+zeros+"d", serial);
+		MWM_HandlingUnit hu = new Query(getCtx(), MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_Name+"=?",get_TrxName())
+				.setParameters(name)
+				.first();
+		if (name!= null)
+			return;
+		hu = new MWM_HandlingUnit(getCtx(), 0, get_TrxName());
 		hu.setCapacity(new BigDecimal(Capacity));
 		hu.setDocStatus(MWM_HandlingUnit.DOCSTATUS_Drafted); 
 		hu.setName(Prefix+String.format("%0"+zeros+"d", serial));

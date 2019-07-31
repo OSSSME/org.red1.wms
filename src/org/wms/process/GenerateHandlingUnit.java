@@ -76,7 +76,7 @@ import org.wms.model.MWM_HandlingUnit;
 		MWM_HandlingUnit hu = new Query(getCtx(), MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_Name+"=?",get_TrxName())
 				.setParameters(name)
 				.first();
-		if (name!= null)
+		if (hu!= null)
 			return;
 		hu = new MWM_HandlingUnit(getCtx(), 0, get_TrxName());
 		hu.setCapacity(new BigDecimal(Capacity));

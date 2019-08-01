@@ -156,6 +156,13 @@ import org.wms.model.MWM_Migration;
 			}  
 			
 			if (record.getWM_HandlingUnit_ID()>0) {
+				MWM_HandlingUnit hu = (MWM_HandlingUnit) record.getWM_HandlingUnit();
+				String huname = hu.getName();
+				List<MWM_HandlingUnit>hus = new Query(getCtx(), MWM_HandlingUnit.Table_Name, MWM_HandlingUnit.COLUMNNAME_Name+"=?",get_TrxName())
+						.setParameters(huname)
+						.list();
+				if (hus.size()>1)
+					throw new AdempiereException("Duplicate Handling Unit :"+huname);
 				WM_HandlingUnit_ID = record.getWM_HandlingUnit_ID();
 				handlingunit = (MWM_HandlingUnit) record.getWM_HandlingUnit();
 				handlingunit.setDocStatus(MWM_HandlingUnit.DOCSTATUS_Completed);

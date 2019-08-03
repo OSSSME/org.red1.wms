@@ -313,7 +313,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			 //complete associated Movement AND Picking if Putaway is done first
 			 if (!isSOTrx()) {
 				 MMovement move = (MMovement) getM_Movement();	
-				 if (move!=null) { 
+				 if (move!=null && !move.getDocStatus().equals(MMovement.STATUS_Completed)) { 
 					 move.setDocAction(this.DOCACTION_Complete);
 					 move.processIt(DocAction.ACTION_Complete);
 					 move.saveEx(get_TrxName()); }

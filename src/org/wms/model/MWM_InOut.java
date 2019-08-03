@@ -156,7 +156,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			if (wioline.getM_LocatorOld_ID()>0)
 				changeLocator(wioline);
 			
-			if (wioline.getWM_HandlingUnit_ID()<1)
+			if (wioline.getWM_HandlingUnit_ID()<1 && wioline.getWM_HandlingUnitOld_ID()<1)
 				throw new AdempiereException("Pick/Putaway Line NOT assigned Handling Unit.");
 		}
 		

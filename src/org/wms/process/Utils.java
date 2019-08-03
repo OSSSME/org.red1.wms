@@ -97,12 +97,13 @@ public class Utils {
 		hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "
 				+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)
 				.setParameters(WM_HandlingUnit_ID,MWM_HandlingUnit.DOCSTATUS_Drafted) 
+				.setOrderBy(MWM_HandlingUnit.COLUMNNAME_Name)
 				.first();
 		if (hu==null) {//try again, open to more later ones		
 			hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+">? AND "
 				+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)
 				.setParameters(WM_HandlingUnit_ID,MWM_HandlingUnit.DOCSTATUS_Drafted) 
-				.setOrderBy(MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID)
+				.setOrderBy(MWM_HandlingUnit.COLUMNNAME_Name)
 				.first();
 			if (hu==null)
 				throw new AdempiereException("No more Available HandlingUnits. Generate again.");

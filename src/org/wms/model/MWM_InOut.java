@@ -316,10 +316,11 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				 if (move!=null && !move.getDocStatus().equals(MMovement.STATUS_Completed)) { 
 					 move.setDocAction(this.DOCACTION_Complete);
 					 move.processIt(DocAction.ACTION_Complete);
-					 move.saveEx(get_TrxName()); }
-				 	System.out.println("Movement also completed: "+move.getDescription());
-				 }
-			 log.warning("Movement not found to auto complete :"+getName());
+					 move.saveEx(get_TrxName()); 
+					 log.info("Movement also completed: "+move.getDescription());	 
+				 }else
+					 log.warning("Movement not found to auto complete :"+getName());
+			}
 		} else {
 			Utils util = new Utils(get_TrxName());
 			//Create Material Receipt process    

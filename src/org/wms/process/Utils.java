@@ -216,7 +216,7 @@ public class Utils {
 				else if (dsline.getC_OrderLine().getDatePromised().after(Today))
 					storline.setDateStart(dsline.getC_OrderLine().getDatePromised());
 				else
-					throw new AdempiereException("DSLine.NotReceived OR NOT FUTRE: NoDatePromised OR Order NoDatePromised");
+					throw new AdempiereException("DSLine.NotReceived OR NOT FUTURE: NoDatePromised OR Order NoDatePromised");
 			//9Mac19 -  Future Forecast is when No DateStart if Not Received Delivery Schedule and No future Promise Date.
 			}
 		} 
@@ -368,9 +368,9 @@ public class Utils {
 			releaseHandlingUnit(esline);
 		}
 	} 
-	public List<MWM_EmptyStorageLine> removeOtherWarehouse(int whFrom, List<MWM_EmptyStorageLine> elines) {
+	public List<MWM_EmptyStorageLine> removeOtherWarehouse(int thisWH, List<MWM_EmptyStorageLine> elines) {
 		 for (int i=0; i<elines.size();i++) {
-			if (elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Warehouse_ID()!=whFrom)
+			if (elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Warehouse_ID()!=thisWH)
 				elines.remove(i);
 			else
 			if (elines.get(i).getQtyMovement().compareTo(Env.ZERO)==0)

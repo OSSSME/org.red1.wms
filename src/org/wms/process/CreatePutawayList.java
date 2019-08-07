@@ -353,13 +353,13 @@ import org.wms.model.MWM_WarehousePick;
  	 		alloting=alloting.subtract(bal);
  	 		holder=holder.add(bal);
  	 		if (alloting.compareTo(Env.ZERO)==0)
- 	 			System.out.println("Locator fully took "+holder+" "+dsline.getM_Product().getName());
+ 	 			log.info("Locator fully took "+holder+" "+dsline.getM_Product().getName());
  	 		else
- 	 		System.out.println("Same Locator "+empty.getM_Locator().getValue()+" to take remaining "+alloting+" "+dsline.getM_Product().getName());
+ 	 		log.info("Same Locator "+empty.getM_Locator().getValue()+" to take remaining "+alloting+" "+dsline.getM_Product().getName());
  		}
  		if (fullyfilllocator) {
  			balance=balance.subtract(holder.divide(packFactor,2,RoundingMode.HALF_EVEN));
- 			System.out.println("Locator "+empty.getM_Locator().getValue()+" fully filled by "+dsline.getM_Product().getName());
+ 			log.info("Locator "+empty.getM_Locator().getValue()+" fully filled by "+dsline.getM_Product().getName());
  		}
  		else
  			balance=Env.ZERO;

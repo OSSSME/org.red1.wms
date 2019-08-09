@@ -376,16 +376,26 @@ public class Utils {
 			else
 			if (elines.get(i).getQtyMovement().compareTo(Env.ZERO)==0)
 				elines.remove(i); 
+			else if (elines.get(i).getQtyMovement().compareTo(Env.ZERO)<0) {
+				log.warning("Storage Line below ZERO at:"+elines.get(i).getWM_EmptyStorage().getM_Locator().getValue()+" for "+elines.get(i).getM_Product().getValue()+" "
+			+elines.get(i).getQtyMovement());
+				elines.remove(i); 
+				i--;
+			}
 			else 
-			if (elines.get(i).getWM_EmptyStorage().isBlocked())
+			if (elines.get(i).getWM_EmptyStorage().isBlocked()) {
 				elines.remove(i);
+				i--;
+			}
 		 }
 		return elines;
 	}
 	public List<MWM_EmptyStorageLine> removeBiggerBoxSize(List<MWM_EmptyStorageLine> elines,BigDecimal boxConversion) {
 		for (int i=0; i<elines.size();i++) { 
-			if (elines.get(i).getQtyMovement().compareTo(boxConversion)>0)
+			if (elines.get(i).getQtyMovement().compareTo(boxConversion)>0) {
 				elines.remove(i);
+				i--;
+			}
 		}
 		return elines;
 	}

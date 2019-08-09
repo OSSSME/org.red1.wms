@@ -132,8 +132,8 @@ import org.wms.model.MWM_WarehousePick;
 		List<MWM_DeliveryScheduleLine> lines = null;
 		if (M_Warehouse_ID==0) {
 			M_Warehouse_ID = Env.getContextAsInt(getCtx(), "#M_Warehouse_ID");
-			wh = new MWarehouse(getCtx(), M_Warehouse_ID, trxName);
 		}
+		wh = new MWarehouse(getCtx(), M_Warehouse_ID, trxName);
 		if (external){
 			lines = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_WM_DeliverySchedule_ID+"=?",trxName)
 					.setParameters(externalDeliverySchedule.get_ID()).list();			
@@ -288,6 +288,7 @@ import org.wms.model.MWM_WarehousePick;
 			
 				//get next EmptyStorage, if fit, then break, otherwise if balance, then continue
 				int locator_id = empty.getM_Locator_ID(); 
+				locator_id = wh.getDefaultLocator().get_ID();
 				balance = startPutAwayProcess(inout,dline,balance,locator_id);
 				if (balance.compareTo(Env.ZERO)>0)
 					continue;

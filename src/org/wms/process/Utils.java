@@ -94,6 +94,17 @@ public class Utils {
 	}
 
 	private void getAvailableHandlingUnit() {
+		if (WM_HandlingUnit_ID==0) {//hard set to HU0000 DRAFTs)
+			hu = new Query(Env.getCtx(), MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_Name+">? AND "
+					+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)
+					.setParameters("HU000",MWM_HandlingUnit.DOCSTATUS_Drafted) 
+					.setOrderBy(MWM_HandlingUnit.COLUMNNAME_Name)
+					.first();
+			if (hu!=null)
+				WM_HandlingUnit_ID=hu.get_ID();
+			else 
+				throw new AdempiereException("HandlingUnit HU prefix not available. Please create more.");
+		}
 		hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "
 				+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)
 				.setParameters(WM_HandlingUnit_ID,MWM_HandlingUnit.DOCSTATUS_Drafted) 
@@ -101,13 +112,14 @@ public class Utils {
 				.first();
 		if (hu==null) {//try again, open to more later ones	
 			hu = new MWM_HandlingUnit(Env.getCtx(), WM_HandlingUnit_ID, trxName);
+			String huname = hu.getName();
 			hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_Name+">? AND "
 				+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)
-				.setParameters(hu.getName(),MWM_HandlingUnit.DOCSTATUS_Drafted) 
+				.setParameters(huname,MWM_HandlingUnit.DOCSTATUS_Drafted) 
 				.setOrderBy(MWM_HandlingUnit.COLUMNNAME_Name)
 				.first();
 			if (hu==null)
-				throw new AdempiereException("No more Available HandlingUnits. Generate again.");
+				throw new AdempiereException("No more Available HandlingUnits. Generate again."+huname);
 			WM_HandlingUnit_ID = hu.get_ID(); 
 		} 
 	}

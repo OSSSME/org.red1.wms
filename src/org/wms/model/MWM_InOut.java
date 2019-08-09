@@ -617,6 +617,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				if (product.getGuaranteeDays()>0)
 					newESLine.setDateEnd(TimeUtil.addDays(wioline.getUpdated(), product.getGuaranteeDays()));	
 				storage.setAvailableCapacity(storage.getAvailableCapacity().subtract(wioline.getQtyPicked().divide(boxConversion,2,RoundingMode.HALF_EVEN)));
+				if (wioline.getWM_HandlingUnit_ID()<1)
+					throw new AdempiereException("Putaway has no HandlingUnit");
 				newESLine.setWM_HandlingUnit_ID(wioline.getWM_HandlingUnit_ID());
 				newESLine.saveEx(get_TrxName());
 			}

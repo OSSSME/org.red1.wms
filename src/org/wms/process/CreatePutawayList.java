@@ -201,14 +201,6 @@ import org.wms.model.MWM_WarehousePick;
 			//get Product from InOut Bound line
 			MProduct product = MProduct.get(getCtx(), dline.getM_Product_ID());
 			
-			//If No Handling Unit required at this juncture, 
-			//then no M_Locator putAway also. Manual way.
-			if (WM_HandlingUnit_ID<1 && !isSOTrx) {
-				throw new AdempiereException("Please select Handling Unit. It is for background processing.");
-				//Do not allow as yet due to user confusion its not putaway.
-				//util.newInOutLine(inout,line,balance);
-				//continue;// avoid Locator and EmptyStorage
-			}
 			//check if defined in PreferredProduct...
 			List<MWM_PreferredProduct> preferreds = new Query(Env.getCtx(),MWM_PreferredProduct.Table_Name,MWM_PreferredProduct.COLUMNNAME_M_Product_ID+"=?" ,trxName)
 					.setParameters(product.get_ID())
@@ -383,12 +375,7 @@ import org.wms.model.MWM_WarehousePick;
 				isReceived=true;
 			//running balance in use thru-out here
 			BigDecimal balance =line.getQtyDelivered();			
-			
-			//If No Handling Unit required at this juncture, then no M_Locator putAway also. Manual way.
-			if (WM_HandlingUnit_ID<1 && !isSOTrx) {
-				util.newInOutLine(inout,line,balance);
-				continue;// avoid Locator and EmptyStorage
-			}
+
 			//if Handling Unit is set, then assign while creating WM_InOuts. EmptyLocators also assigned. Can be cleared and reassigned in next Info-Window
 			if (!getPickingLocators(inout,line))
 				throw new AdempiereException("Pick Failed. Check if you at right Warehouse "+wh.getName());
@@ -480,8 +467,7 @@ import org.wms.model.MWM_WarehousePick;
 		MWM_EmptyStorage empty = MWM_EmptyStorage.get(getCtx(), eline.getWM_EmptyStorage_ID(),trxName);
 		//Locator EmptyLine Quantity has more than what you picking
 		if (eline.getQtyMovement().compareTo(picked)>0){
-			//if got handling unit, then assign the minor picked to new handling unit. Otherwise reject this reset
-			if (WM_HandlingUnit_ID>0){
+			//breakup - handling unit assigned automatically in util.assignhandlingUnit
 				MWM_InOutLine inoutline = util.newInOutLine(inout,line,picked); 
 				setLocator(inoutline, eline.getWM_EmptyStorage().getM_Locator_ID());				
 				util.setHandlingUnit(WM_HandlingUnit_ID); 
@@ -494,10 +480,7 @@ import org.wms.model.MWM_WarehousePick;
 				eline.saveEx(trxName);
 				pickings++;
 				return picked;
-			}else { 
-				System.out.println("Picking exceeds the last line by "+picked+". Finding other storage for "+eline.getM_Product().getValue());
-				return Env.ZERO;
-			}
+			 
 		//Locator EmptyLine Quantity has exactly same size what you picking	
 		} else {
 			MWM_InOutLine inoutline = util.newInOutLine(inout,line,picked); 

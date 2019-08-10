@@ -259,45 +259,14 @@ import org.wms.model.MWM_WarehousePick;
 			 	}
 			 if (done)
 					continue; //enough, i already putaway all.
-			//get non reserved empty storage
-			List<MWM_EmptyStorage> empties = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_IsFull+"=? AND "
-					+MWM_EmptyStorage.COLUMNNAME_IsBlocked+"=?",trxName)
-				.setParameters(false,false)
-				.setOrderBy(MWM_EmptyStorage.COLUMNNAME_M_Locator_ID)
-				.list();	
-			if (empties==null)
-				throw new AdempiereException("NO MORE EMPTY STORAGE");
-			for (MWM_EmptyStorage empty:empties){
-				if (M_Warehouse_ID>0)
-					if (empty.getM_Locator().getM_Warehouse_ID()!=M_Warehouse_ID)
-						continue;
-				if (empty.getM_Locator().getX().compareTo(X)>=0 || empty.getM_Locator().getY().compareTo(Y)>=0  || empty.getM_Locator().getZ().compareTo(Z)>=0 )
-						continue;
-				//if has StorType then continue also
-				MWM_StorageType storagetype = new Query(Env.getCtx(),MWM_StorageType.Table_Name,MWM_StorageType.COLUMNNAME_M_Locator_ID+"=?",trxName)
-					.setParameters(empty.getM_Locator_ID())
-					.first();
-				if (storagetype!=null)
-					continue;
-				//if has PreferredProduct then continue also
-				MWM_PreferredProduct preferred = new Query(Env.getCtx(),MWM_StorageType.Table_Name,MWM_StorageType.COLUMNNAME_M_Locator_ID+"=?",trxName)
-					.setParameters(empty.getM_Locator_ID())
-					.first();
-				if (preferred!=null)
-					continue;
 			
-				//get next EmptyStorage, if fit, then break, otherwise if balance, then continue
-				int locator_id = empty.getM_Locator_ID(); 
-				locator_id = wh.getDefaultLocator().get_ID();
-				balance = startPutAwayProcess(inout,dline,balance,locator_id);
+			//get Default Locator since nothing fits in Zone / Preferred Product
+			int locator_id = wh.getDefaultLocator().get_ID();
+			if (locator_id==0)
+				throw new AdempiereException("There is no Default Locator at "+wh.getName());
+			balance = startPutAwayProcess(inout,dline,balance,locator_id);
 				if (balance.compareTo(Env.ZERO)>0)
-					continue;
-				else {
-					break;
-				}
-			} 
-			if (balance.compareTo(Env.ZERO)>0)
-				log.warning("NO Storage Found for "+balance+" "+product.getName());
+					log.saveError("ERROR","Default Storage insufficient for "+balance+" "+dline.getM_Product().getValue()+" - increase capaacity to a million");
 		}
 	}
 

@@ -56,10 +56,13 @@ import org.wms.model.MWM_InOutLine;
 				MWM_HandlingUnit oldhu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=?",get_TrxName())
 						.setParameters(line.getWM_HandlingUnit_ID())
 						.first();
-				oldhu.setQtyMovement(Env.ZERO);
-				oldhu.setDocStatus(MWM_HandlingUnit.DOCSTATUS_Drafted);
-				oldhu.saveEx(get_TrxName());
-				old++;
+				if (oldhu!=null) {
+					oldhu.setQtyMovement(Env.ZERO);
+					oldhu.setDocStatus(MWM_HandlingUnit.DOCSTATUS_Drafted);
+					oldhu.saveEx(get_TrxName());
+					old++;
+				}
+
 				//history
 				MWM_HandlingUnitHistory oldhuh = new Query(Env.getCtx(),MWM_HandlingUnitHistory.Table_Name,MWM_HandlingUnitHistory.COLUMNNAME_WM_HandlingUnit_ID+"=?",get_TrxName())
 						.setParameters(oldhu.getWM_HandlingUnit_ID())
@@ -68,7 +71,7 @@ import org.wms.model.MWM_InOutLine;
 					oldhuh.setDateEnd(oldhu.getUpdated());
 					oldhuh.saveEx(get_TrxName());
 				} else
-					log.severe("NO HandlingUnit History for: "+oldhu.getName());
+					log.warning("NO HandlingUnit History for: "+oldhu.getName());
 
 			}
 			//Replacing with user selected HU

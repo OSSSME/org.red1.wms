@@ -10,6 +10,7 @@ package org.wms.process;
 
 import java.util.List;
 
+import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.Query;
 import org.compiere.process.ProcessInfoParameter;
 import org.compiere.process.SvrProcess;
@@ -43,7 +44,8 @@ import org.wms.model.MWM_InOutLine;
 
 		List<MWM_InOutLine> lines = new Query(Env.getCtx(),MWM_InOutLine.Table_Name,whereClause,get_TrxName())
 		.setParameters(getAD_PInstance_ID()).list();
-
+		if (lines.get(0).getWM_InOut().isSOTrx())
+			throw new AdempiereException("Change HU is for Putaways (Returns) mostly");
 		int old = 0;
 		int units = 0;
 		Utils util = new Utils(get_TrxName());

@@ -374,11 +374,17 @@ public class Utils {
 			releaseHandlingUnit(esline);
 		}
 	} 
-	public List<MWM_EmptyStorageLine> removeOtherWarehouse(int thisWH, List<MWM_EmptyStorageLine> elines) {
+	public List<MWM_EmptyStorageLine> removeOtherWarehouse(boolean org, int thisWH, List<MWM_EmptyStorageLine> elines) {
 		 for (int i=0; i<elines.size();i++) {
-			if (elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Warehouse_ID()!=thisWH) {
+			if (!org && elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Warehouse_ID()!=thisWH) {
 				elines.remove(i);
 				i--;
+			}else if (org) {
+				int t = elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Warehouse().getAD_Org_ID();
+				if (t!=Env.getAD_Org_ID(Env.getCtx())) {
+					elines.remove(i);
+					i--;
+				}
 			}
 			else
 			if (elines.get(i).getQtyMovement().compareTo(Env.ZERO)==0) {

@@ -80,14 +80,7 @@ public class Utils {
 		huh.setM_Product_ID(inoutline.getM_Product_ID());
 		huh.setDateStart(hu.getUpdated());
 		huh.saveEx(trxName);
-//		if (inoutline.getWM_InOut().isSOTrx()) { TODO Handled during MWMInOut.CompleteIt()
-//			if (eline==null)
-//				log.warning("Assign Handling Unit - No EmptyStorageLine yet. InOutLine details: "+inoutline.toString());
-//			else {
-//red1 			eline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
-//red1 			eline.saveEx(trxName);
-//			}
-//		}
+
 		inoutline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
 		inoutline.saveEx(trxName);
 		return inoutline;
@@ -383,11 +376,15 @@ public class Utils {
 	} 
 	public List<MWM_EmptyStorageLine> removeOtherWarehouse(int thisWH, List<MWM_EmptyStorageLine> elines) {
 		 for (int i=0; i<elines.size();i++) {
-			if (elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Warehouse_ID()!=thisWH)
+			if (elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Warehouse_ID()!=thisWH) {
 				elines.remove(i);
+				i--;
+			}
 			else
-			if (elines.get(i).getQtyMovement().compareTo(Env.ZERO)==0)
+			if (elines.get(i).getQtyMovement().compareTo(Env.ZERO)==0) {
 				elines.remove(i); 
+				i--;
+			}
 			else if (elines.get(i).getQtyMovement().compareTo(Env.ZERO)<0) {
 				log.warning("Storage Line below ZERO at:"+elines.get(i).getWM_EmptyStorage().getM_Locator().getValue()+" for "+elines.get(i).getM_Product().getValue()+" "
 			+elines.get(i).getQtyMovement());

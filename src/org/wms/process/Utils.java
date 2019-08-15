@@ -374,6 +374,13 @@ public class Utils {
 			releaseHandlingUnit(esline);
 		}
 	} 
+	/**
+	 * Remove if not thisWH, if not this org, if not > 0, if not blocked
+	 * @param org
+	 * @param thisWH
+	 * @param elines
+	 * @return
+	 */
 	public List<MWM_EmptyStorageLine> removeOtherWarehouse(boolean org, int thisWH, List<MWM_EmptyStorageLine> elines) {
 		 for (int i=0; i<elines.size();i++) {
 			if (!org && elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Warehouse_ID()!=thisWH) {

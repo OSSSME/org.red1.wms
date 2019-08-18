@@ -35,8 +35,11 @@ public class MWM_EmptyStorageLine extends X_WM_EmptyStorageLine{
 				.first();
 		if (inout==null)
 			return true;
-		else if (inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Completed)||inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Closed))
+		else if (!inout.isSOTrx())
 			return true;
+		else if (inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Completed)||inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Closed)) {
+ 			return true;
+		}
 		else 
 			return false;
 	}

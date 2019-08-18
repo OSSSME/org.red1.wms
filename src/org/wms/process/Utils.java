@@ -80,9 +80,18 @@ public class Utils {
 		huh.setM_Product_ID(inoutline.getM_Product_ID());
 		huh.setDateStart(hu.getUpdated());
 		huh.saveEx(trxName);
-
+		MWM_EmptyStorageLine eline = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_WM_HandlingUnit_ID+"=?", trxName)
+				.setParameters(inoutline.getWM_HandlingUnit_ID())
+				.first();
+		if (eline==null)
+			log.warning("StorageLine not found Handling Unit: "+inoutline.getWM_HandlingUnit().getName());
+		else{
+			eline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
+			eline.saveEx(trxName);
+		}
 		inoutline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
 		inoutline.saveEx(trxName);
+		log.info(hu.getName()+" assigned to "+inoutline.getQtyPicked()+" "+inoutline.getM_Product().getValue());
 		return inoutline;
 	}
 

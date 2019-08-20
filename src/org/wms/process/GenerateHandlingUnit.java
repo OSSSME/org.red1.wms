@@ -23,10 +23,11 @@ import org.wms.model.MWM_HandlingUnit;
 	public class GenerateHandlingUnit extends SvrProcess {
 
 	private Integer Counter = 0;
-	String name = "";
+	String lastname = "";
 	private String Prefix = "";
 	int cnt = 0;
 	private int Capacity = 0;
+	int AD_Org_ID=0;
 
 	protected void prepare() {
 		ProcessInfoParameter[] para = getParameter();
@@ -53,11 +54,13 @@ import org.wms.model.MWM_HandlingUnit;
 		for (int i=0;i<leading;i++) {
 			zeros.append("0");
 		} 
+		leading = 3;// to be hard fixed as above algorithm is wrong when generating only 1
 		//find last number
 		int last = 0;
 		MWM_HandlingUnit lasthu = new Query(getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_Name+" Like '"+Prefix+"%'",get_TrxName())
 				.setOrderBy("Created DESC").first();
 		if (lasthu!=null) {
+			AD_Org_ID = lasthu.getAD_Org_ID();
 			int x = lasthu.getName().length()-Prefix.length();
 			String lastnumber = lasthu.getName().substring(lasthu.getName().length()-x);
 			last = Integer.valueOf(lastnumber)+1;
@@ -68,7 +71,7 @@ import org.wms.model.MWM_HandlingUnit;
 			if (cnt>1000)
 				break;
 		}
-		return "Handling Units done:"+cnt+ " Last Unit: "+name;
+		return "Handling Units done:"+cnt+ " Last Unit: "+lastname;
 	}
 
 	private void createHandlingUnit(int zeros,int serial) { 
@@ -79,12 +82,13 @@ import org.wms.model.MWM_HandlingUnit;
 		if (hu!= null)
 			return;
 		hu = new MWM_HandlingUnit(getCtx(), 0, get_TrxName());
+		hu.setAD_Org_ID(AD_Org_ID);
 		hu.setCapacity(new BigDecimal(Capacity));
 		hu.setDocStatus(MWM_HandlingUnit.DOCSTATUS_Drafted); 
 		hu.setName(name);
 		hu.setQtyMovement(Env.ZERO);
 		hu.saveEx(get_TrxName());
-		name = hu.getName();
+		lastname = hu.getName();
 		statusUpdate("Generate HandlingUnit " + name); 
 	}
 }

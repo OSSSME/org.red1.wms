@@ -141,7 +141,7 @@ import org.wms.model.MWM_WarehousePick;
 			lines = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,whereClause,trxName)
 					.setParameters(getAD_PInstance_ID())
 					.list();	
-			System.out.println(lines.size()+" no of lines for Putaway/Picking creation.");
+			log.fine(lines.size()+" no of lines for Putaway/Picking creation.");
 		}
 	
 		if (lines==null || lines.isEmpty())
@@ -187,7 +187,7 @@ import org.wms.model.MWM_WarehousePick;
 	private void putawayProcess(MWM_InOut inout, List<MWM_DeliveryScheduleLine> lines) {
 		for (MWM_DeliveryScheduleLine dline:lines){
 			if (dline.getWM_InOutLine_ID()>0) {
-				System.out.println("DSLine has WM Line:"+dline.getWM_InOutLine().getWM_InOut().getName());
+				log.info("DSLine has WM Line:"+dline.getWM_InOutLine().getWM_InOut().getName());
 				continue;//already done
 			}
 			if (!dline.isReceived()){
@@ -289,7 +289,7 @@ import org.wms.model.MWM_WarehousePick;
 		}
 		BigDecimal alloting = uomFactors(dsline,balance);
 		BigDecimal vacancy = util.getAvailableCapacity(empty).multiply(boxConversion);	  
-		System.out.println("Locator "+empty.getM_Locator().getValue()+" has "+vacancy+" for "+alloting+" "+dsline.getM_Product().getName());
+		log.info("Locator "+empty.getM_Locator().getValue()+" has "+vacancy+" for "+alloting+" "+dsline.getM_Product().getName());
 		BigDecimal holder = Env.ZERO;
 		boolean fullyfilllocator=false;
 		if (alloting.compareTo(vacancy)>=0 && IsSameLine==false){
@@ -303,8 +303,7 @@ import org.wms.model.MWM_WarehousePick;
  				bal=boxConversion;
  			else {
  				if (IsSameLine) {
- 					System.out.println("SameLine Break. Not Putaway:"+bal+" "+dsline.getM_Product().getName());
- 					log.warning("SameLine Break. Not Putaway:"+bal+" "+dsline.getM_Product().getName());
+  					log.fine("SameLine Break. Not Putaway:"+bal+" "+dsline.getM_Product().getName());
  					break;
  				}
  	 			bal=alloting;
@@ -315,13 +314,13 @@ import org.wms.model.MWM_WarehousePick;
  	 		alloting=alloting.subtract(bal);
  	 		holder=holder.add(bal);
  	 		if (alloting.compareTo(Env.ZERO)==0)
- 	 			log.info("Locator fully took "+holder+" "+dsline.getM_Product().getName());
+ 	 			log.fine("Locator fully took "+holder+" "+dsline.getM_Product().getName());
  	 		else
- 	 		log.info("Same Locator "+empty.getM_Locator().getValue()+" to take remaining "+alloting+" "+dsline.getM_Product().getName());
+ 	 		log.fine("Same Locator "+empty.getM_Locator().getValue()+" to take remaining "+alloting+" "+dsline.getM_Product().getName());
  		}
  		if (fullyfilllocator) {
  			balance=balance.subtract(holder.divide(packFactor,2,RoundingMode.HALF_EVEN));
- 			log.info("Locator "+empty.getM_Locator().getValue()+" fully filled by "+dsline.getM_Product().getName());
+ 			log.fine("Locator "+empty.getM_Locator().getValue()+" fully filled by "+dsline.getM_Product().getName());
  		}
  		else
  			balance=Env.ZERO;
@@ -350,7 +349,7 @@ import org.wms.model.MWM_WarehousePick;
 			if (!getPickingLocators(inout,line))
 				throw new AdempiereException("Pick Failed. Check if you at right Warehouse "+wh.getName());
 			else
-				System.out.println("Success picked "+line.getQtyOrdered()+" of "+line.getM_Product().getValue());
+				log.info("Success picked "+line.getQtyOrdered()+" of "+line.getM_Product().getValue());
 		}	
 	}
 

@@ -84,28 +84,31 @@ public class Utils {
 				.setParameters(inoutline.getWM_HandlingUnit_ID())
 				.first();
 		if (eline==null)
-			log.warning("StorageLine not found Handling Unit: "+inoutline.getWM_HandlingUnit().getName());
+			log.fine("StorageLine not found Handling Unit: "+inoutline.getWM_HandlingUnit().getName());
 		else{
 			eline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
 			eline.saveEx(trxName);
 		}
 		inoutline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
 		inoutline.saveEx(trxName);
-		log.info(hu.getName()+" assigned to "+inoutline.getQtyPicked()+" "+inoutline.getM_Product().getValue());
+		log.fine(hu.getName()+" assigned to "+inoutline.getQtyPicked()+" "+inoutline.getM_Product().getValue());
 		return inoutline;
 	}
 
 	private void getAvailableHandlingUnit() {
-		if (WM_HandlingUnit_ID==0) {//hard set to HU0000 DRAFTs)
-			hu = new Query(Env.getCtx(), MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_Name+">? AND "
+		if (WM_HandlingUnit_ID==0) {//auto set to last Org HU - create more if needed
+			int AD_Org_ID = Env.getAD_Org_ID(Env.getCtx());
+			//get last name of Org HandlingUnit
+			hu = new Query(Env.getCtx(), MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_AD_Org_ID+"=? AND "
+					+MWM_HandlingUnit.COLUMNNAME_Name+">? AND "
 					+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)
-					.setParameters("HU000",MWM_HandlingUnit.DOCSTATUS_Drafted) 
+					.setParameters(AD_Org_ID,"0",MWM_HandlingUnit.DOCSTATUS_Drafted) 
 					.setOrderBy(MWM_HandlingUnit.COLUMNNAME_Name)
-					.first();
+					.first();System.out.println(hu.getName());
 			if (hu!=null)
 				WM_HandlingUnit_ID=hu.get_ID();
 			else 
-				throw new AdempiereException("HandlingUnit HU prefix not available. Please create more.");
+				throw new AdempiereException("RUN Generate HandlingUnit process.");
 		}
 		hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "
 				+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)

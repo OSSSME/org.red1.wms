@@ -104,10 +104,12 @@ public class Utils {
 					+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)
 					.setParameters(AD_Org_ID,"0",MWM_HandlingUnit.DOCSTATUS_Drafted) 
 					.setOrderBy(MWM_HandlingUnit.COLUMNNAME_Name)
-					.first();System.out.println(hu.getName());
+					.first();
 			if (hu!=null)
 				WM_HandlingUnit_ID=hu.get_ID();
-			else 
+			else if (AD_Org_ID==0)
+				throw new AdempiereException("Check your Organization - "+AD_Org_ID);
+			else
 				throw new AdempiereException("RUN Generate HandlingUnit process.");
 		}
 		hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "

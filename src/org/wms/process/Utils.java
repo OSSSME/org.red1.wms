@@ -426,6 +426,34 @@ public class Utils {
 		 }
 		return elines;
 	}
+	public List<MWM_EmptyStorageLine> removeOtherOrgBlockedAndZero(boolean org, int thisWH, List<MWM_EmptyStorageLine> elines) {
+		 for (int i=0; i<elines.size();i++) {
+			 if (org) {
+				int t = elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Warehouse().getAD_Org_ID();
+				if (t!=Env.getAD_Org_ID(Env.getCtx())) {
+					elines.remove(i);
+					i--;
+				}
+			}
+			else
+			if (elines.get(i).getQtyMovement().compareTo(Env.ZERO)==0) {
+				elines.remove(i); 
+				i--;
+			}
+			else if (elines.get(i).getQtyMovement().compareTo(Env.ZERO)<0) {
+				log.warning("Storage Line below ZERO at:"+elines.get(i).getWM_EmptyStorage().getM_Locator().getValue()+" for "+elines.get(i).getM_Product().getValue()+" "
+			+elines.get(i).getQtyMovement());
+				elines.remove(i); 
+				i--;
+			}
+			else 
+			if (elines.get(i).getWM_EmptyStorage().isBlocked()) {
+				elines.remove(i);
+				i--;
+			}
+		 }
+		return elines;
+	}
 	public List<MWM_EmptyStorageLine> removeBiggerBoxSize(List<MWM_EmptyStorageLine> elines,BigDecimal boxConversion) {
 		for (int i=0; i<elines.size();i++) { 
 			if (elines.get(i).getQtyMovement().compareTo(boxConversion)>0) {

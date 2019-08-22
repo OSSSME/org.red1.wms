@@ -278,7 +278,7 @@ public class Utils {
 	 */
 	public void pickedEmptyStorageLine(BigDecimal picking,MWM_EmptyStorageLine  oldline) {  
 		oldline.setQtyMovement(oldline.getQtyMovement().subtract(picking));
-		oldline.setWM_InOutLine_ID(0);//no longer need reference. Free for others to take on.
+		//oldline.setWM_InOutLine_ID(0);//keep as record as its parent WMInOut is Complete = free 
 		if (oldline.getQtyMovement().compareTo(Env.ZERO)==0) {
 			oldline.setIsActive(false);
 			oldline.setDateEnd(Today);
@@ -434,7 +434,11 @@ public class Utils {
 					elines.remove(i);
 					i--;
 				}
-			}
+			} else
+					if (elines.get(i).getWM_HandlingUnit_ID()==0) {
+						elines.remove(i); 
+						i--;
+					}
 			else
 			if (elines.get(i).getQtyMovement().compareTo(Env.ZERO)==0) {
 				elines.remove(i); 

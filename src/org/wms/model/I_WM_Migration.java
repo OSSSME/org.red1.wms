@@ -32,7 +32,7 @@ public interface I_WM_Migration
     /** TableName=WM_Migration */
     public static final String Table_Name = "WM_Migration";
 
-    /** AD_Table_ID=1000033 */
+    /** AD_Table_ID=1000000 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -188,6 +188,17 @@ public interface I_WM_Migration
 	public int getWM_HandlingUnit_ID();
 
 	public I_WM_HandlingUnit getWM_HandlingUnit() throws RuntimeException;
+
+    /** Column name WM_HandlingUnitOld_ID */
+    public static final String COLUMNNAME_WM_HandlingUnitOld_ID = "WM_HandlingUnitOld_ID";
+
+	/** Set HandlingUnit Old	  */
+	public void setWM_HandlingUnitOld_ID (int WM_HandlingUnitOld_ID);
+
+	/** Get HandlingUnit Old	  */
+	public int getWM_HandlingUnitOld_ID();
+
+	public I_WM_HandlingUnit getWM_HandlingUnitOld() throws RuntimeException;
 
     /** Column name WM_Migration_ID */
     public static final String COLUMNNAME_WM_Migration_ID = "WM_Migration_ID";

@@ -33,7 +33,7 @@ public class X_WM_Migration extends PO implements I_WM_Migration, I_Persistent
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20190426L;
+	private static final long serialVersionUID = 20190829L;
 
     /** Standard Constructor */
     public X_WM_Migration (Properties ctx, int WM_Migration_ID, String trxName)
@@ -206,6 +206,31 @@ public class X_WM_Migration extends PO implements I_WM_Migration, I_Persistent
 	public int getWM_HandlingUnit_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_WM_HandlingUnit_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public I_WM_HandlingUnit getWM_HandlingUnitOld() throws RuntimeException
+    {
+		return (I_WM_HandlingUnit)MTable.get(getCtx(), I_WM_HandlingUnit.Table_Name)
+			.getPO(getWM_HandlingUnitOld_ID(), get_TrxName());	}
+
+	/** Set HandlingUnit Old.
+		@param WM_HandlingUnitOld_ID HandlingUnit Old	  */
+	public void setWM_HandlingUnitOld_ID (int WM_HandlingUnitOld_ID)
+	{
+		if (WM_HandlingUnitOld_ID < 1) 
+			set_Value (COLUMNNAME_WM_HandlingUnitOld_ID, null);
+		else 
+			set_Value (COLUMNNAME_WM_HandlingUnitOld_ID, Integer.valueOf(WM_HandlingUnitOld_ID));
+	}
+
+	/** Get HandlingUnit Old.
+		@return HandlingUnit Old	  */
+	public int getWM_HandlingUnitOld_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_WM_HandlingUnitOld_ID);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();

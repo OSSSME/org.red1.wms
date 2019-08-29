@@ -434,24 +434,17 @@ public class Utils {
 					elines.remove(i);
 					i--;
 				}
-			} else
-					if (elines.get(i).getWM_HandlingUnit_ID()==0) {
-						elines.remove(i); 
-						i--;
-					}
-			else
-			if (elines.get(i).getQtyMovement().compareTo(Env.ZERO)==0) {
-				elines.remove(i); 
-				i--;
-			}
-			else if (elines.get(i).getQtyMovement().compareTo(Env.ZERO)<0) {
-				log.warning("Storage Line below ZERO at:"+elines.get(i).getWM_EmptyStorage().getM_Locator().getValue()+" for "+elines.get(i).getM_Product().getValue()+" "
+			} else if (elines.get(i).getWM_HandlingUnit_ID()==0) {
+					log.warning("Missing Handling Unit for :"+elines.get(i).getQtyMovement()+" "
+							+elines.get(i).getM_Product().getValue()+" at "+elines.get(i).getWM_EmptyStorage().getM_Locator().getValue());
+					elines.remove(i); 
+					i--;
+			} else if (elines.get(i).getQtyMovement().compareTo(Env.ZERO)<0) {
+				log.warning("Storage Line ZERO or below at:"+elines.get(i).getWM_EmptyStorage().getM_Locator().getValue()+" for "+elines.get(i).getM_Product().getValue()+" "
 			+elines.get(i).getQtyMovement());
 				elines.remove(i); 
 				i--;
-			}
-			else 
-			if (elines.get(i).getWM_EmptyStorage().isBlocked()) {
+			} else if (elines.get(i).getWM_EmptyStorage().isBlocked()) {
 				elines.remove(i);
 				i--;
 			}

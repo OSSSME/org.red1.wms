@@ -179,6 +179,8 @@ import org.wms.model.MWM_StorageType;
 			X_M_Locator locator = new Query(Env.getCtx(),X_M_Locator.Table_Name,X_M_Locator.COLUMNNAME_M_Warehouse_ID+"=? AND IsDefault='Y'",trxName)
 					.setParameters(M_Warehouse_ID)
 					.first();
+			if (locator==null && M_Locator_ID==0)
+				locator=warehouse.getDefaultLocator();
 			target = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",trxName)
 					.setParameters(locator.get_ID()).first();
 			M_Locator_ID = target.getM_Locator_ID();

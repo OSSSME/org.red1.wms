@@ -526,10 +526,6 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		return null;
 	}
 
- 	public String getDocumentNo() {
-		return Msg.getElement(getCtx(), X_WM_InOut.COLUMNNAME_WM_InOut_ID) + " " + getDocumentNo();
- 	}
-
  	public String getDocumentInfo() {
 		return null;
 	}

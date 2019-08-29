@@ -347,9 +347,9 @@ import org.wms.model.MWM_WarehousePick;
 
 			//if Handling Unit is set, then assign while creating WM_InOuts. EmptyLocators also assigned. Can be cleared and reassigned in next Info-Window
 			if (!getPickingLocators(inout,line))
-				throw new AdempiereException("Pick Failed. Check if you at right Warehouse "+wh.getName());
+				throw new AdempiereException("Line "+putaways+". "+line.getQtyOrdered()+" of "+line.getM_Product().getValue());
 			else
-				log.info("Success picked "+line.getQtyOrdered()+" of "+line.getM_Product().getValue());
+				log.info("Line "+putaways+". "+line.getQtyOrdered()+" of "+line.getM_Product().getValue());
 		}	
 	}
 
@@ -369,17 +369,17 @@ import org.wms.model.MWM_WarehousePick;
 		if (RouteOrder.equals("NO")) {
 			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">? AND ISSOTRX=?",trxName)
 					.setParameters(product.get_ID(),0,false)
-					.setOrderBy(MWM_EmptyStorageLine.COLUMNNAME_WM_EmptyStorage_ID)
+					.setOrderBy(MWM_EmptyStorageLine.COLUMNNAME_WM_EmptyStorage_ID+","+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+" DESC")
 					.list();
 		}else if (RouteOrder.equals("FI")) {
 			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">? AND ISSOTRX=?",trxName)
 					.setParameters(product.get_ID(),0,false)
-					.setOrderBy(MWM_EmptyStorageLine.COLUMNNAME_DateStart)
+					.setOrderBy(MWM_EmptyStorageLine.COLUMNNAME_DateStart+","+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+" DESC")
 					.list();
 		}else if (RouteOrder.equals("LI")) {
 			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">? AND ISSOTRX=?",trxName)
 						.setParameters(product.get_ID(),0,false)
-						.setOrderBy(MWM_EmptyStorageLine.COLUMNNAME_DateStart+" DESC")
+						.setOrderBy(MWM_EmptyStorageLine.COLUMNNAME_DateStart+" DESC"+","+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+" DESC")
 						.list();
 		}else{
 			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">? AND ISSOTRX=?",trxName)

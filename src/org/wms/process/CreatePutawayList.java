@@ -140,6 +140,7 @@ import org.wms.model.MWM_WarehousePick;
 		}else {
 			lines = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,whereClause,trxName)
 					.setParameters(getAD_PInstance_ID())
+					.setOnlyActiveRecords(true)
 					.list();	
 			log.fine(lines.size()+" no of lines for Putaway/Picking creation.");
 		}
@@ -346,9 +347,12 @@ import org.wms.model.MWM_WarehousePick;
 			BigDecimal balance =line.getQtyDelivered();			
 
 			//if Handling Unit is set, then assign while creating WM_InOuts. EmptyLocators also assigned. Can be cleared and reassigned in next Info-Window
-			if (!getPickingLocators(inout,line))
-				throw new AdempiereException("Line "+putaways+". "+line.getQtyOrdered()+" of "+line.getM_Product().getValue());
-			else
+			if (!getPickingLocators(inout,line)) {
+				line.setIsActive(false);
+				line.setWM_InOutLine_ID(0);
+				line.saveEx(trxName);
+				log.warning("Line "+putaways+". "+line.getQtyOrdered()+" of "+line.getM_Product().getValue());
+			}else
 				log.info("Line "+putaways+". "+line.getQtyOrdered()+" of "+line.getM_Product().getValue());
 		}	
 	}
@@ -369,7 +373,7 @@ import org.wms.model.MWM_WarehousePick;
 		if (RouteOrder.equals("NO")) {
 			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">? AND ISSOTRX=?",trxName)
 					.setParameters(product.get_ID(),0,false)
-					.setOrderBy(MWM_EmptyStorageLine.COLUMNNAME_WM_EmptyStorage_ID+","+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+" DESC")
+					.setOrderBy(MWM_EmptyStorageLine.COLUMNNAME_DateStart+","+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement)
 					.list();
 		}else if (RouteOrder.equals("FI")) {
 			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">? AND ISSOTRX=?",trxName)
@@ -411,8 +415,8 @@ import org.wms.model.MWM_WarehousePick;
 					.setParameters(MWM_HandlingUnit.DOCSTATUS_Completed,eline.getWM_HandlingUnit_ID())
 					.first();**/
 			MWM_HandlingUnit hu = MWM_HandlingUnit.get(getCtx(), eline.getWM_HandlingUnit_ID(),trxName);
-			if (hu != null && !hu.getDocStatus().equals(MWM_HandlingUnit.DOCSTATUS_Completed))
-				continue;
+//			if (hu != null && !hu.getDocStatus().equals(MWM_HandlingUnit.DOCSTATUS_Completed))
+//				continue;
 
 			if (hu==null && dline.isReceived())
 				continue; //next EmptyLine until not InProgress

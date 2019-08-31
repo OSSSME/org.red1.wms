@@ -345,10 +345,9 @@ import org.wms.model.MWM_WarehousePick;
 				isReceived=true;
 			//running balance in use thru-out here
 			BigDecimal balance =line.getQtyDelivered();			
-
+			statusUpdate("Picking :"+line.getQtyDelivered()+" "+line.getM_Product().getValue());
 			//if Handling Unit is set, then assign while creating WM_InOuts. EmptyLocators also assigned. Can be cleared and reassigned in next Info-Window
 			if (!getPickingLocators(inout,line)) {
-				line.setIsActive(false);
 				line.setWM_InOutLine_ID(0);
 				line.saveEx(trxName);
 				log.warning("Line "+putaways+". "+line.getQtyOrdered()+" of "+line.getM_Product().getValue());

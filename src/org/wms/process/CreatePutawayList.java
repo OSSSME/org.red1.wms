@@ -370,23 +370,23 @@ import org.wms.model.MWM_WarehousePick;
 		//NOrmal (shortest), FIfo, or LIfo based on previous putaway date start order
 		List<MWM_EmptyStorageLine>elines = null;
 		if (RouteOrder.equals("NO")) {
-			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">? AND ISSOTRX=?",trxName)
-					.setParameters(product.get_ID(),0,false)
+			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">?",trxName)
+					.setParameters(product.get_ID(),0)
 					.setOrderBy(MWM_EmptyStorageLine.COLUMNNAME_DateStart+","+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement)
 					.list();
 		}else if (RouteOrder.equals("FI")) {
-			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">? AND ISSOTRX=?",trxName)
-					.setParameters(product.get_ID(),0,false)
+			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">?",trxName)
+					.setParameters(product.get_ID(),0)
 					.setOrderBy(MWM_EmptyStorageLine.COLUMNNAME_DateStart+","+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+" DESC")
 					.list();
 		}else if (RouteOrder.equals("LI")) {
-			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">? AND ISSOTRX=?",trxName)
-						.setParameters(product.get_ID(),0,false)
+			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">?",trxName)
+						.setParameters(product.get_ID(),0)
 						.setOrderBy(MWM_EmptyStorageLine.COLUMNNAME_DateStart+" DESC"+","+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+" DESC")
 						.list();
 		}else{
-			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">? AND ISSOTRX=?",trxName)
-					.setParameters(product.get_ID(),0,false)
+			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">?",trxName)
+					.setParameters(product.get_ID(),0)
 					.setOrderBy(product.getGuaranteeDays()>0?MWM_EmptyStorageLine.COLUMNNAME_DateStart:MWM_EmptyStorageLine.COLUMNNAME_DateStart+" DESC")
 					.list();
 		}

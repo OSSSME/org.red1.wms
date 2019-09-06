@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.PO;
 import org.compiere.model.Query;
 import org.compiere.process.ProcessInfoParameter;
@@ -49,6 +50,8 @@ import org.wms.model.MWM_HandlingUnit;
 
 	protected String doIt() {
 		//leading zeros string from Capacity/10
+		if (Counter>250)
+			throw new AdempiereException("NOT AUTHORISED. CALL SYSTEM ADMIN");
 		int leading = Counter.toString().length();
 		StringBuilder zeros = new StringBuilder();
 		for (int i=0;i<leading;i++) {

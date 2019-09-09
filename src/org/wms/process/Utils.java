@@ -100,17 +100,18 @@ public class Utils {
 			int AD_Org_ID = Env.getAD_Org_ID(Env.getCtx());
 			//get last name of Org HandlingUnit
 			hu = new Query(Env.getCtx(), MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_AD_Org_ID+"=? AND "
-					+MWM_HandlingUnit.COLUMNNAME_Name+">? AND "
 					+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)
-					.setParameters(AD_Org_ID,"0",MWM_HandlingUnit.DOCSTATUS_Drafted) 
+					.setParameters(AD_Org_ID,MWM_HandlingUnit.DOCSTATUS_Drafted) 
 					.setOrderBy(MWM_HandlingUnit.COLUMNNAME_Name)
 					.first();
 			if (hu!=null)
 				WM_HandlingUnit_ID=hu.get_ID();
 			else if (AD_Org_ID==0)
 				throw new AdempiereException("Check your Organization - "+AD_Org_ID);
-			else
-				throw new AdempiereException("RUN Generate HandlingUnit process.");
+			else {
+				log.warning("RUN Generate HandlingUnit process.");
+				hu=generateHU();
+			}
 		}
 		hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "
 				+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)
@@ -125,12 +126,57 @@ public class Utils {
 				.setParameters(huname,MWM_HandlingUnit.DOCSTATUS_Drafted) 
 				.setOrderBy(MWM_HandlingUnit.COLUMNNAME_Name)
 				.first();
-			if (hu==null)
-				throw new AdempiereException("No more Available HandlingUnits. Generate again."+huname);
+			if (hu==null) {
+				log.warning("No more Available HandlingUnits. Generate again. "+huname);
+				hu=generateHU();
+			}
 			WM_HandlingUnit_ID = hu.get_ID(); 
 		} 
 	}
 
+	private MWM_HandlingUnit generateHU() {
+		int AD_Org_ID=Env.getAD_Org_ID(Env.getCtx());
+		int leading = 3;
+		int Counter=50;
+		StringBuilder zeros = new StringBuilder();
+		for (int i=0;i<leading;i++) {
+			zeros.append("0");
+		} 
+ 		//find last number
+		int last = 0;
+		MWM_HandlingUnit lasthu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,"AD_Org_ID=?",trxName)
+				.setParameters(AD_Org_ID)
+				.setOrderBy("Created DESC").first();
+		if (lasthu!=null) {
+			AD_Org_ID = lasthu.getAD_Org_ID();
+			int x = lasthu.getName().length()-leading;
+			String lastnumber = lasthu.getName().substring(lasthu.getName().length()-x);
+			last = Integer.valueOf(lastnumber)+1;
+		} else 
+			throw new AdempiereException("Your Org has no Handling Unit. Create one first manually");
+		for (int i=0;i<Counter;i++) {
+			 createHandlingUnit(lasthu,leading+3,last++); 
+		}
+		return lasthu;
+	}
+
+	private void createHandlingUnit(MWM_HandlingUnit lasthu,int zeros,int serial) { 
+		String Prefix = lasthu.getName().substring(0,2);
+		String name = Prefix+String.format("%0"+zeros+"d", serial);
+		MWM_HandlingUnit hu = new Query(Env.getCtx(), MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_Name+"=?",trxName)
+				.setParameters(name)
+				.first();
+		if (hu!= null)
+			return;
+		hu = new MWM_HandlingUnit(Env.getCtx(), 0, trxName);
+		hu.setAD_Org_ID(lasthu.getAD_Org_ID());
+		hu.setCapacity(Env.ONEHUNDRED);
+		hu.setDocStatus(MWM_HandlingUnit.DOCSTATUS_Drafted); 
+		hu.setName(name);
+		hu.setQtyMovement(Env.ZERO);
+		hu.saveEx(trxName);   
+		log.info("Handling Unit generated: "+hu.getName());
+	}
 	/**
 	 * DocStatus = Drafted
 	 * QtyMovement = ZERO

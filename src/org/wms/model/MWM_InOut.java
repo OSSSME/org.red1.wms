@@ -29,6 +29,7 @@ import org.compiere.model.MMovement;
 import org.compiere.model.MMovementLine;
 import org.compiere.model.MOrder;
 import org.compiere.model.MOrderLine;
+import org.compiere.model.MPeriod;
 import org.compiere.model.MProduct;
 import org.compiere.model.MUOMConversion;
 import org.compiere.model.MWarehouse;
@@ -313,10 +314,17 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 			 //complete associated Movement AND Picking if Putaway is done first
 			 if (!isSOTrx()) {
 				 MMovement move = (MMovement) getM_Movement();	
-				 if (move!=null && !move.getDocStatus().equals(MMovement.STATUS_Completed)) { 
+				 if (move!=null && !move.getDocStatus().equals(MMovement.STATUS_Completed)) {
+					MDocType dt = MDocType.get(getCtx(), move.getC_DocType_ID());
+					if (!MPeriod.isOpen(getCtx(), move.getMovementDate(), dt.getDocBaseType(), getAD_Org_ID()))
+						{
+							m_processMsg = "@PeriodClosed@";
+							return DocAction.STATUS_Invalid;
+						}
+					move.setDocStatus(DOCSTATUS_InProgress);
 					 move.setDocAction(this.DOCACTION_Complete);
 					 move.processIt(DocAction.ACTION_Complete);
-					 move.saveEx(get_TrxName()); 
+					 move.saveEx(get_TrxName());
 					 log.info("Movement also completed: "+move.getDescription());	 
 				 }else
 					 log.warning("Movement not found to auto complete :"+getName());

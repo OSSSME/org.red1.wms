@@ -39,7 +39,8 @@ public class MWM_EmptyStorageLine extends X_WM_EmptyStorageLine{
 			return true;
 		else if (inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Completed)
 				||inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Closed)
-				||inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Voided)) {
+				||inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Voided)
+				||inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Reversed)) {
  			return true;
 		} 
 		log.warning(ioline.getQtyPicked()+" "+ioline.getM_Product().getValue()+" held up by Picking "+inout.getDocumentNo()+" "+inout.getName());

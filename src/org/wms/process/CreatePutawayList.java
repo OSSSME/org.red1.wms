@@ -201,7 +201,8 @@ import org.wms.model.MWM_WarehousePick;
 			
 			//get Product from InOut Bound line
 			MProduct product = MProduct.get(getCtx(), dline.getM_Product_ID());
-			
+			statusUpdate(putaways+". Putaway :"+dline.getQtyDelivered()+" "+dline.getM_Product().getValue());
+
 			//check if defined in PreferredProduct...
 			List<MWM_PreferredProduct> preferreds = new Query(Env.getCtx(),MWM_PreferredProduct.Table_Name,MWM_PreferredProduct.COLUMNNAME_M_Product_ID+"=?" ,trxName)
 					.setParameters(product.get_ID())

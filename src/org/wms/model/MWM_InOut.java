@@ -321,8 +321,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 							m_processMsg = "@PeriodClosed@";
 							return DocAction.STATUS_Invalid;
 						}
-					move.setDocStatus(DOCSTATUS_InProgress);
-					 move.setDocAction(this.DOCACTION_Complete);
+					 move.setDocStatus(DOCSTATUS_InProgress);
+					 move.setDocAction(DocAction.ACTION_Complete);
 					 move.processIt(DocAction.ACTION_Complete);
 					 move.saveEx(get_TrxName());
 					 log.info("Movement also completed: "+move.getDescription());	 
@@ -465,12 +465,93 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_VOID);
 		if (m_processMsg != null)
 			return false;
+		voidingIt();
  		setProcessed(true);
 		setDocAction(DOCACTION_None);
+		saveEx(get_TrxName());
 		return true;
 	}
 
- 	public boolean closeIt() {
+ 	private void voidingIt() {
+		if (!getDocStatus().equals(DocAction.STATUS_Completed) && !getDocStatus().equals(DocAction.STATUS_InProgress))
+			return;
+		boolean reversedCore = false;
+ 		List<MWM_InOutLine>wiolines = new Query(getCtx(), MWM_InOutLine.Table_Name, MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?", get_TrxName())
+				.setParameters(get_ID())
+				.list();
+		for (MWM_InOutLine wioline:wiolines) {
+			if (getM_Movement_ID()<1 && !reversedCore) {
+				MInOut inout = (MInOut) wioline.getM_InOutLine().getM_InOut();
+				if (inout.getLines().length>0) {
+					if (inout.getDocStatus().equals(DocAction.STATUS_Completed)) {
+						inout.setDocAction(MInOut.DOCACTION_Reverse_Correct);
+						inout.processIt(MInOut.DOCACTION_Reverse_Correct);
+						inout.saveEx(get_TrxName());
+					}
+					else
+						log.severe((isSOTrx()?"Shipment ":"Material Receipt ")+inout.getDescription()+" Not Complete Status. Cannot Reverse.");
+				}
+				reversedCore=true;
+			}	
+			MWM_EmptyStorageLine eline = new Query(getCtx(), MWM_EmptyStorageLine.Table_Name, MWM_EmptyStorageLine.COLUMNNAME_WM_InOutLine_ID+"=?",get_TrxName())
+					.setParameters(wioline.get_ID())
+					.first();
+			MWM_DeliveryScheduleLine dsline = new Query(getCtx(), MWM_DeliveryScheduleLine.Table_Name, MWM_DeliveryScheduleLine.COLUMNNAME_WM_InOutLine_ID+"=?",get_TrxName())
+					.setParameters(wioline.get_ID())
+					.first();
+			if (dsline!=null) {
+				dsline.setWM_InOutLine_ID(0);
+				dsline.saveEx(get_TrxName());
+				log.warning("DeliverySchedule Line Cleared:"+dsline.getQtyOrdered()+" "+dsline.getM_Product().getValue());
+			}
+			if(getDocStatus().equals(DocAction.STATUS_InProgress)) {
+		 		setDocStatus(DOCSTATUS_Voided);
+				if (eline!=null) {
+					eline.setWM_InOutLine_ID(0);
+					eline.saveEx(get_TrxName());
+					log.info((isSOTrx()?"Picking ":"Putaway ")+" removed from StorageLine "+wioline.getQtyPicked()+" "+wioline.getM_Product().getValue());
+				}else
+					log.warning((isSOTrx()?"Picking ":"Putaway ")+wioline.getQtyPicked()+" InProgress ** "+wioline.getM_Product().getValue()+" ** No StorageLine");
+				continue;
+				// ************* RETURN FOR IN PROGRESS PICKING/PUTAWAY ** NO STORAGE CHANGE NEEDED
+			}
+			//Completed Picking/Putaway
+			if (eline==null) {
+				log.warning("StorageLine not found by Picking Line:"+wioline.getQtyPicked()+" "+wioline.getM_Product().getValue());
+				MWM_EmptyStorage empty = new Query(Env.getCtx(), MWM_EmptyStorage.Table_Name, MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",get_TrxName())
+						.setParameters(wioline.getM_Locator_ID())
+						.first();
+				//try old handling unit
+				if (wioline.getWM_HandlingUnitOld_ID()>0) {
+					eline = new Query(Env.getCtx(), MWM_EmptyStorageLine.Table_Name, MWM_EmptyStorageLine.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "
+							+MWM_EmptyStorageLine.COLUMNNAME_WM_EmptyStorage_ID+"=?", get_TrxName())
+							.setParameters(wioline.getWM_HandlingUnitOld_ID(),empty.get_ID())
+							.first();
+					log.info("Origin Handling Unit:"+wioline.getWM_HandlingUnitOld().getName());
+				}else {
+					eline = new Query(Env.getCtx(), MWM_EmptyStorageLine.Table_Name, MWM_EmptyStorageLine.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "
+							+MWM_EmptyStorageLine.COLUMNNAME_WM_EmptyStorage_ID+"=?", get_TrxName())
+							.setParameters(wioline.getWM_HandlingUnit_ID(),empty.get_ID())
+							.first();
+					log.info("Intact Handling Unit "+wioline.getWM_HandlingUnit().getName());
+				}
+			}
+			if (eline==null)
+				throw new AdempiereException("No StorageLine via Handling Unit:"+wioline.getWM_HandlingUnit().getName());
+			if (isSOTrx()) {
+				log.info("Picking Storage at "+eline.getWM_EmptyStorage().getM_Locator().getValue()+" restored by "+wioline.getQtyPicked()+" "+eline.getM_Product().getValue());
+				eline.setQtyMovement(eline.getQtyMovement().add(wioline.getQtyPicked()));
+				eline.setIsActive(true); 
+				eline.saveEx(get_TrxName());
+			}else {
+				log.info("Putaway Storage deleted "+eline.getQtyMovement()+" "+eline.getM_Product().getValue());
+				eline.delete(true);
+			}
+	 		setDocStatus(DOCSTATUS_Reversed);
+		}
+	}
+
+	public boolean closeIt() {
 		if (log.isLoggable(Level.INFO)) log.info("closeIt - " + toString());
 		// Before Close
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_CLOSE);
@@ -601,7 +682,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				empty.setVacantCapacity(Env.ONEHUNDRED);
 				empty.saveEx(get_TrxName());
 				storage=empty;
-				System.out.println("Creating EmptyStorage for Consignee at Locator: "+wioline.getM_Locator().getValue());
+				log.warning("Creating EmptyStorage for Consignee at Locator: "+wioline.getM_Locator().getValue());
 			}
 			if (wioline.getWM_InOut().isSOTrx()) { //Picking OutBound Sales 
 				BigDecimal picked = wioline.getQtyPicked().divide(boxConversion,2,RoundingMode.HALF_EVEN); 			

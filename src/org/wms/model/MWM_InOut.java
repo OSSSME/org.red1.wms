@@ -235,7 +235,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		inout.setC_Order_ID(order.getC_Order_ID());
 		inout.setC_BPartner_ID(order.getC_BPartner_ID());
 		inout.setC_BPartner_Location_ID(order.getC_BPartner_Location_ID());
-		inout.setM_Warehouse_ID(order.getM_Warehouse_ID());
+		inout.setM_Warehouse_ID(lines.get(0).getM_Locator().getM_Warehouse_ID());
 		inout.setC_Project_ID(order.getC_Project_ID());
 		inout.setMovementDate(lines.get(0).getUpdated());
 		if (inout.isSOTrx())
@@ -466,6 +466,7 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		if (m_processMsg != null)
 			return false;
 		voidingIt();
+		setDocStatus(DOCSTATUS_Voided);
  		setProcessed(true);
 		setDocAction(DOCACTION_None);
 		saveEx(get_TrxName());
@@ -473,7 +474,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 	}
 
  	private void voidingIt() {
-		if (!getDocStatus().equals(DocAction.STATUS_Completed) && !getDocStatus().equals(DocAction.STATUS_InProgress))
+		if (!getDocStatus().equals(DocAction.STATUS_Completed) && !getDocStatus().equals(DocAction.STATUS_InProgress)
+				&& !getDocStatus().equals(DocAction.STATUS_Drafted))
 			return;
 		boolean reversedCore = false;
  		List<MWM_InOutLine>wiolines = new Query(getCtx(), MWM_InOutLine.Table_Name, MWM_InOutLine.COLUMNNAME_WM_InOut_ID+"=?", get_TrxName())
@@ -504,8 +506,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				dsline.saveEx(get_TrxName());
 				log.warning("DeliverySchedule Line Cleared:"+dsline.getQtyOrdered()+" "+dsline.getM_Product().getValue());
 			}
-			if(getDocStatus().equals(DocAction.STATUS_InProgress)) {
-		 		setDocStatus(DOCSTATUS_Voided);
+			if(getDocStatus().equals(DOCSTATUS_InProgress) || 
+					getDocStatus().equals(DOCSTATUS_Drafted)) {
 				if (eline!=null) {
 					eline.setWM_InOutLine_ID(0);
 					eline.saveEx(get_TrxName());
@@ -576,7 +578,9 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_REVERSECORRECT);
 		if (m_processMsg != null)
 			return false;
- 		return voidIt();
+		boolean voided = voidIt();
+		setDocStatus(DOCSTATUS_Reversed);
+ 		return voided;
 	}
 
  	public boolean reverseAccrualIt() {

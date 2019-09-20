@@ -140,13 +140,13 @@ import org.wms.model.MWM_WarehousePick;
 		if (external){
 			lines = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_WM_DeliverySchedule_ID+"=?",trxName)
 					.setParameters(externalDeliverySchedule.get_ID())
-					.setOrderBy(MWM_DeliveryScheduleLine.COLUMNNAME_M_Product_ID)
+					.setOrderBy(MWM_DeliveryScheduleLine.COLUMNNAME_WM_DeliverySchedule_ID+","+MWM_DeliveryScheduleLine.COLUMNNAME_M_Product_ID)
 					.list();			
 		}else {
 			lines = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,whereClause,trxName)
 					.setParameters(getAD_PInstance_ID())
 					.setOnlyActiveRecords(true)
-					.setOrderBy(MWM_DeliveryScheduleLine.COLUMNNAME_M_Product_ID)
+					.setOrderBy(MWM_DeliveryScheduleLine.COLUMNNAME_WM_DeliverySchedule_ID+","+MWM_DeliveryScheduleLine.COLUMNNAME_M_Product_ID)
 					.list();	
 			log.fine(lines.size()+" no of lines for Putaway/Picking creation.");
 		}

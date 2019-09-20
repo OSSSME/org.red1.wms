@@ -350,6 +350,11 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				if (del!=null && del.getC_OrderLine().getC_Order_ID()!=c_Order_Holder){
 					if (inout!=null){
 						saveM_InOut(inout,lines);
+						inout.setDescription(isSOTrx()?"Picking":"Putaway");
+						inout.setDocStatus(this.DOCSTATUS_InProgress);
+						inout.setDocAction(this.DOCACTION_Complete);
+						inout.processIt(DocAction.ACTION_Complete);
+						inout.saveEx(get_TrxName());
 					}
 					//create new MInOut  as C_Order_ID has changed
 					inout = new MInOut(Env.getCtx(),0,get_TrxName());

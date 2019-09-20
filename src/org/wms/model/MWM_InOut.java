@@ -144,8 +144,9 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 					.setParameters(wioline.get_ID())
 					.first();
 			if (esline==null) { 
-				if (isSOTrx()) 
-					throw new AdempiereException("Exception in WM InOutLine - no assigned EmptyStorageLine");
+				if (isSOTrx()) {
+					throw new AdempiereException("No EmptyStorageLine in "+wioline.getSequence()+". "+wioline.getQtyPicked()+" "+wioline.getM_Product().getValue());
+				}
 				else { 
 					; //OK. Note that putaway is still unassigned, as create new ESLine happens during CompleteIt()
 				}

@@ -29,13 +29,9 @@ public class MWM_EmptyStorageLine extends X_WM_EmptyStorageLine{
 		MWM_InOutLine ioline = (MWM_InOutLine) getWM_InOutLine();
 		if (ioline==null)
 			return true;
-		MWM_InOut inout = new Query(getCtx(), MWM_InOut.Table_Name, MWM_InOut.COLUMNNAME_WM_InOut_ID+"=?", get_TrxName())
-				.setParameters(ioline.getWM_InOut_ID())
-				.setOnlyActiveRecords(true)
-				.first();
-		if (inout==null)
-			return true;
-		else if (!inout.isSOTrx())
+		MWM_InOut inout = (MWM_InOut) ioline.getWM_InOut();
+		
+		if (!inout.isSOTrx())
 			return true;
 		else if (inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Completed)
 				||inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Closed)
@@ -43,7 +39,9 @@ public class MWM_EmptyStorageLine extends X_WM_EmptyStorageLine{
 				||inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Reversed)) {
  			return true;
 		} 
-		log.warning(ioline.getQtyPicked()+" "+ioline.getM_Product().getValue()+" held up by Picking "+inout.getDocumentNo()+" "+inout.getName());
+		log.warning(ioline.get_ID()+" Picking "+get_ID()+" "+ioline.getQtyPicked()+" "
+		+ioline.getM_Product().getValue()+" held up by Picking "+inout.getDocumentNo()+" "
+		+inout.getName());
 			return false;
 	}
 }

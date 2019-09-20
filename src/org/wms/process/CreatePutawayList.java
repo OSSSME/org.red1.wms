@@ -67,6 +67,9 @@ import org.wms.model.MWM_WarehousePick;
 	private BigDecimal boxConversion=Env.ONE;
 	private BigDecimal currentUOM=Env.ONE;
 	private MWarehouse wh = null;
+	int productholder = 0;
+	List<MWM_EmptyStorageLine>elines = null; 
+	
 	public CreatePutawayList(){
 		
 	}
@@ -136,11 +139,14 @@ import org.wms.model.MWM_WarehousePick;
 		wh = new MWarehouse(getCtx(), M_Warehouse_ID, trxName);
 		if (external){
 			lines = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,MWM_DeliveryScheduleLine.COLUMNNAME_WM_DeliverySchedule_ID+"=?",trxName)
-					.setParameters(externalDeliverySchedule.get_ID()).list();			
+					.setParameters(externalDeliverySchedule.get_ID())
+					.setOrderBy(MWM_DeliveryScheduleLine.COLUMNNAME_M_Product_ID)
+					.list();			
 		}else {
 			lines = new Query(Env.getCtx(),MWM_DeliveryScheduleLine.Table_Name,whereClause,trxName)
 					.setParameters(getAD_PInstance_ID())
 					.setOnlyActiveRecords(true)
+					.setOrderBy(MWM_DeliveryScheduleLine.COLUMNNAME_M_Product_ID)
 					.list();	
 			log.fine(lines.size()+" no of lines for Putaway/Picking creation.");
 		}
@@ -150,7 +156,7 @@ import org.wms.model.MWM_WarehousePick;
 		
 		util = new Utils(trxName);
 		util.setHandlingUnit(WM_HandlingUnit_ID);
-		
+		productholder = 0;
 		MWM_InOut wio = null;
 		if (WM_InOut_ID>0) {
 			wio = new Query(Env.getCtx(), MWM_InOut.Table_Name, MWM_InOut.COLUMNNAME_WM_InOut_ID+"=?", trxName)
@@ -351,9 +357,9 @@ import org.wms.model.MWM_WarehousePick;
 			if (!getPickingLocators(inout,line)) {
 				line.setWM_InOutLine_ID(0);
 				line.saveEx(trxName);
-				log.warning("Line "+putaways+". "+line.getQtyOrdered()+" of "+line.getM_Product().getValue());
+				log.warning("# "+pickings+". "+line.getQtyOrdered()+" of "+line.getM_Product().getValue());
 			}else
-				log.info("Line "+putaways+". "+line.getQtyOrdered()+" of "+line.getM_Product().getValue());
+				log.info("# "+pickings+". "+line.getQtyOrdered()+" of "+line.getM_Product().getValue());
 		}	
 	}
 
@@ -369,23 +375,22 @@ import org.wms.model.MWM_WarehousePick;
 				return true; 
 		}
 		//NOrmal (shortest), FIfo, or LIfo based on previous putaway date start order
-		List<MWM_EmptyStorageLine>elines = null;
-		if (RouteOrder.equals("NO")) {
+		if (RouteOrder.equals("NO") && productholder!=dline.getM_Product_ID()) {
 			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">?",trxName)
 					.setParameters(product.get_ID(),0)
 					.setOrderBy(MWM_EmptyStorageLine.COLUMNNAME_DateStart+","+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement)
 					.list();
-		}else if (RouteOrder.equals("FI")) {
+		}else if (RouteOrder.equals("FI")&&productholder!=dline.getM_Product_ID()) {
 			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">?",trxName)
 					.setParameters(product.get_ID(),0)
 					.setOrderBy(MWM_EmptyStorageLine.COLUMNNAME_DateStart+","+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+" DESC")
 					.list();
-		}else if (RouteOrder.equals("LI")) {
+		}else if (RouteOrder.equals("LI")&&productholder!=dline.getM_Product_ID()) {
 			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">?",trxName)
 						.setParameters(product.get_ID(),0)
 						.setOrderBy(MWM_EmptyStorageLine.COLUMNNAME_DateStart+" DESC"+","+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+" DESC")
 						.list();
-		}else{
+		}else if (productholder!=dline.getM_Product_ID()){
 			elines = new Query(Env.getCtx(),MWM_EmptyStorageLine.Table_Name,MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">?",trxName)
 					.setParameters(product.get_ID(),0)
 					.setOrderBy(product.getGuaranteeDays()>0?MWM_EmptyStorageLine.COLUMNNAME_DateStart:MWM_EmptyStorageLine.COLUMNNAME_DateStart+" DESC")
@@ -396,27 +401,18 @@ import org.wms.model.MWM_WarehousePick;
 			return false;
 		}
 		BigDecimal eachQty=uomFactors(dline,Env.ZERO);
-		
-		for (MWM_EmptyStorageLine eline:elines){
+		if (productholder!=dline.getM_Product_ID()) {
+			elines=util.removeOtherOrgBlockedAndZero(false,null, elines);
+			productholder=dline.getM_Product_ID(); 
+		}  
+		for (int i=0;i<elines.size();i++){
+			MWM_EmptyStorageLine eline = elines.get(i);
 			//if (eline.getWM_InOutLine().getM_InOutLine_ID()<1 && line.isReceived())
 			//	throw new AdempiereException("This Product Has No Shipment/Receipt record. Complete its WM Inout first before picking - "+product.getName()+" -> "+eline.getWM_InOutLine());
 			if (M_Warehouse_ID>0 && eline.getWM_EmptyStorage().getM_Locator().getM_Warehouse_ID()!=M_Warehouse_ID)
-				continue;
-			//cannot take Blocked
-			/**MWM_EmptyStorage storage = new Query(Env.getCtx(),MWM_EmptyStorage.Table_Name,MWM_EmptyStorage.COLUMNNAME_WM_EmptyStorage_ID+"=?",trxName)
-					.setParameters(eline.getWM_EmptyStorage_ID())
-					.first();**/ 
-			MWM_EmptyStorage storage = MWM_EmptyStorage.get(getCtx(), eline.getWM_EmptyStorage_ID(), trxName);
-			if (storage.isBlocked())
-				continue;
-			
-			//take those that are Complete DocStatus (Putaway) or no HandlingUnit
-			/**MWM_HandlingUnit hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_DocStatus+"=? AND "+MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=?",trxName)
-					.setParameters(MWM_HandlingUnit.DOCSTATUS_Completed,eline.getWM_HandlingUnit_ID())
-					.first();**/
+				continue; 
+			//take those that are Complete DocStatus (Putaway) or no HandlingUnit 
 			MWM_HandlingUnit hu = MWM_HandlingUnit.get(getCtx(), eline.getWM_HandlingUnit_ID(),trxName);
-//			if (hu != null && !hu.getDocStatus().equals(MWM_HandlingUnit.DOCSTATUS_Completed))
-//				continue;
 
 			if (hu==null && dline.isReceived())
 				continue; //next EmptyLine until not InProgress
@@ -451,7 +447,9 @@ import org.wms.model.MWM_WarehousePick;
 				inoutline.saveEx(trxName);
 				eline.setWM_InOutLine_ID(inoutline.get_ID());
 				eline.saveEx(trxName);
+				elines.remove(eline);
 				pickings++;
+				statusUpdate("Picked "+picked+" from "+eline.getQtyMovement()+" "+eline.getM_Product().getValue()+" at "+empty.getM_Locator().getValue());
 				return picked;
 			 
 		//Locator EmptyLine Quantity has exactly same size what you picking	
@@ -463,6 +461,8 @@ import org.wms.model.MWM_WarehousePick;
 			inoutline.saveEx(trxName);
 			eline.setWM_InOutLine_ID(inoutline.get_ID());
 			eline.saveEx(trxName);
+			elines.remove(eline); 
+			statusUpdate("Picked "+eline.getQtyMovement()+" "+eline.getM_Product().getValue()+" at "+empty.getM_Locator().getValue());
 			pickings++;
 			if (isReceived){
 				if (WM_HandlingUnit_ID>0){ //Not logical as we do not know which box to pick from

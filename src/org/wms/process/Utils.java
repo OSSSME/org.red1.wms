@@ -3,12 +3,10 @@ package org.wms.process;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.adempiere.exceptions.AdempiereException;
-import org.compiere.model.MMovement;
-import org.compiere.model.MMovementLine;
+import org.compiere.model.I_M_Locator;
 import org.compiere.model.MProduct;
 import org.compiere.model.MUOMConversion;
 import org.compiere.model.Query;
@@ -441,9 +439,9 @@ public class Utils {
 	 * @param elines
 	 * @return
 	 */
-	public List<MWM_EmptyStorageLine> removeOtherWarehouse(boolean org, int thisWH, List<MWM_EmptyStorageLine> elines) {
+	public List<MWM_EmptyStorageLine> removeOtherWarehouse(boolean org, int WH, List<MWM_EmptyStorageLine> elines) {
 		 for (int i=0; i<elines.size();i++) {
-			if (!org && elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Warehouse_ID()!=thisWH) {
+			if (!org && elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Warehouse_ID()!=WH) {
 				elines.remove(i);
 				i--;
 			}else if (org) {
@@ -472,7 +470,7 @@ public class Utils {
 		 }
 		return elines;
 	}
-	public List<MWM_EmptyStorageLine> removeOtherOrgBlockedAndZero(boolean org, int thisWH, List<MWM_EmptyStorageLine> elines) {
+	public List<MWM_EmptyStorageLine> removeOtherOrgBlockedAndZero(boolean org, I_M_Locator locator, List<MWM_EmptyStorageLine> elines) {
 		 for (int i=0; i<elines.size();i++) {
 			 if (org) {
 				int t = elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Warehouse().getAD_Org_ID();
@@ -480,7 +478,10 @@ public class Utils {
 					elines.remove(i);
 					i--;
 				}
-			} else if (elines.get(i).getWM_HandlingUnit_ID()==0) {
+			}else if (!org && locator!=null && elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Locator_ID()!=locator.getM_Locator_ID()) {
+				elines.remove(i);
+				i--;
+			}else if (elines.get(i).getWM_HandlingUnit_ID()==0) {
 					log.warning("Missing Handling Unit for :"+elines.get(i).getQtyMovement()+" "
 							+elines.get(i).getM_Product().getValue()+" at "+elines.get(i).getWM_EmptyStorage().getM_Locator().getValue());
 					elines.remove(i); 
@@ -493,10 +494,24 @@ public class Utils {
 			} else if (elines.get(i).getWM_EmptyStorage().isBlocked()) {
 				elines.remove(i);
 				i--;
+			} else if (elines.get(i).getWM_InOutLine_ID()>0) {
+				MWM_InOut inout = (MWM_InOut) elines.get(i).getWM_InOutLine().getWM_InOut();
+				if (!inout.isSOTrx()) 
+					continue;
+				else if (inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Completed)
+						||inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Closed)
+						||inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Voided)
+						||inout.getDocStatus().equals(MWM_InOut.DOCSTATUS_Reversed))  
+					continue;
+				log.warning(elines.get(i).getQtyMovement()+" "+elines.get(i).getM_Product().getValue()
+						+" "+elines.get(i).getWM_HandlingUnit().getName()+" HandlingUnit Storage Line held up by"+inout.getName());
+				elines.remove(i);
+				i--;
 			}
 		 }
 		return elines;
 	}
+	 
 	public List<MWM_EmptyStorageLine> removeBiggerBoxSize(List<MWM_EmptyStorageLine> elines,BigDecimal boxConversion) {
 		for (int i=0; i<elines.size();i++) { 
 			if (elines.get(i).getQtyMovement().compareTo(boxConversion)>0) {

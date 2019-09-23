@@ -145,7 +145,19 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 					.first();
 			if (esline==null) { 
 				if (isSOTrx()) {
-					throw new AdempiereException("No EmptyStorageLine in "+wioline.getSequence()+". "+wioline.getQtyPicked()+" "+wioline.getM_Product().getValue());
+					MWM_EmptyStorage empty = null;
+					MWM_EmptyStorageLine eline = new Query(getCtx(), MWM_EmptyStorageLine.Table_Name, MWM_EmptyStorageLine.COLUMNNAME_WM_HandlingUnit_ID+"=?",get_TrxName())
+							.setParameters(wioline.getWM_HandlingUnitOld_ID()>0?wioline.getWM_HandlingUnitOld_ID():wioline.getWM_HandlingUnit_ID())
+							.first();
+					if (eline!=null) {
+						empty = new Query(getCtx(), MWM_EmptyStorage.Table_Name, MWM_EmptyStorage.COLUMNNAME_WM_EmptyStorage_ID+"=?",get_TrxName())
+								.setParameters(eline.getWM_EmptyStorage_ID())
+								.first();
+					}
+					throw new AdempiereException("No EmptyStorageLine in "+wioline.getSequence()+". "+wioline.getQtyPicked()
+					+" "+wioline.getM_Product().getValue()+" at WioLine:"+wioline.get_ID()+" "+wioline.getM_Locator().getValue()
+					+" HU:"+(wioline.getWM_HandlingUnitOld_ID()>0?wioline.getWM_HandlingUnitOld().getName():wioline.getWM_HandlingUnit().getName())
+					+" at Storage "+(empty==null?"NULL":empty.getM_Locator().getValue()));
 				}
 				else { 
 					; //OK. Note that putaway is still unassigned, as create new ESLine happens during CompleteIt()
@@ -702,8 +714,8 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 						.setParameters(wioline.get_ID())
 						.first();
 				if (esline.getWM_EmptyStorage_ID()!=storage.get_ID()||esline.getM_Product_ID()!=wioline.getM_Product_ID())
-					throw new AdempiereException("EmptyStorageLine not same Product and Locator as Pick/Put Line");
-					
+					throw new AdempiereException("EmptyStorageLine not same Product and Locator as Pick/Put Line ESLINE:"+esline.get_ID()
+					+" WIOLINE:"+wioline.get_ID()+" "+wioline.getQtyPicked()+" "+wioline.getM_Product().getValue());
 				util.pickedEmptyStorageLine(eachQty, esline);
 			}
 			else { 	//Putaway InBound Purchases

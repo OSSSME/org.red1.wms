@@ -68,7 +68,8 @@ import org.wms.model.MWM_WarehousePick;
 	private BigDecimal currentUOM=Env.ONE;
 	private MWarehouse wh = null;
 	int productholder = 0;
-	List<MWM_EmptyStorageLine>elines = null; 
+	List<MWM_EmptyStorageLine>elines = null;
+	private int M_Locator_ID = 0; 
 	
 	public CreatePutawayList(){
 		
@@ -120,7 +121,10 @@ import org.wms.model.MWM_WarehousePick;
 				}	
 				else if(name.equals("WM_InOut_ID")){
 					WM_InOut_ID = p.getParameterAsInt();
-				}	
+				}
+				else if(name.equals("M_Locator_ID")){
+					M_Locator_ID  = p.getParameterAsInt();
+				}
 			}
 			setTrxName(get_TrxName());
 		}
@@ -215,6 +219,12 @@ import org.wms.model.MWM_WarehousePick;
 					.setOrderBy(MWM_PreferredProduct.COLUMNNAME_M_Locator_ID)
 					.list();
 			boolean done=false;
+			if (M_Locator_ID>0) {
+				balance=startPutAwayProcess(inout, dline, balance, M_Locator_ID);
+				if (balance.compareTo(Env.ZERO)>0)
+					throw new AdempiereException("Locator insufficient space for "+dline.getQtyOrdered()+" "+dline.getM_Product().getValue());
+				continue;
+			}
 			if (preferreds!=null){
 				for (MWM_PreferredProduct preferred:preferreds){
 					 
@@ -396,10 +406,9 @@ import org.wms.model.MWM_WarehousePick;
 					.setOrderBy(product.getGuaranteeDays()>0?MWM_EmptyStorageLine.COLUMNNAME_DateStart:MWM_EmptyStorageLine.COLUMNNAME_DateStart+" DESC")
 					.list();
 		}
-		if (elines==null){
-			log.severe("Product has no Storage available to pick: "+product.getName());
-			return false;
-		}
+		if (elines.isEmpty()){
+			throw new AdempiereException("Product has no Storage available to pick: "+product.getName());
+ 		}
 		BigDecimal eachQty=uomFactors(dline,Env.ZERO);
 		if (productholder!=dline.getM_Product_ID()) {
 			elines=util.removeOtherOrgBlockedAndZero(false,null, elines);

@@ -418,6 +418,8 @@ import org.wms.model.MWM_WarehousePick;
 			MWM_EmptyStorageLine eline = elines.get(i);
 			//if (eline.getWM_InOutLine().getM_InOutLine_ID()<1 && line.isReceived())
 			//	throw new AdempiereException("This Product Has No Shipment/Receipt record. Complete its WM Inout first before picking - "+product.getName()+" -> "+eline.getWM_InOutLine());
+			if (M_Locator_ID>0 && eline.getWM_EmptyStorage().getM_Locator_ID()!=M_Locator_ID)
+				continue;
 			if (M_Warehouse_ID>0 && eline.getWM_EmptyStorage().getM_Locator().getM_Warehouse_ID()!=M_Warehouse_ID)
 				continue; 
 			//take those that are Complete DocStatus (Putaway) or no HandlingUnit 
@@ -438,6 +440,8 @@ import org.wms.model.MWM_WarehousePick;
 					return true;
 				}  
 		}
+		if (eachQty.compareTo(Env.ZERO)>0)
+			throw new AdempiereException("NOT ENOUGH STOCK BY "+eachQty+" for "+dline.getQtyOrdered()+" "+dline.getM_Product().getValue()+" with storage lines:"+elines.size());
 		return false;
 	}
 

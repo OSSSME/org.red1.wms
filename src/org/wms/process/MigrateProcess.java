@@ -162,13 +162,13 @@ import org.wms.model.MWM_Migration;
 						.setParameters(huname)
 						.list();
 				if (hus.size()>1)
-					throw new AdempiereException("Duplicate Handling Unit :"+huname);
+					log.warning("Duplicate Handling Unit :"+huname);
 				WM_HandlingUnit_ID = record.getWM_HandlingUnit_ID();
 				MWM_EmptyStorageLine check = new Query(getCtx(), MWM_EmptyStorageLine.Table_Name, MWM_EmptyStorageLine.COLUMNNAME_WM_HandlingUnit_ID+"=?", get_TrxName())
 						.setParameters(WM_HandlingUnit_ID)
 						.first();
 				if (check!=null)
-					throw new AdempiereException("Handling Unit:"+hus.get(0).getName()+" in in use by "+check.getM_Product().getValue()
+					log.warning("Handling Unit:"+hus.get(0).getName()+" in in use by "+check.getM_Product().getValue()
 							+" at "+check.getWM_EmptyStorage().getM_Locator().getValue());
 				handlingunit = (MWM_HandlingUnit) record.getWM_HandlingUnit();
 				handlingunit.setDocStatus(MWM_HandlingUnit.DOCSTATUS_Completed);

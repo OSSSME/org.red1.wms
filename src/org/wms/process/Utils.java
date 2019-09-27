@@ -109,6 +109,7 @@ public class Utils {
 			else {
 				log.warning("RUN Generate HandlingUnit process.");
 				hu=generateHU();
+				WM_HandlingUnit_ID=hu.get_ID();
 			}
 		}
 		hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "

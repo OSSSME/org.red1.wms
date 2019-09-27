@@ -284,7 +284,7 @@ import org.wms.model.MWM_WarehousePick;
 				throw new AdempiereException("There is no Default Locator at "+wh.getName());
 			balance = startPutAwayProcess(inout,dline,balance,locator_id);
 				if (balance.compareTo(Env.ZERO)>0)
-					log.saveError("ERROR","Default Storage insufficient for "+balance+" "+dline.getM_Product().getValue()+" - increase capaacity to a million");
+					log.saveError("ERROR","Default Storage insufficient for "+balance+" "+dline.getM_Product().getValue()+" - increase capacity to a million");
 		}
 	}
 
@@ -307,7 +307,7 @@ import org.wms.model.MWM_WarehousePick;
 		}
 		BigDecimal alloting = uomFactors(dsline,balance);
 		BigDecimal vacancy = util.getAvailableCapacity(empty).multiply(boxConversion);	  
-		log.info("Locator "+empty.getM_Locator().getValue()+" has "+vacancy+" for "+alloting+" "+dsline.getM_Product().getName());
+		log.info("Locator "+empty.getM_Locator().getValue()+" has "+vacancy+" for "+alloting+" "+dsline.getM_Product().getValue());
 		BigDecimal holder = Env.ZERO;
 		boolean fullyfilllocator=false;
 		if (alloting.compareTo(vacancy)>=0 && IsSameLine==false){
@@ -407,7 +407,7 @@ import org.wms.model.MWM_WarehousePick;
 					.list();
 		}
 		if (elines.isEmpty()){
-			throw new AdempiereException("Product has no Storage available to pick: "+product.getName());
+			throw new AdempiereException("Product has no Storage available to pick: "+product.getValue());
  		}
 		BigDecimal eachQty=uomFactors(dline,Env.ZERO);
 		if (productholder!=dline.getM_Product_ID()) {

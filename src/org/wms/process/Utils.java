@@ -89,7 +89,7 @@ public class Utils {
 		}
 		inoutline.setWM_HandlingUnit_ID(WM_HandlingUnit_ID);
 		inoutline.saveEx(trxName);
-		log.fine(hu.getName()+" assigned to "+inoutline.getQtyPicked()+" "+inoutline.getM_Product().getValue());
+		log.info(hu.getName()+" assigned to "+inoutline.getQtyPicked()+" "+inoutline.getM_Product().getValue());
 		return inoutline;
 	}
 

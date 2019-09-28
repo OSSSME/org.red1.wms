@@ -59,7 +59,6 @@ import org.wms.model.MWM_StorageType;
 	private boolean IsSameDistribution=false;
 	private boolean IsSameLine=false;
 	private boolean movement=false; 
-	Timestamp now = new Timestamp (System.currentTimeMillis()); 
 	private String trxName = "";
 	private MBPartner partner = null;
 	private int M_Warehouse_ID = 0;
@@ -117,7 +116,7 @@ import org.wms.model.MWM_StorageType;
 	MWM_EmptyStorage target = null;
 	BigDecimal balance = Env.ZERO;
 	Utils util = null;
-	private boolean checked=false;;
+	private boolean checked=false;
 	
 	private void setTrxName() {
 		trxName = get_TrxName();
@@ -139,7 +138,7 @@ import org.wms.model.MWM_StorageType;
 					.first();
 			if (partner==null)
 				throw new AdempiereException("Create Standard BPartner first");
-		}
+		} 
 		for (MWM_EmptyStorageLine line:selection){ 
 			if (!line.isActive())
 				continue;
@@ -155,11 +154,11 @@ import org.wms.model.MWM_StorageType;
 			return "Lines done: "+done;
 		else 
 			return "Nothing Moved";
-	}
+	} 
 
 	private void mainRoutine(MWM_EmptyStorageLine line) {  
 		//Force movement - no need to check Capacity. Solve elsewhere by user. 
- 		createMovementSet(line);		
+ 		createMovementSet(line);	 
 	}
 
 	private void setTargetToLocator() {		

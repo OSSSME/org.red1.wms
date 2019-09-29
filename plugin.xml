@@ -120,5 +120,15 @@
 	<process
 		class="org.wms.process.DivideByPalletSize">
 	</process>
+</extension><extension id="org.my.process.CheckUp"
+  point="org.adempiere.base.Process">
+	<process
+		class="org.wms.process.CheckUp">
+	</process>
+</extension><extension id="org.my.process.CheckAvailability"
+  point="org.adempiere.base.Process">
+	<process
+		class="org.wms.process.CheckAvailability">
+	</process>
 </extension>
 </plugin>

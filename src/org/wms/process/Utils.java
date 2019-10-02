@@ -51,7 +51,7 @@ public class Utils {
 	public MWM_InOutLine assignHandlingUnit(boolean sameDistribution, MWM_InOutLine inoutline, BigDecimal qty) { 
 		 if (sameDistribution && same){			 
 		 }else  
-			getAvailableHandlingUnit();
+			 getAvailableHandlingUnit();
 		 //SameDistribution = use same HandlingUnit for all selected items
 		if (same){
 			hu.setQtyMovement(hu.getQtyMovement().add(qty));
@@ -94,6 +94,7 @@ public class Utils {
 	}
 
 	private void getAvailableHandlingUnit() {
+		String huname = "";
 		if (WM_HandlingUnit_ID==0) {//auto set to last Org HU - create more if needed
 			int AD_Org_ID = Env.getAD_Org_ID(Env.getCtx());
 			//get last name of Org HandlingUnit
@@ -103,40 +104,43 @@ public class Utils {
 					.setOrderBy(MWM_HandlingUnit.COLUMNNAME_Name)
 					.first();
 			if (hu!=null)
-				WM_HandlingUnit_ID=hu.get_ID();
+				huname=hu.getName();
 			else if (AD_Org_ID==0)
 				throw new AdempiereException("Check your Organization - "+AD_Org_ID);
 			else {
-				log.warning("RUN Generate HandlingUnit process.");
-				hu=generateHU();
-				WM_HandlingUnit_ID=hu.get_ID();
+				log.warning("RUN Generate HandlingUnit process."); 
+				 nextDraftHU(huname());
+				 return;
 			}
-		}
-		hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "
-				+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)
-				.setParameters(WM_HandlingUnit_ID,MWM_HandlingUnit.DOCSTATUS_Drafted) 
-				.setOrderBy(MWM_HandlingUnit.COLUMNNAME_Name)
-				.first();
-		if (hu==null) {//try again, open to more later ones	
-			hu = new MWM_HandlingUnit(Env.getCtx(), WM_HandlingUnit_ID, trxName);
-			String huname = hu.getName();
-			hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_Name+">? AND "
-				+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)
-				.setParameters(huname,MWM_HandlingUnit.DOCSTATUS_Drafted) 
-				.setOrderBy(MWM_HandlingUnit.COLUMNNAME_Name)
-				.first();
-			if (hu==null) {
-				log.warning("No more Available HandlingUnits. Generate again. "+huname);
-				hu=generateHU();
-			}
-			WM_HandlingUnit_ID = hu.get_ID(); 
+		} else {
+			huname = huname();
 		} 
+		nextDraftHU(huname);
 	}
 
-	private MWM_HandlingUnit generateHU() {
+	private String huname() {
+		String huname;
+		hu = new MWM_HandlingUnit(Env.getCtx(), WM_HandlingUnit_ID, trxName);
+		huname = hu.getName();
+		return huname;
+	}
+
+	private void nextDraftHU(String huname) {
+		hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_Name+">? AND "
+			+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)
+			.setParameters(huname.substring(0,huname.length()-1),MWM_HandlingUnit.DOCSTATUS_Drafted) 
+			.setOrderBy(MWM_HandlingUnit.COLUMNNAME_Name)
+			.first();
+		if (hu==null) {
+			generateHU();
+			nextDraftHU(huname);
+		}
+	}
+
+	private void generateHU() {
 		int AD_Org_ID=Env.getAD_Org_ID(Env.getCtx());
 		int leading = 3;
-		int Counter=50;
+		int Counter=200;
 		StringBuilder zeros = new StringBuilder();
 		for (int i=0;i<leading;i++) {
 			zeros.append("0");
@@ -155,14 +159,13 @@ public class Utils {
 			throw new AdempiereException("Your Org has no Handling Unit. Create one first manually");
 		for (int i=0;i<Counter;i++) {
 			 createHandlingUnit(lasthu,leading+3,last++); 
-		}
-		return lasthu;
+		} 
 	}
 
 	private void createHandlingUnit(MWM_HandlingUnit lasthu,int zeros,int serial) { 
 		String Prefix = lasthu.getName().substring(0,2);
 		String name = Prefix+String.format("%0"+zeros+"d", serial);
-		MWM_HandlingUnit hu = new Query(Env.getCtx(), MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_Name+"=?",trxName)
+		hu = new Query(Env.getCtx(), MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_Name+"=?",trxName)
 				.setParameters(name)
 				.first();
 		if (hu!= null)

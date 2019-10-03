@@ -109,13 +109,17 @@ public class Utils {
 				throw new AdempiereException("Check your Organization - "+AD_Org_ID);
 			else {
 				log.warning("RUN Generate HandlingUnit process."); 
-				 nextDraftHU(huname());
+				 generateHU();
+				 nextDraftHU(hu.getName());
 				 return;
 			}
 		} else {
 			huname = huname();
 		} 
-		nextDraftHU(huname);
+		if (nextDraftHU(huname)==null){
+			generateHU();
+			nextDraftHU(huname);
+		}
 	}
 
 	private String huname() {
@@ -125,16 +129,16 @@ public class Utils {
 		return huname;
 	}
 
-	private void nextDraftHU(String huname) {
+	private MWM_HandlingUnit nextDraftHU(String huname) {
 		hu = new Query(Env.getCtx(),MWM_HandlingUnit.Table_Name,MWM_HandlingUnit.COLUMNNAME_Name+">? AND "
 			+MWM_HandlingUnit.COLUMNNAME_DocStatus+"=?",trxName)
-			.setParameters(huname.substring(0,huname.length()-1),MWM_HandlingUnit.DOCSTATUS_Drafted) 
+			.setParameters(huname.substring(0,huname.length()-3),MWM_HandlingUnit.DOCSTATUS_Drafted) 
 			.setOrderBy(MWM_HandlingUnit.COLUMNNAME_Name)
 			.first();
-		if (hu==null) {
-			generateHU();
-			nextDraftHU(huname);
+		if (hu!=null) {
+			WM_HandlingUnit_ID=hu.get_ID();
 		}
+		return hu;
 	}
 
 	private void generateHU() {

@@ -452,15 +452,8 @@ public class Utils {
 			if (!org && elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Warehouse_ID()!=WH) {
 				elines.remove(i);
 				i--;
-			}else if (org) {
-				int t = elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Warehouse().getAD_Org_ID();
-				if (t!=Env.getAD_Org_ID(Env.getCtx())) {
-					elines.remove(i);
-					i--;
-				}
 			}
-			else
-			if (elines.get(i).getQtyMovement().compareTo(Env.ZERO)==0) {
+			else if (elines.get(i).getQtyMovement().compareTo(Env.ZERO)==0) {
 				elines.remove(i); 
 				i--;
 			}
@@ -470,23 +463,22 @@ public class Utils {
 				elines.remove(i); 
 				i--;
 			}
-			else 
-			if (elines.get(i).getWM_EmptyStorage().isBlocked()) {
+			else if (elines.get(i).getWM_EmptyStorage().isBlocked()) {
 				elines.remove(i);
 				i--;
-			}
-		 }
-		return elines;
-	}
-	public List<MWM_EmptyStorageLine> removeOtherOrgBlockedAndZero(boolean org, I_M_Locator locator, List<MWM_EmptyStorageLine> elines) {
-		 for (int i=0; i<elines.size();i++) {
-			 if (org) {
+			}else if (org) {
 				int t = elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Warehouse().getAD_Org_ID();
 				if (t!=Env.getAD_Org_ID(Env.getCtx())) {
 					elines.remove(i);
 					i--;
 				}
-			}else if (!org && locator!=null && elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Locator_ID()!=locator.getM_Locator_ID()) {
+			}
+		 }
+		return elines;
+	}
+	public List<MWM_EmptyStorageLine> removeOtherOrgBlockedAndZero(boolean org, I_M_Locator locator, List<MWM_EmptyStorageLine> elines) {
+		 for (int i=0; i<elines.size();i++) { 
+			if (!org && locator!=null && elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Locator_ID()!=locator.getM_Locator_ID()) {
 				elines.remove(i);
 				i--;
 			}else if (elines.get(i).getWM_HandlingUnit_ID()==0) {
@@ -515,6 +507,12 @@ public class Utils {
 						+" "+elines.get(i).getWM_HandlingUnit().getName()+" HandlingUnit Storage Line held up by"+inout.getName());
 				elines.remove(i);
 				i--;
+			}else if (org) {
+				int t = elines.get(i).getWM_EmptyStorage().getM_Locator().getM_Warehouse().getAD_Org_ID();
+				if (t!=Env.getAD_Org_ID(Env.getCtx())) {
+					elines.remove(i);
+					i--;
+				}
 			}
 		 }
 		return elines;

@@ -535,12 +535,13 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 				continue;
 				// ************* RETURN FOR IN PROGRESS PICKING/PUTAWAY ** NO STORAGE CHANGE NEEDED
 			}
-			//Completed Picking/Putaway
+			//Completed Picking/Putaway				
+			MWM_EmptyStorage empty = new Query(Env.getCtx(), MWM_EmptyStorage.Table_Name, MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",get_TrxName())
+			.setParameters(wioline.getM_Locator_ID())
+			.first();
 			if (eline==null) {
 				log.warning("StorageLine not found by Picking Line:"+wioline.getQtyPicked()+" "+wioline.getM_Product().getValue());
-				MWM_EmptyStorage empty = new Query(Env.getCtx(), MWM_EmptyStorage.Table_Name, MWM_EmptyStorage.COLUMNNAME_M_Locator_ID+"=?",get_TrxName())
-						.setParameters(wioline.getM_Locator_ID())
-						.first();
+
 				//try old handling unit
 				if (wioline.getWM_HandlingUnitOld_ID()>0) {
 					eline = new Query(Env.getCtx(), MWM_EmptyStorageLine.Table_Name, MWM_EmptyStorageLine.COLUMNNAME_WM_HandlingUnit_ID+"=? AND "
@@ -556,8 +557,20 @@ public class MWM_InOut extends X_WM_InOut implements DocAction {
 					log.info("Intact Handling Unit "+wioline.getWM_HandlingUnit().getName());
 				}
 			}
-			if (eline==null)
-				throw new AdempiereException("No StorageLine via Handling Unit:"+wioline.getWM_HandlingUnit().getName());
+			if (eline==null) {
+				log.warning("No StorageLine via Handling Unit:"+wioline.getWM_HandlingUnit().getName());
+				//find another Eline from same locator to restore.
+				eline=new Query(getCtx(), MWM_EmptyStorageLine.Table_Name, MWM_EmptyStorageLine.COLUMNNAME_M_Product_ID+"=? AND "
+						+MWM_EmptyStorageLine.COLUMNNAME_WM_EmptyStorage_ID+"=? AND "
+						+MWM_EmptyStorageLine.COLUMNNAME_QtyMovement+">=?",get_TrxName())
+						.setParameters(wioline.getM_Product_ID(),empty.get_ID(),wioline.getQtyPicked())
+						.first();
+				if (eline==null) {
+					log.severe("FATAL !! can't restore:"+wioline.getQtyPicked()+" "+wioline.getM_Product().getValue()+" at "+empty.getM_Locator().getValue());
+					continue;
+				}
+				log.info("Found finally at HandlingUnit "+eline.getWM_HandlingUnit().getName()+" "+eline.getQtyMovement()+" "+eline.getM_Product().getValue());
+			}
 			if (isSOTrx()) {
 				log.info("Picking Storage at "+eline.getWM_EmptyStorage().getM_Locator().getValue()+" restored by "+wioline.getQtyPicked()+" "+eline.getM_Product().getValue());
 				eline.setQtyMovement(eline.getQtyMovement().add(wioline.getQtyPicked()));
